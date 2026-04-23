@@ -3,28 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workspace - Dakreativ</title>
+    <title>Workspace - Molusca Project</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        }
+    </style>
 </head>
-<body class="bg-[#FBFBFE]" onload="initApp()">
+<body class="bg-[#FBFBFE]" onload="initApp()" oncontextmenu="return false;">
     <script>
+        document.addEventListener('keydown', function(e) { if (e.ctrlKey && ['c','u','s','p','a'].includes(e.key.toLowerCase())) e.preventDefault(); });
+
         const firebaseConfig = {
             apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
-            authDomain: "appsmoluscadesign.firebaseapp.com",
+            authDomain: "appmoluscadesign.firebaseapp.com",
             databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "appsmoluscadesign",
-            storageBucket: "appsmoluscadesign.firebasestorage.app",
+            projectId: "appmoluscadesign",
+            storageBucket: "appmoluscadesign.firebasestorage.app",
             messagingSenderId: "800709666958",
             appId: "1:800709666958:web:66f97b271f736e17c981df"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUser = localStorage.getItem('dakreativUser');
+        let currentUser = localStorage.getItem('moluscaUser');
         function initApp() {
             if(!currentUser || currentUser === 'admin') window.location.href = 'index.html';
             document.getElementById('userName').innerText = currentUser;
@@ -55,35 +63,8 @@
             document.getElementById('pTitle').value = '';
         }
 
-        function logout() { localStorage.removeItem('dakreativUser'); window.location.href = 'index.html'; }
-    </script>
+        function logout() { localStorage.removeItem('moluscaUser'); window.location.href = 'index.html'; }
 
-    <header class="bg-white px-6 py-5 border-b border-slate-100 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md bg-white/80">
-        <h1 class="text-xs font-black text-slate-900 uppercase tracking-[0.3em]"><span class="text-pink-500">HI,</span> <span id="userName">...</span></h1>
-        <button onclick="logout()" class="text-[10px] font-black text-red-500 bg-red-50 px-3 py-1.5 rounded-lg uppercase tracking-tighter">Logout</button>
-    </header>
-
-    <main class="p-4 max-w-2xl mx-auto space-y-10">
-        <section class="bg-slate-900 p-6 rounded-[28px] shadow-xl shadow-slate-200">
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Lapor Tugas Baru (Manual)</h3>
-            <form onsubmit="sendPrintilan(event)" class="flex gap-2">
-                <input type="text" id="pTitle" required placeholder="Deskripsi kerjaan..." class="flex-grow bg-white/10 border-none p-4 text-white text-sm rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
-                <button class="bg-blue-600 text-white px-6 py-2 rounded-2xl text-xs font-black uppercase">Go</button>
-            </form>
-        </section>
-
-        <div>
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 ml-1">Active Projects</h3>
-            <div id="active-list" class="space-y-6"></div>
-        </div>
-        
-        <div class="pt-8 opacity-40">
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 ml-1">Completed Today</h3>
-            <div id="final-list" class="space-y-4"></div>
-        </div>
-    </main>
-
-    <script>
         function renderTasks(myTasks) {
             const active = document.getElementById('active-list');
             const final = document.getElementById('final-list');
@@ -91,34 +72,69 @@
 
             myTasks.reverse().forEach(task => {
                 const card = document.createElement('div');
-                let badge = (task.isPrintilan && !task.isApproved) ? '<div class="text-[9px] bg-yellow-400 font-black px-2 py-1 rounded-md mb-3 inline-block tracking-tighter uppercase">Waiting Approval</div>' : '';
-                let jo = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-black mr-2 uppercase text-[11px] tracking-tighter">#${task.joCode}</span>`;
+                let badge = (task.isPrintilan && !task.isApproved) ? `<div class="text-[9px] bg-yellow-400 font-black px-2 py-1 rounded-md mb-3 inline-flex items-center gap-1 tracking-tighter uppercase"><i class="ph-fill ph-hourglass-high"></i> Waiting Approval</div>` : '';
+                let jo = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-black mr-2 uppercase text-[11px] tracking-tighter"><i class="ph ph-hash"></i>${task.joCode}</span>`;
 
                 if(task.status === 'Final') {
-                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center text-xs font-bold";
-                    card.innerHTML = `<span class="text-slate-400">${jo} ${task.title}</span>`;
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center text-xs font-bold opacity-60";
+                    card.innerHTML = `<span class="text-slate-400">${jo} ${task.title}</span> <span class="text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded-md flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> FINAL</span>`;
                     final.appendChild(card);
                 } else {
-                    let statusColor = "text-blue-600 bg-blue-50/50";
-                    if(task.status === 'Nunggu Revisi') statusColor = "text-red-500 bg-red-50";
-                    if(task.status === 'Tinggal Layout') statusColor = "text-orange-500 bg-orange-50";
+                    let statusColor = "text-blue-600 bg-blue-50/50 border-blue-100";
+                    if(task.status === 'Nunggu Revisi') statusColor = "text-red-500 bg-red-50 border-red-100";
+                    if(task.status === 'Tinggal Layout') statusColor = "text-orange-500 bg-orange-50 border-orange-100";
 
-                    card.className = "bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col gap-4";
+                    let isUrgent = task.priority === 'Urgent';
+                    let urgentUI = isUrgent ? `<span class="text-[10px] font-black text-red-500 uppercase flex items-center gap-1 bg-red-50 px-2 py-1 rounded-md animate-pulse border border-red-200 shadow-[0_0_10px_rgba(239,68,68,0.5)]"><i class="ph-fill ph-warning-circle"></i> URGENT</span>` : '';
+                    let cardBorder = isUrgent ? 'border-red-300 shadow-red-100 ring-2 ring-red-50' : 'border-slate-100';
+
+                    card.className = `bg-white p-6 rounded-[32px] border shadow-sm flex flex-col gap-4 transition-all ${cardBorder}`;
                     card.innerHTML = `
                         ${badge}
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${task.dateStr} | ${task.timeAssigned} WIB</div>
-                        <h4 class="font-black text-xl leading-tight text-slate-900 tracking-tighter">${jo} ${task.title}</h4>
-                        <div class="text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-widest">From: ${task.sender}</div>
-                        <select onchange="updateStatus('${task.id}', this.value)" class="w-full bg-slate-50 border-none p-5 rounded-[20px] font-black text-sm outline-none cursor-pointer transition ${statusColor}">
-                            <option value="Lagi Dikerjain" ${task.status === 'Lagi Dikerjain' ? 'selected' : ''}>⏳ Lagi Dikerjain</option>
-                            <option value="Nunggu Revisi" ${task.status === 'Nunggu Revisi' ? 'selected' : ''}>✍️ Nunggu Revisi</option>
-                            <option value="Tinggal Layout" ${task.status === 'Tinggal Layout' ? 'selected' : ''}>🧩 Tinggal Layout</option>
-                            <option value="Final" ${task.status === 'Final' ? 'selected' : ''}>✅ Final</option>
-                        </select>`;
+                        <div class="flex justify-between items-center">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1"><i class="ph ph-calendar-blank"></i> ${task.dateStr} | ${task.timeAssigned} WIB</div>
+                            ${urgentUI}
+                        </div>
+                        <h4 class="font-black text-xl leading-tight text-slate-900 tracking-tighter mt-1">${jo} ${task.title}</h4>
+                        <div class="text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-widest flex items-center gap-1"><i class="ph-fill ph-paper-plane-tilt"></i> From: ${task.sender}</div>
+                        <div class="relative">
+                            <select onchange="updateStatus('${task.id}', this.value)" class="w-full border p-4 rounded-[20px] font-black text-sm outline-none cursor-pointer transition appearance-none pl-10 ${statusColor}">
+                                <option value="Lagi Dikerjain" ${task.status === 'Lagi Dikerjain' ? 'selected' : ''}>⏳ Lagi Dikerjain</option>
+                                <option value="Nunggu Revisi" ${task.status === 'Nunggu Revisi' ? 'selected' : ''}>✍️ Nunggu Revisi</option>
+                                <option value="Tinggal Layout" ${task.status === 'Tinggal Layout' ? 'selected' : ''}>🧩 Tinggal Layout</option>
+                                <option value="Final" ${task.status === 'Final' ? 'selected' : ''}>✅ Final</option>
+                            </select>
+                            <i class="ph-fill ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+                        </div>`;
                     active.appendChild(card);
                 }
             });
         }
     </script>
+
+    <header class="bg-white/80 backdrop-blur-md px-6 py-5 border-b border-slate-100 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-xs font-black text-slate-900 uppercase tracking-[0.3em] flex items-center gap-2"><i class="ph-fill ph-hexagon text-blue-600 text-lg"></i> Molusca | <span id="userName" class="text-blue-600">...</span></h1>
+        <button onclick="logout()" class="text-[10px] font-black text-red-500 bg-red-50 px-3 py-2 rounded-xl uppercase tracking-widest hover:bg-red-100 flex items-center gap-1"><i class="ph-fill ph-sign-out"></i> Logout</button>
+    </header>
+
+    <main class="p-4 max-w-2xl mx-auto space-y-10">
+        <section class="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1"><i class="ph-fill ph-lightning text-yellow-500 text-sm"></i> Lapor Tugas Manual</h3>
+            <form onsubmit="sendPrintilan(event)" class="flex gap-2">
+                <input type="text" id="pTitle" required placeholder="Deskripsi tugas extra..." autocomplete="off" class="flex-grow bg-white/10 border-none px-4 py-3 text-white text-sm rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <button class="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase flex items-center gap-1 hover:bg-blue-500 transition"><i class="ph-fill ph-paper-plane-right"></i></button>
+            </form>
+        </section>
+
+        <div>
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 ml-1 flex items-center gap-2"><i class="ph-fill ph-kanban text-lg"></i> Active Projects</h3>
+            <div id="active-list" class="space-y-6"></div>
+        </div>
+        
+        <div class="pt-8 opacity-50">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 ml-1 flex items-center gap-2"><i class="ph-fill ph-check-circle text-lg"></i> Completed</h3>
+            <div id="final-list" class="space-y-4"></div>
+        </div>
+    </main>
 </body>
 </html>
