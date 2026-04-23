@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Bos & Lead - PT Dakreativ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b-4 border-blue-800">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Dashboard Manajemen</h1>
+            <p class="text-sm text-gray-500">Akses: Bos & Lead (Dadan)</p>
+        </div>
+        <a href="desainer.html" class="text-sm bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-200 transition">Lihat Tampilan Desainer ➔</a>
+    </header>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-8">
+        <section class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h2 class="text-lg font-bold mb-4">Berikan Tugas Baru</h2>
+            <form id="taskForm" class="flex flex-wrap gap-4 items-end">
+                <div class="flex-grow min-w-[250px]">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Project</label>
+                    <input type="text" id="taskTitle" required placeholder="Contoh: Desain Feed IG" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500">
+                </div>
+                <div class="w-48">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Desainer</label>
+                    <select id="assignee" required class="w-full border border-gray-300 rounded-lg p-2.5 bg-white outline-none focus:border-blue-500">
+                        <option value="Indah">Indah</option>
+                        <option value="Nayla">Nayla</option>
+                        <option value="Tya">Tya</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-md">Input Kerjaan</button>
+            </form>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold mb-6 border-b pb-2">Pantauan Pekerjaan Tim</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg text-center mb-4 pb-2 border-b-2 border-pink-400">INDAH</h3>
+                    <div id="board-indah" class="space-y-4"></div>
+                </div>
+                <div class="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg text-center mb-4 pb-2 border-b-2 border-purple-400">NAYLA</h3>
+                    <div id="board-nayla" class="space-y-4"></div>
+                </div>
+                <div class="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                    <h3 class="font-bold text-lg text-center mb-4 pb-2 border-b-2 border-teal-400">TYA</h3>
+                    <div id="board-tya" class="space-y-4"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
+
+        function saveAndRender() {
+            localStorage.setItem('dakreativTasks', JSON.stringify(tasks));
+            renderBoard();
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            const newTask = {
+                id: Date.now(),
+                title: document.getElementById('taskTitle').value,
+                assignee: document.getElementById('assignee').value,
+                dateStr: dateStr,
+                timeAssigned: timeStr,
+                status: 'Lagi Dikerjain'
+            };
+
+            tasks.unshift(newTask); // Masukkan ke paling atas
+            saveAndRender();
+            document.getElementById('taskTitle').value = '';
+        });
+
+        function renderBoard() {
+            const boards = { 'Indah': document.getElementById('board-indah'), 'Nayla': document.getElementById('board-nayla'), 'Tya': document.getElementById('board-tya') };
+            Object.values(boards).forEach(b => b.innerHTML = '');
+
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-3 rounded-lg shadow-sm border border-gray-200";
+                card.innerHTML = `
+                    <div class="text-[10px] text-gray-400 font-bold mb-1">${task.dateStr} | ⏰ ${task.timeAssigned} WIB</div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-2">${task.title}</h4>
+                    <div class="text-xs font-semibold px-2 py-1 rounded bg-gray-100 inline-block text-gray-700">Status: ${task.status}</div>
+                `;
+                if(boards[task.assignee]) boards[task.assignee].appendChild(card);
+            });
+        }
+        
+        // Auto refresh untuk simulasi jika desainer update status di tab lain
+        window.addEventListener('storage', () => {
+            tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
+            renderBoard();
+        });
+
+        renderBoard();
+    </script>
+</body>
+</html>
