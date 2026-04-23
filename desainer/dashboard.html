@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8"><title>Dashboard - Molusca Project</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Molusca Project</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -12,6 +14,9 @@
             font-family: 'Plus Jakarta Sans', sans-serif; 
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         }
+        /* CSS Tambahan agar scroll geser di HP terlihat rapi dan tidak ada scrollbar jelek */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-[#FBFBFE] pb-20" onload="checkLogin()" oncontextmenu="return false;">
@@ -68,7 +73,7 @@
         function logout() { localStorage.removeItem('moluscaUser'); window.location.href = 'index.html'; }
 
         function renderBoard(tasks) {
-            // === TAMBAHAN DADAN DI SINI ===
+            // === NAMA DADAN SUDAH DITAMBAHKAN DI SINI ===
             const columns = { 
                 'Indah': document.getElementById('board-Indah'), 
                 'Nayla': document.getElementById('board-Nayla'), 
@@ -81,10 +86,10 @@
             tasks.reverse().forEach(task => {
                 const card = document.createElement('div');
                 let jo = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-black mr-2 tracking-tighter uppercase"><i class="ph ph-hash"></i>${task.joCode}</span>`;
-                let delBtn = `<button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 transition-colors" title="Hapus Tugas"><i class="ph-fill ph-trash text-sm"></i></button>`;
+                let delBtn = `<button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 transition-colors" title="Hapus Tugas"><i class="ph-fill ph-trash text-lg"></i></button>`;
 
                 if (task.status === 'Final') {
-                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 opacity-70 text-[11px] font-bold text-slate-400 flex justify-between items-start";
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 opacity-70 text-[11px] font-bold text-slate-400 flex justify-between items-start shrink-0 min-w-[200px]";
                     card.innerHTML = `<div><div class="line-through">${jo} ${task.title}</div><div class="mt-2 text-[9px] uppercase tracking-widest text-green-500"><i class="ph-fill ph-check-circle mr-1"></i>${task.assignee}</div></div> ${delBtn}`;
                     finalBoard.appendChild(card);
                 } else {
@@ -98,7 +103,7 @@
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter"><i class="ph ph-calendar-blank"></i> ${task.dateStr} | ${task.timeAssigned}</span>
                             ${task.priority === 'Urgent' ? '<span class="text-[9px] font-black text-red-500 uppercase flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>' : ''}
                         </div>
-                        <h4 class="font-extrabold text-slate-900 text-sm leading-tight mb-2 pr-6">${jo} ${task.title}</h4>
+                        <h4 class="font-extrabold text-slate-900 text-sm leading-tight mb-2 pr-8">${jo} ${task.title}</h4>
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1"><i class="ph-fill ph-paper-plane-tilt"></i> By: ${task.sender}</div>
                         <div class="flex items-center gap-2">
                             <span class="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-1.5 rounded-md uppercase flex items-center gap-1"><i class="ph-fill ph-clock-countdown"></i> ${task.status}</span>
@@ -119,62 +124,72 @@
         <button onclick="logout()" class="text-xs font-bold text-red-500 bg-red-50 px-4 py-2 rounded-xl flex items-center gap-1 hover:bg-red-100"><i class="ph-fill ph-sign-out"></i> LOGOUT</button>
     </header>
 
-    <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-10">
+    <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+        
         <section class="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-blue-600 text-lg"></i> Create New Task</h2>
-            <form id="taskForm" onsubmit="sendTask(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-blue-600 text-lg"></i> Create New Task</h2>
+            <form id="taskForm" onsubmit="sendTask(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div class="relative">
                     <i class="ph ph-hash absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="taskJO" required placeholder="JO CODE" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500/20">
+                    <input type="text" id="taskJO" required placeholder="JO CODE" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold uppercase focus:ring-2 focus:ring-blue-500/20">
                 </div>
                 <div class="relative md:col-span-1">
                     <i class="ph ph-folder absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="taskTitle" required placeholder="PROJECT NAME" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500/20">
+                    <input type="text" id="taskTitle" required placeholder="PROJECT NAME" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-blue-500/20">
                 </div>
                 <div class="relative">
                     <i class="ph ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="taskSender" required placeholder="SENDER" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold focus:ring-2 focus:ring-blue-500/20">
+                    <input type="text" id="taskSender" required placeholder="SENDER" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-blue-500/20">
                 </div>
                 <div class="relative">
                     <i class="ph ph-warning-circle absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <select id="taskPriority" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold outline-none appearance-none">
-                        <option value="Normal">NORMAL</option>
-                        <option value="Urgent">URGENT</option>
+                    <select id="taskPriority" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold outline-none appearance-none">
+                        <option value="Normal">🟢 NORMAL</option>
+                        <option value="Urgent">🔴 URGENT</option>
                     </select>
                 </div>
                 <div class="relative">
                     <i class="ph ph-users absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <select id="assignee" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold outline-none appearance-none">
-                        <option>Indah</option><option>Nayla</option><option>Tya</option><option>Dadan</option>
+                    <select id="assignee" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold outline-none appearance-none">
+                        <option value="Indah">Indah</option>
+                        <option value="Nayla">Nayla</option>
+                        <option value="Tya">Tya</option>
+                        <option value="Dadan">Dadan</option>
                     </select>
                 </div>
-                <button type="submit" class="md:col-span-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition flex justify-center items-center gap-2"><i class="ph-fill ph-paper-plane-right"></i> KIRIM TUGAS</button>
+                <button type="submit" class="md:col-span-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition flex justify-center items-center gap-2 mt-2"><i class="ph-fill ph-paper-plane-right"></i> KIRIM TUGAS</button>
             </form>
         </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="space-y-4">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-pink-500 text-lg"></i> Indah</h3>
+        <div class="flex overflow-x-auto pb-6 gap-6 hide-scroll snap-x snap-mandatory w-full">
+            
+            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-pink-500 text-xl"></i> Indah</h3>
                 <div id="board-Indah" class="space-y-4"></div>
             </div>
-            <div class="space-y-4">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-purple-500 text-lg"></i> Nayla</h3>
+
+            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-purple-500 text-xl"></i> Nayla</h3>
                 <div id="board-Nayla" class="space-y-4"></div>
             </div>
-            <div class="space-y-4">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-teal-500 text-lg"></i> Tya</h3>
+
+            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-teal-500 text-xl"></i> Tya</h3>
                 <div id="board-Tya" class="space-y-4"></div>
             </div>
-            <div class="space-y-4">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-lg"></i> Dadan</h3>
+
+            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-xl"></i> Dadan</h3>
                 <div id="board-Dadan" class="space-y-4"></div>
             </div>
+
         </div>
 
-        <section class="pt-10 border-t border-slate-100">
-            <h2 class="text-xs font-black text-green-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-2"><i class="ph-fill ph-archive-box text-lg"></i> Final Archive</h2>
-            <div id="board-final" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        <section class="pt-6 border-t border-slate-100">
+            <h2 class="text-xs font-black text-green-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2"><i class="ph-fill ph-archive-box text-lg"></i> Final Archive</h2>
+            <div id="board-final" class="flex overflow-x-auto pb-4 gap-4 hide-scroll w-full"></div>
         </section>
+
     </main>
 </body>
 </html>
