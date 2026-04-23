@@ -68,7 +68,13 @@
         function logout() { localStorage.removeItem('moluscaUser'); window.location.href = 'index.html'; }
 
         function renderBoard(tasks) {
-            const columns = { 'Indah': document.getElementById('board-Indah'), 'Nayla': document.getElementById('board-Nayla'), 'Tya': document.getElementById('board-Tya') };
+            // === TAMBAHAN DADAN DI SINI ===
+            const columns = { 
+                'Indah': document.getElementById('board-Indah'), 
+                'Nayla': document.getElementById('board-Nayla'), 
+                'Tya': document.getElementById('board-Tya'),
+                'Dadan': document.getElementById('board-Dadan') 
+            };
             const finalBoard = document.getElementById('board-final');
             Object.values(columns).forEach(c => c.innerHTML = ''); finalBoard.innerHTML = '';
 
@@ -139,14 +145,14 @@
                 <div class="relative">
                     <i class="ph ph-users absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <select id="assignee" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-sm font-bold outline-none appearance-none">
-                        <option>Indah</option><option>Nayla</option><option>Tya</option>
+                        <option>Indah</option><option>Nayla</option><option>Tya</option><option>Dadan</option>
                     </select>
                 </div>
                 <button type="submit" class="md:col-span-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition flex justify-center items-center gap-2"><i class="ph-fill ph-paper-plane-right"></i> KIRIM TUGAS</button>
             </form>
         </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-pink-500 text-lg"></i> Indah</h3>
                 <div id="board-Indah" class="space-y-4"></div>
@@ -158,6 +164,10 @@
             <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-teal-500 text-lg"></i> Tya</h3>
                 <div id="board-Tya" class="space-y-4"></div>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-lg"></i> Dadan</h3>
+                <div id="board-Dadan" class="space-y-4"></div>
             </div>
         </div>
 
