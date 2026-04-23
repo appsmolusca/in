@@ -1,248 +1,119 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Manajemen - Molusca</title>
+    <meta charset="UTF-8"><title>Lead Dashboard - Dakreativ</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
-
+<body class="bg-gray-50 pb-20" onload="checkLogin()">
     <script>
-        if (localStorage.getItem('dakreativUser') !== 'admin') {
-            window.location.href = 'index.html';
-        }
-        function logoutAdmin() {
-            localStorage.removeItem('dakreativUser');
-            window.location.href = 'index.html';
-        }
-    </script>
+        // === KODE FIREBASE KANG DADAN ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
+            authDomain: "appsmoluscadesign.firebaseapp.com",
+            databaseURL: "https://appsmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "appsmoluscadesign",
+            storageBucket: "appsmoluscadesign.firebasestorage.app",
+            messagingSenderId: "800709666958",
+            appId: "1:800709666958:web:66f97b271f736e17c981df",
+            measurementId: "G-ZPZYPGX55H"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b-4 border-blue-800 sticky top-0 z-50">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-gray-900 leading-tight">Dashboard Manajemen</h1>
-            <p class="text-xs md:text-sm text-gray-500">Molusca • Akses Admin</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <span class="hidden md:block text-sm font-medium text-gray-400 italic">Mode: Administrator</span>
-            <button onclick="logoutAdmin()" class="text-sm bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-200 transition shadow-sm border border-red-200">Logout</button>
-        </div>
-    </header>
-
-    <main class="p-4 md:p-6 max-w-7xl mx-auto space-y-8">
-        
-        <section class="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
-                Berikan Tugas Harian Baru
-            </h2>
-            <form id="taskForm" class="flex flex-wrap gap-4 items-end">
-                <div class="w-full md:w-32">
-                    <label class="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Kode JO</label>
-                    <input type="text" id="taskJO" required placeholder="JO-001" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500 font-bold text-blue-700 bg-gray-50 uppercase">
-                </div>
-                <div class="flex-grow min-w-[200px]">
-                    <label class="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Nama Project</label>
-                    <input type="text" id="taskTitle" required placeholder="Contoh: Desain Brosur Dakreativ" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500">
-                </div>
-                <div class="w-full md:w-40">
-                    <label class="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Pengirim</label>
-                    <input type="text" id="taskSender" required placeholder="Cth: Bos / Lead" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500">
-                </div>
-                <div class="w-full md:w-32">
-                    <label class="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Prioritas</label>
-                    <select id="taskPriority" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white outline-none focus:border-blue-500 font-medium">
-                        <option value="Normal">🟢 Normal</option>
-                        <option value="Urgent">🔴 Urgent</option>
-                    </select>
-                </div>
-                <div class="w-full md:w-40">
-                    <label class="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Pilih Desainer</label>
-                    <select id="assignee" required class="w-full border border-gray-300 rounded-lg p-2.5 bg-white outline-none focus:border-blue-500 font-bold">
-                        <option value="Indah">Indah</option>
-                        <option value="Nayla">Nayla</option>
-                        <option value="Tya">Tya</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full md:w-auto bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-8 rounded-lg transition shadow-lg shadow-blue-200">Kirim Tugas</button>
-            </form>
-        </section>
-
-        <section>
-            <div class="flex justify-between items-end mb-6 border-b pb-2">
-                <h2 class="text-xl font-bold text-gray-900">Pekerjaan Sedang Berjalan (Active)</h2>
-                <span class="text-[10px] md:text-xs text-gray-400 italic">Pekerjaan akan otomatis hilang jika status "Final"</span>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-100 p-4 rounded-2xl border border-gray-200">
-                    <div class="flex justify-between items-center mb-4 pb-2 border-b-2 border-pink-400">
-                        <h3 class="font-extrabold text-gray-700 tracking-widest uppercase">INDAH</h3>
-                        <span id="count-Indah" class="bg-pink-200 text-pink-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-                    </div>
-                    <div id="board-Indah" class="space-y-4"></div>
-                </div>
-
-                <div class="bg-gray-100 p-4 rounded-2xl border border-gray-200">
-                    <div class="flex justify-between items-center mb-4 pb-2 border-b-2 border-purple-400">
-                        <h3 class="font-extrabold text-gray-700 tracking-widest uppercase">NAYLA</h3>
-                        <span id="count-Nayla" class="bg-purple-200 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-                    </div>
-                    <div id="board-Nayla" class="space-y-4"></div>
-                </div>
-
-                <div class="bg-gray-100 p-4 rounded-2xl border border-gray-200">
-                    <div class="flex justify-between items-center mb-4 pb-2 border-b-2 border-teal-400">
-                        <h3 class="font-extrabold text-gray-700 tracking-widest uppercase">TYA</h3>
-                        <span id="count-Tya" class="bg-teal-200 text-teal-700 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-                    </div>
-                    <div id="board-Tya" class="space-y-4"></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="mt-12 bg-green-50 p-6 rounded-2xl border border-green-200 shadow-inner">
-            <h2 class="text-xl font-bold mb-4 border-b border-green-300 pb-2 text-green-800 flex items-center gap-2">
-                <span>✅ Riwayat Pekerjaan Final</span>
-                <span id="count-Final" class="bg-green-200 text-green-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">0</span>
-            </h2>
-            <div id="board-final" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                </div>
-        </section>
-
-    </main>
-
-    <script>
-        let tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
-
-        function saveAndRender() {
-            localStorage.setItem('dakreativTasks', JSON.stringify(tasks));
-            renderBoard();
+        function checkLogin() {
+            if (localStorage.getItem('dakreativUser') !== 'admin') window.location.href = 'index.html';
+            loadData();
         }
 
-        // FUNGSI APPROVAL UNTUK PRINTILAN (INPUT DESAINER)
-        function approveTask(id) {
-            const index = tasks.findIndex(t => t.id === id);
-            if(index !== -1) {
-                tasks[index].isApproved = true;
-                saveAndRender();
-            }
-        }
-
-        function rejectTask(id) {
-            if(confirm("Hapus laporan kerjaan printilan ini?")) {
-                tasks = tasks.filter(t => t.id !== id);
-                saveAndRender();
-            }
-        }
-
-        // FUNGSI INPUT DARI DASHBOARD ADMIN
-        document.getElementById('taskForm').addEventListener('submit', (e) => {
+        async function sendTask(e) {
             e.preventDefault();
-            const now = new Date();
-            const newTask = {
-                id: Date.now(),
+            const taskId = Date.now();
+            const taskData = {
+                id: taskId,
                 joCode: document.getElementById('taskJO').value.toUpperCase(),
                 title: document.getElementById('taskTitle').value,
                 sender: document.getElementById('taskSender').value,
                 priority: document.getElementById('taskPriority').value,
                 assignee: document.getElementById('assignee').value,
-                dateStr: now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-                timeAssigned: now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'),
+                dateStr: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+                timeAssigned: new Date().getHours().toString().padStart(2, '0') + ':' + new Date().getMinutes().toString().padStart(2, '0'),
                 status: 'Lagi Dikerjain',
                 isPrintilan: false,
                 isApproved: true
             };
-
-            tasks.unshift(newTask); 
-            saveAndRender();
-            
-            // Reset Form & Fokus balik ke JO
-            document.getElementById('taskJO').value = '';
-            document.getElementById('taskTitle').value = '';
+            db.ref('tasks/' + taskId).set(taskData);
+            document.getElementById('taskForm').reset();
             document.getElementById('taskJO').focus();
-        });
+        }
 
-        function renderBoard() {
-            const columns = { 'Indah': document.getElementById('board-Indah'), 'Nayla': document.getElementById('board-Nayla'), 'Tya': document.getElementById('board-Tya') };
-            const finalBoard = document.getElementById('board-final');
-            const counters = { 'Indah': 0, 'Nayla': 0, 'Tya': 0, 'Final': 0 };
-
-            // Bersihkan Papan
-            Object.values(columns).forEach(c => c.innerHTML = '');
-            finalBoard.innerHTML = '';
-
-            tasks.forEach(task => {
-                const card = document.createElement('div');
-                
-                // Badge Kode JO & Urgent
-                let joBadge = task.joCode ? `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200 uppercase mr-1">#${task.joCode}</span>` : '';
-                let priorityBadge = task.priority === 'Urgent' ? `<span class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold border border-red-200">🔴 URGENT</span>` : ``;
-
-                // LOGIKA TAMPILAN TUGAS FINAL
-                if (task.status === 'Final') {
-                    counters['Final']++;
-                    card.className = "bg-white p-3 rounded-xl shadow-sm border border-green-300 opacity-80 hover:opacity-100 transition";
-                    card.innerHTML = `
-                        <div class="text-[9px] text-gray-400 font-bold mb-1 uppercase tracking-tighter">✅ Oleh: ${task.assignee}</div>
-                        <h4 class="font-bold text-gray-800 text-xs line-through leading-tight mb-1">${joBadge} ${task.title}</h4>
-                        <div class="text-[9px] text-gray-500 italic">📅 ${task.dateStr} | Dari: ${task.sender}</div>
-                    `;
-                    finalBoard.appendChild(card);
-                } 
-                // LOGIKA TAMPILAN TUGAS RUNNING
-                else {
-                    if (columns[task.assignee]) {
-                        counters[task.assignee]++;
-                        
-                        let cardBorder = task.priority === 'Urgent' ? 'border-red-400 bg-white ring-2 ring-red-50' : 'border-white bg-white shadow-sm';
-                        let approvalUI = '';
-
-                        // JIKA INI INPUT PRINTILAN DARI DESAINER (BUTUH APPROVAL)
-                        if (task.isPrintilan && !task.isApproved) {
-                            cardBorder = 'border-yellow-400 bg-yellow-50 shadow-md ring-2 ring-yellow-200';
-                            approvalUI = `
-                                <div class="mt-3 flex gap-2 border-t border-yellow-200 pt-3">
-                                    <button onclick="approveTask(${task.id})" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-black py-2 rounded shadow-sm transition">APPROVE</button>
-                                    <button onclick="rejectTask(${task.id})" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black py-2 rounded shadow-sm transition">TOLAK</button>
-                                </div>
-                            `;
-                        }
-
-                        card.className = `p-4 rounded-2xl border transition hover:shadow-lg ${cardBorder}`;
-                        card.innerHTML = `
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="text-[10px] text-gray-400 font-bold">📅 ${task.dateStr} | ⏰ ${task.timeAssigned}</div>
-                                ${priorityBadge}
-                            </div>
-                            <h4 class="font-bold text-gray-900 text-sm mb-1 leading-tight">${joBadge} ${task.title}</h4>
-                            <div class="text-[11px] text-gray-500 mb-3 border-b border-gray-100 pb-1 italic">Dikirim Oleh: <span class="font-bold text-gray-700">${task.sender}</span></div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-extrabold px-2 py-1 rounded bg-gray-100 text-gray-500 border border-gray-200 uppercase">${task.status}</span>
-                                ${task.isPrintilan ? '<span class="text-[10px] text-orange-600 font-bold">⚠️ PRINTILAN</span>' : ''}
-                            </div>
-                            ${approvalUI}
-                        `;
-                        columns[task.assignee].appendChild(card);
-                    }
-                }
-            });
-
-            // Update Semua Counter
-            Object.keys(counters).forEach(key => {
-                const el = document.getElementById(`count-${key}`);
-                if(el) el.innerText = counters[key];
+        function loadData() {
+            db.ref('tasks').on('value', (snapshot) => {
+                const data = snapshot.val();
+                renderBoard(data ? Object.values(data) : []);
             });
         }
-        
-        // Listen to changes from designer side
-        window.addEventListener('storage', () => {
-            tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
-            renderBoard();
-        });
 
-        // First Render
-        renderBoard();
+        function approveTask(id) { db.ref('tasks/' + id).update({ isApproved: true }); }
+        function rejectTask(id) { if(confirm("Hapus tugas ini?")) db.ref('tasks/' + id).remove(); }
+        function logout() { localStorage.removeItem('dakreativUser'); window.location.href = 'index.html'; }
+
+        function renderBoard(tasks) {
+            const columns = { 'Indah': document.getElementById('board-Indah'), 'Nayla': document.getElementById('board-Nayla'), 'Tya': document.getElementById('board-Tya') };
+            const finalBoard = document.getElementById('board-final');
+            Object.values(columns).forEach(c => c.innerHTML = ''); finalBoard.innerHTML = '';
+
+            tasks.reverse().forEach(task => {
+                const card = document.createElement('div');
+                let jo = `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black mr-1 border border-blue-200">#${task.joCode}</span>`;
+                
+                if (task.status === 'Final') {
+                    card.className = "bg-white p-3 rounded-xl border border-green-300 opacity-80 text-[10px] shadow-sm";
+                    card.innerHTML = `<div class="mb-1 text-gray-400">✅ Selesai: ${task.assignee}</div><h4 class="font-bold line-through text-gray-600">${jo} ${task.title}</h4>`;
+                    finalBoard.appendChild(card);
+                } else {
+                    let border = task.priority === 'Urgent' ? 'border-red-400 bg-red-50 ring-2 ring-red-100' : 'border-gray-200 bg-white';
+                    let approval = (task.isPrintilan && !task.isApproved) ? `<div class="mt-3 flex gap-2 border-t pt-2"><button onclick="approveTask('${task.id}')" class="bg-green-600 text-white text-[10px] font-bold p-2 rounded flex-1">APPROVE</button><button onclick="rejectTask('${task.id}')" class="bg-red-500 text-white text-[10px] font-bold p-2 rounded flex-1">TOLAK</button></div>` : '';
+                    
+                    card.className = `p-4 rounded-2xl border shadow-sm transition hover:shadow-md ${border}`;
+                    card.innerHTML = `<div class="flex justify-between items-center mb-2"><span class="text-[10px] text-gray-400 font-bold">📅 ${task.dateStr} | ⏰ ${task.timeAssigned}</span> ${task.priority === 'Urgent' ? '<span class="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold">URGENT</span>' : ''}</div><h4 class="font-bold text-sm mb-1">${jo} ${task.title}</h4><div class="text-[10px] text-gray-500 border-b pb-2 mb-2 italic">Dari: ${task.sender}</div><div class="flex justify-between items-center"><span class="text-[10px] font-bold bg-gray-100 px-2 py-1 rounded uppercase">${task.status}</span> ${task.isPrintilan ? '<span class="text-[9px] text-orange-600 font-bold">⚠️ PRINTILAN</span>' : ''}</div>${approval}`;
+                    if(columns[task.assignee]) columns[task.assignee].appendChild(card);
+                }
+            });
+        }
     </script>
+
+    <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b-4 border-blue-800 sticky top-0 z-50">
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 leading-tight">Dakreativ Dashboard</h1>
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Akses Lead & Admin</p>
+        </div>
+        <button onclick="logout()" class="text-sm bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-200 transition">Logout</button>
+    </header>
+
+    <main class="p-4 max-w-7xl mx-auto space-y-8">
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <form id="taskForm" onsubmit="sendTask(event)" class="flex flex-wrap gap-4 items-end">
+                <div class="w-32"><label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Kode JO</label><input type="text" id="taskJO" required placeholder="Cth: JO-01" class="w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 font-bold uppercase focus:ring-2 focus:ring-blue-100 outline-none"></div>
+                <div class="flex-grow min-w-[200px]"><label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nama Project</label><input type="text" id="taskTitle" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-100 outline-none"></div>
+                <div class="w-40"><label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Pengirim</label><input type="text" id="taskSender" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-100 outline-none"></div>
+                <div class="w-32"><label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Prioritas</label><select id="taskPriority" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white"><option value="Normal">🟢 Normal</option><option value="Urgent">🔴 Urgent</option></select></div>
+                <div class="w-40"><label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Pilih Desainer</label><select id="assignee" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white font-bold"><option>Indah</option><option>Nayla</option><option>Tya</option></select></div>
+                <button type="submit" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2.5 px-8 rounded-lg shadow-lg shadow-blue-100 transition">KIRIM TUGAS</button>
+            </form>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-100 p-5 rounded-2xl border border-gray-200"><h3 class="font-black text-gray-700 tracking-tighter mb-4 pb-2 border-b-2 border-pink-400">INDAH</h3><div id="board-Indah" class="space-y-4"></div></div>
+            <div class="bg-gray-100 p-5 rounded-2xl border border-gray-200"><h3 class="font-black text-gray-700 tracking-tighter mb-4 pb-2 border-b-2 border-purple-400">NAYLA</h3><div id="board-Nayla" class="space-y-4"></div></div>
+            <div class="bg-gray-100 p-5 rounded-2xl border border-gray-200"><h3 class="font-black text-gray-700 tracking-tighter mb-4 pb-2 border-b-2 border-teal-400">TYA</h3><div id="board-Tya" class="space-y-4"></div></div>
+        </div>
+
+        <section class="mt-12 bg-green-50 p-6 rounded-2xl border border-green-200">
+            <h2 class="font-bold text-green-800 mb-4 border-b border-green-200 pb-2 flex items-center gap-2">✅ RIWAYAT FINAL</h2>
+            <div id="board-final" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
+        </section>
+    </main>
 </body>
 </html>
