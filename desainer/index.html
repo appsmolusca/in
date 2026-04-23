@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Desainer - PT Dakreativ Digital Media</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="min-h-screen flex flex-col">
+        <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Dakreativ Task System</h1>
+            <div id="role-indicator" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">Mode: Admin</div>
+        </header>
+
+        <nav class="bg-white border-b flex justify-center space-x-8 text-gray-500 text-sm overflow-x-auto">
+            <button onclick="switchView('admin')" id="tab-admin" class="py-4 px-2 active-tab">1. Admin (Input)</button>
+            <button onclick="switchView('lead')" id="tab-lead" class="py-4 px-2">2. Lead (Dadan)</button>
+            <button onclick="switchView('user')" id="tab-user" class="py-4 px-2">3. Tim (Desainer)</button>
+        </nav>
+
+        <main class="flex-grow p-6">
+            
+            <section id="view-admin" class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Input Tugas Baru</h2>
+                <form id="taskForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Judul Project/Desain</label>
+                        <input type="text" id="title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Deskripsi Brief</label>
+                        <textarea id="desc" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Deadline</label>
+                            <input type="date" id="deadline" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Prioritas</label>
+                            <select id="priority" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                                <option>Normal</option>
+                                <option>Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200">Kirim ke Lead (Dadan)</button>
+                </form>
+            </section>
+
+            <section id="view-lead" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">Manajemen Tugas (Lead Dashboard)</h2>
+                <div id="lead-task-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+            </section>
+
+            <section id="view-user" class="hidden space-y-6">
+                <div class="flex flex-wrap gap-4 items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Tugas Saya</h2>
+                    <select onchange="renderUserTasks(this.value)" class="border p-2 rounded-md bg-white shadow-sm">
+                        <option value="Indah">Login sebagai: Indah</option>
+                        <option value="Nayla">Login sebagai: Nayla</option>
+                        <option value="Tya">Login sebagai: Tya</option>
+                    </select>
+                </div>
+                <div id="user-task-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Data Handling
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderLeadTasks();
+        }
+
+        // Form Submit
+        document.getElementById('taskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newTask = {
+                id: Date.now(),
+                title: document.getElementById('title').value,
+                desc: document.getElementById('desc').value,
+                deadline: document.getElementById('deadline').value,
+                priority: document.getElementById('priority').value,
+                assignee: 'Unassigned',
+                status: 'Menunggu Lead'
+            };
+            tasks.push(newTask);
+            saveTasks();
+            alert('Tugas berhasil dikirim ke Dadan!');
+            e.target.reset();
+        });
+
+        // Switch Tab Logic
+        function switchView(role) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab'));
+            
+            document.getElementById(`view-${role}`).classList.remove('hidden');
+            document.getElementById(`tab-${role}`).classList.add('active-tab');
+            document.getElementById('role-indicator').innerText = `Mode: ${role.toUpperCase()}`;
+
+            if(role === 'lead') renderLeadTasks();
+            if(role === 'user') renderUserTasks('Indah');
+        }
+
+        // Render Dashboard Lead (Dadan)
+        function renderLeadTasks() {
+            const container = document.getElementById('lead-task-list');
+            container.innerHTML = tasks.length === 0 ? '<p class="text-gray-500 italic">Belum ada tugas masuk.</p>' : '';
+            
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl shadow-sm border-l-4 " + (task.priority === 'Urgent' ? 'border-red-500' : 'border-blue-500');
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="font-bold text-lg">${task.title}</h3>
+                        <span class="text-xs bg-gray-100 px-2 py-1 rounded">${task.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">${task.desc}</p>
+                    <div class="text-xs text-gray-400 mb-4 font-medium">Deadline: ${task.deadline}</div>
+                    <div class="border-t pt-4">
+                        <label class="text-xs font-bold text-gray-500 block mb-2 uppercase">Kirim ke Desainer:</label>
+                        <select onchange="assignTask(${task.id}, this.value)" class="w-full text-sm border rounded p-2 bg-gray-50">
+                            <option value="">-- Pilih Desainer --</option>
+                            <option value="Indah" ${task.assignee === 'Indah' ? 'selected' : ''}>Indah</option>
+                            <option value="Nayla" ${task.assignee === 'Nayla' ? 'selected' : ''}>Nayla</option>
+                            <option value="Tya" ${task.assignee === 'Tya' ? 'selected' : ''}>Tya</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render Dashboard Tim (User)
+        function renderUserTasks(userName) {
+            const container = document.getElementById('user-task-list');
+            const userTasks = tasks.filter(t => t.assignee === userName);
+            container.innerHTML = userTasks.length === 0 ? `<p class="text-gray-500 italic">Tidak ada tugas untuk ${userName}.</p>` : '';
+
+            userTasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200";
+                card.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">${task.title}</h3>
+                    <p class="text-sm text-gray-600 mb-4">${task.desc}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded">${task.priority}</span>
+                        <select onchange="updateStatus(${task.id}, this.value)" class="text-sm border rounded p-1">
+                            <option value="Proses" ${task.status === 'Proses' ? 'selected' : ''}>Sedang Dikerjakan</option>
+                            <option value="Selesai" ${task.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function assignTask(taskId, name) {
+            const index = tasks.findIndex(t => t.id === taskId);
+            if(index !== -1) {
+                tasks[index].assignee = name;
+                tasks[index].status = 'Dalam Pengerjaan';
+                saveTasks();
+                alert(`Tugas diberikan kepada ${name}`);
+            }
+        }
+
+        function updateStatus(taskId, status) {
+            const index = tasks.findIndex(t => t.id === taskId);
+            if(index !== -1) {
+                tasks[index].status = status;
+                saveTasks();
+            }
+        }
+    </script>
+</body>
+</html>
