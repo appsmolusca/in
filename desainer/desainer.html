@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workspace Desainer - Molusca </title>
+    <title>Workspace Desainer - PT Dakreativ</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800">
 
     <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center border-b-4 border-pink-500">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Workspace Desainer</h1>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">Workspace Desainer</h1>
         </div>
-        <div class="flex items-center gap-3">
-            <span class="text-sm font-bold text-gray-600 hidden md:inline">Login Sebagai:</span>
-            <select id="userSelector" onchange="changeUser()" class="border border-gray-300 rounded-lg p-1.5 bg-white font-bold text-pink-600 outline-none shadow-sm">
-                <option value="Indah">Indah</option>
-                <option value="Nayla">Nayla</option>
-                <option value="Tya">Tya</option>
-            </select>
+        <div class="flex items-center gap-2 md:gap-4">
+            <span class="text-sm font-bold text-gray-600 hidden md:inline">Hai,</span>
+            <span id="displayUser" class="bg-pink-100 text-pink-700 font-extrabold px-3 py-1.5 rounded-lg border border-pink-200">User</span>
+            <button onclick="logout()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 font-bold transition">Logout</button>
         </div>
     </header>
 
     <main class="p-6 max-w-4xl mx-auto space-y-6">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
-            <a href="dashboard.html" class="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-300 font-medium">← Ke Dashboard Utama</a>
+            <div>
+                <h2 class="text-lg font-bold text-gray-800">Tugas Saya</h2>
+            </div>
             
             <form id="printilanForm" class="flex gap-2 w-full md:w-auto bg-blue-50 p-2 rounded-lg border border-blue-200">
                 <input type="text" id="printilanTitle" required placeholder="Input kerjaan printilan..." class="text-sm border border-gray-300 rounded-md p-2 outline-none focus:border-blue-500 flex-grow w-full md:w-64">
@@ -34,35 +33,40 @@
         </div>
 
         <section>
-            <h2 class="text-lg font-bold mb-4 text-gray-800">⏳ Pekerjaan Aktif</h2>
-            <div id="my-active-tasks" class="space-y-4">
-                </div>
+            <h2 class="text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">⏳ Pekerjaan Aktif</h2>
+            <div id="my-active-tasks" class="space-y-4"></div>
         </section>
 
         <section class="mt-8 pt-6 border-t border-dashed border-gray-300">
-            <h2 class="text-lg font-bold mb-4 text-green-700">✅ Riwayat Pekerjaan Selesai (Final)</h2>
-            <div id="my-final-tasks" class="space-y-3">
-                </div>
+            <h2 class="text-sm font-bold mb-3 text-green-600 uppercase tracking-wider">✅ Riwayat Pekerjaan Selesai</h2>
+            <div id="my-final-tasks" class="space-y-3"></div>
         </section>
 
     </main>
 
     <script>
-        let tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
-        let currentUser = document.getElementById('userSelector').value;
-
-        function changeUser() {
-            currentUser = document.getElementById('userSelector').value;
-            renderMyTasks();
+        // Cek Login, kalau belum login lempar balik ke index.html
+        let currentUser = localStorage.getItem('dakreativUser');
+        if(!currentUser || currentUser === 'admin') {
+            window.location.href = 'index.html';
         }
 
-        // FUNGSI INPUT KERJAAN PRINTILAN
+        // Tampilkan nama user
+        document.getElementById('displayUser').innerText = currentUser;
+
+        let tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
+
+        function logout() {
+            localStorage.removeItem('dakreativUser');
+            window.location.href = 'index.html';
+        }
+
         document.getElementById('printilanForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const now = new Date();
             const newTask = {
                 id: Date.now(),
-                joCode: 'EXTRA', // Kode otomatis untuk printilan
+                joCode: 'EXTRA',
                 title: document.getElementById('printilanTitle').value,
                 sender: currentUser + ' (Inisiatif)',
                 priority: 'Normal',
@@ -71,7 +75,7 @@
                 timeAssigned: now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'),
                 status: 'Lagi Dikerjain',
                 isPrintilan: true,
-                isApproved: false // Butuh approval Bos/Lead
+                isApproved: false
             };
             tasks.unshift(newTask);
             localStorage.setItem('dakreativTasks', JSON.stringify(tasks));
@@ -98,7 +102,7 @@
             const myTasks = tasks.filter(t => t.assignee === currentUser);
 
             if (myTasks.length === 0) {
-                activeContainer.innerHTML = `<p class="text-gray-400 text-sm italic">Belum ada tugas.</p>`;
+                activeContainer.innerHTML = `<p class="text-gray-400 text-sm italic p-4 bg-white rounded-xl border border-gray-200">Belum ada tugas untuk saat ini.</p>`;
             }
 
             myTasks.forEach(task => {
@@ -106,13 +110,11 @@
                 let priorityBadge = task.priority === 'Urgent' ? '<span class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold border border-red-200 ml-2">🔴 URGENT</span>' : '';
                 let joBadge = task.joCode ? `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[11px] mr-2 border border-blue-200 font-extrabold uppercase">#${task.joCode}</span>` : '';
                 
-                // Peringatan jika printilan belum diapprove
                 let approvalWarning = (task.isPrintilan && !task.isApproved) 
                     ? `<div class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold mb-2 inline-block border border-yellow-300">⚠️ Menunggu Approval Lead</div>` 
                     : '';
 
                 if (task.status === 'Final') {
-                    // RENDER KE KOTAK FINAL
                     card.className = "bg-green-50 p-4 rounded-xl shadow-sm border border-green-200 flex flex-col md:flex-row justify-between items-center gap-3 opacity-70 hover:opacity-100 transition";
                     card.innerHTML = `
                         <div class="w-full">
@@ -126,7 +128,6 @@
                     `;
                     finalContainer.appendChild(card);
                 } else {
-                    // RENDER KE KOTAK AKTIF
                     let statusColor = "text-blue-600 bg-blue-50 border-blue-200";
                     if(task.status === 'Nunggu Revisi') statusColor = "text-red-600 bg-red-50 border-red-200";
                     if(task.status === 'Tinggal Layout') statusColor = "text-orange-600 bg-orange-50 border-orange-200";
