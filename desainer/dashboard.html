@@ -14,9 +14,6 @@
             font-family: 'Plus Jakarta Sans', sans-serif; 
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         }
-        /* CSS Tambahan agar scroll geser di HP terlihat rapi dan tidak ada scrollbar jelek */
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-[#FBFBFE] pb-20" onload="checkLogin()" oncontextmenu="return false;">
@@ -73,7 +70,6 @@
         function logout() { localStorage.removeItem('moluscaUser'); window.location.href = 'index.html'; }
 
         function renderBoard(tasks) {
-            // === NAMA DADAN SUDAH DITAMBAHKAN DI SINI ===
             const columns = { 
                 'Indah': document.getElementById('board-Indah'), 
                 'Nayla': document.getElementById('board-Nayla'), 
@@ -89,7 +85,7 @@
                 let delBtn = `<button onclick="deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 transition-colors" title="Hapus Tugas"><i class="ph-fill ph-trash text-lg"></i></button>`;
 
                 if (task.status === 'Final') {
-                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 opacity-70 text-[11px] font-bold text-slate-400 flex justify-between items-start shrink-0 min-w-[200px]";
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 opacity-70 text-[11px] font-bold text-slate-400 flex justify-between items-start";
                     card.innerHTML = `<div><div class="line-through">${jo} ${task.title}</div><div class="mt-2 text-[9px] uppercase tracking-widest text-green-500"><i class="ph-fill ph-check-circle mr-1"></i>${task.assignee}</div></div> ${delBtn}`;
                     finalBoard.appendChild(card);
                 } else {
@@ -161,24 +157,24 @@
             </form>
         </section>
 
-        <div class="flex overflow-x-auto pb-6 gap-6 hide-scroll snap-x snap-mandatory w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
             
-            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+            <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-pink-500 text-xl"></i> Indah</h3>
                 <div id="board-Indah" class="space-y-4"></div>
             </div>
 
-            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+            <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-purple-500 text-xl"></i> Nayla</h3>
                 <div id="board-Nayla" class="space-y-4"></div>
             </div>
 
-            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+            <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-teal-500 text-xl"></i> Tya</h3>
                 <div id="board-Tya" class="space-y-4"></div>
             </div>
 
-            <div class="snap-center shrink-0 w-[85vw] md:w-auto md:flex-1 space-y-4">
+            <div class="space-y-4">
                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-xl"></i> Dadan</h3>
                 <div id="board-Dadan" class="space-y-4"></div>
             </div>
@@ -187,7 +183,7 @@
 
         <section class="pt-6 border-t border-slate-100">
             <h2 class="text-xs font-black text-green-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2"><i class="ph-fill ph-archive-box text-lg"></i> Final Archive</h2>
-            <div id="board-final" class="flex overflow-x-auto pb-4 gap-4 hide-scroll w-full"></div>
+            <div id="board-final" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
         </section>
 
     </main>
