@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Bos & Lead - PT Dakreativ</title>
+    <title>Dashboard Manajemen - PT Dakreativ</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800">
@@ -20,11 +20,22 @@
         <section class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
             <h2 class="text-lg font-bold mb-4">Berikan Tugas Baru</h2>
             <form id="taskForm" class="flex flex-wrap gap-4 items-end">
-                <div class="flex-grow min-w-[250px]">
+                <div class="flex-grow min-w-[200px]">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Project</label>
                     <input type="text" id="taskTitle" required placeholder="Contoh: Desain Feed IG" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500">
                 </div>
-                <div class="w-48">
+                <div class="w-40">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pengirim</label>
+                    <input type="text" id="taskSender" required placeholder="Cth: Bos / Lead" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-500">
+                </div>
+                <div class="w-36">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Prioritas</label>
+                    <select id="taskPriority" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white outline-none focus:border-blue-500 font-medium">
+                        <option value="Normal">🟢 Normal</option>
+                        <option value="Urgent">🔴 Urgent</option>
+                    </select>
+                </div>
+                <div class="w-36">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Desainer</label>
                     <select id="assignee" required class="w-full border border-gray-300 rounded-lg p-2.5 bg-white outline-none focus:border-blue-500">
                         <option value="Indah">Indah</option>
@@ -37,7 +48,10 @@
         </section>
 
         <section>
-            <h2 class="text-xl font-bold mb-6 border-b pb-2">Pantauan Pekerjaan Tim</h2>
+            <h2 class="text-xl font-bold mb-6 border-b pb-2 flex justify-between items-end">
+                <span>Pantauan Pekerjaan Aktif (Running)</span>
+                <span class="text-xs text-gray-500 font-normal">Tugas akan tetap di sini sampai statusnya "Final"</span>
+            </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-gray-100 p-4 rounded-xl border border-gray-200">
                     <h3 class="font-bold text-lg text-center mb-4 pb-2 border-b-2 border-pink-400">INDAH</h3>
@@ -53,6 +67,13 @@
                 </div>
             </div>
         </section>
+
+        <section class="mt-12 bg-green-50 p-6 rounded-xl border border-green-200">
+            <h2 class="text-xl font-bold mb-4 border-b border-green-300 pb-2 text-green-800">✅ Pekerjaan Selesai (Final)</h2>
+            <div id="board-final" class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                </div>
+        </section>
+
     </main>
 
     <script>
@@ -72,34 +93,63 @@
             const newTask = {
                 id: Date.now(),
                 title: document.getElementById('taskTitle').value,
+                sender: document.getElementById('taskSender').value, // Data pengirim baru
+                priority: document.getElementById('taskPriority').value, // Data prioritas baru
                 assignee: document.getElementById('assignee').value,
                 dateStr: dateStr,
                 timeAssigned: timeStr,
                 status: 'Lagi Dikerjain'
             };
 
-            tasks.unshift(newTask); // Masukkan ke paling atas
+            tasks.unshift(newTask); 
             saveAndRender();
             document.getElementById('taskTitle').value = '';
         });
 
         function renderBoard() {
             const boards = { 'Indah': document.getElementById('board-indah'), 'Nayla': document.getElementById('board-nayla'), 'Tya': document.getElementById('board-tya') };
+            const boardFinal = document.getElementById('board-final');
+            
             Object.values(boards).forEach(b => b.innerHTML = '');
+            boardFinal.innerHTML = '';
 
             tasks.forEach(task => {
                 const card = document.createElement('div');
-                card.className = "bg-white p-3 rounded-lg shadow-sm border border-gray-200";
-                card.innerHTML = `
-                    <div class="text-[10px] text-gray-400 font-bold mb-1">${task.dateStr} | ⏰ ${task.timeAssigned} WIB</div>
-                    <h4 class="font-bold text-gray-800 text-sm mb-2">${task.title}</h4>
-                    <div class="text-xs font-semibold px-2 py-1 rounded bg-gray-100 inline-block text-gray-700">Status: ${task.status}</div>
+                
+                // Cek Prioritas untuk styling badge
+                let priorityBadge = task.priority === 'Urgent' 
+                    ? `<span class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold border border-red-200">🔴 URGENT</span>` 
+                    : ``;
+
+                const cardContent = `
+                    <div class="flex justify-between items-start mb-1">
+                        <div class="text-[10px] text-gray-400 font-bold">📅 ${task.dateStr} | ⏰ ${task.timeAssigned}</div>
+                        ${priorityBadge}
+                    </div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-1">${task.title}</h4>
+                    <div class="text-[11px] text-gray-500 mb-2 border-b pb-1">Dari: <strong>${task.sender || '-'}</strong></div>
+                    <div class="text-[11px] font-semibold px-2 py-1 rounded bg-gray-100 inline-block text-gray-700">Status: ${task.status}</div>
                 `;
-                if(boards[task.assignee]) boards[task.assignee].appendChild(card);
+
+                if (task.status === 'Final') {
+                    // Masuk ke kotak Selesai (Bawah)
+                    card.className = "bg-white p-3 rounded-lg shadow-sm border border-green-300 opacity-80 hover:opacity-100 transition";
+                    card.innerHTML = `
+                        <div class="text-[10px] text-gray-400 font-bold mb-1">✅ Selesai oleh: ${task.assignee}</div>
+                        <h4 class="font-bold text-gray-800 text-sm line-through">${task.title}</h4>
+                        <div class="text-[10px] text-gray-500">📅 ${task.dateStr} | Dari: ${task.sender || '-'}</div>
+                    `;
+                    boardFinal.appendChild(card);
+                } else {
+                    // Masuk ke Papan Aktif
+                    let borderColor = task.priority === 'Urgent' ? 'border-red-400 shadow-red-100' : 'border-gray-200';
+                    card.className = `bg-white p-3 rounded-lg shadow-sm border ${borderColor}`;
+                    card.innerHTML = cardContent;
+                    if(boards[task.assignee]) boards[task.assignee].appendChild(card);
+                }
             });
         }
         
-        // Auto refresh untuk simulasi jika desainer update status di tab lain
         window.addEventListener('storage', () => {
             tasks = JSON.parse(localStorage.getItem('dakreativTasks')) || [];
             renderBoard();
