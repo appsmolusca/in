@@ -32,122 +32,201 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Cek Login (Bebas siapa aja bisa buka asal udah login)
+        let currentUser = localStorage.getItem('moluscaUser');
+        let isAdmin = currentUser === 'admin';
+
+        // JADWAL PIKET FIX DARI KANG DADAN
+        const jadwalPiket = {
+            1: ['Indah'],        // Senin
+            2: ['Nazma'],        // Selasa
+            3: ['Nayla'],        // Rabu
+            4: ['Feyy'],         // Kamis
+            5: ['Dadan'],        // Jumat
+            6: ['Tya', 'Opik'],  // Sabtu
+            0: []                // Minggu Libur
+        };
+
+        const today = new Date();
+        const dayIndex = today.getDay(); 
+        const todayStr = today.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+        const dendaAmount = 5000;
+
         function initApp() {
-            if (!localStorage.getItem('moluscaUser')) window.location.href = 'index.html';
+            if (!currentUser) window.location.href = 'index.html';
+            document.getElementById('tanggalHariIni').innerText = today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            // Sembunyikan form kasbon dari admin (karena admin yg approve)
+            if(isAdmin) document.getElementById('formKasbonArea').style.display = 'none';
+
             loadData();
         }
 
-        // Bikin ID Hari Ini (Format: DD-MM-YYYY)
-        const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-        document.getElementById('tanggalHariIni').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
 
         function loadData() {
-            // Load User List untuk form select Kas
-            db.ref('users').once('value', snap => {
-                const assigneeSelect = document.getElementById('kasUser');
-                assigneeSelect.innerHTML = '';
-                if (snap.exists()) {
-                    Object.values(snap.val()).forEach(user => {
-                        if(user.role !== 'admin') assigneeSelect.innerHTML += `<option value="${user.name}">${user.name}</option>`;
-                    });
-                }
+            // 1. Load Saldo Total Kas
+            db.ref('kas_balance').on('value', snap => {
+                let saldo = snap.val() || 0;
+                document.getElementById('saldoKas').innerText = formatRupiah(saldo);
             });
 
-            // Load Absen Piket Hari Ini
-            db.ref('piket/' + todayStr).on('value', snap => {
-                const piketData = snap.val() || {};
-                renderPiket(piketData);
+            // 2. Load Absen Piket
+            db.ref('piket_log/' + todayStr).on('value', snap => {
+                renderPiket(snap.val() || {});
             });
 
-            // Load Data Kas
-            db.ref('kas').on('value', snap => {
-                const kasData = snap.val();
-                renderKas(kasData ? Object.values(kasData) : []);
+            // 3. Load Kasbon (Pinjaman)
+            db.ref('kasbon').on('value', snap => {
+                const data = snap.val();
+                renderKasbon(data ? Object.values(data) : []);
             });
         }
 
-        // FUNGSI ABSEN PIKET
-        function updatePiket(name, status) {
-            db.ref(`piket/${todayStr}/${name}`).set(status);
+        // ================= PIKET LOGIC =================
+        function absenPiket() {
+            if(confirm("Absen piket sekarang? Pastikan sudah bersih-bersih ya!")) {
+                db.ref(`piket_log/${todayStr}/${currentUser}`).set('sudah');
+            }
         }
 
-        function renderPiket(piketData) {
+        function beriDenda(nama) {
+            if(confirm(`Yakin beri denda Rp 5.000 ke ${nama}? Saldo kas akan otomatis bertambah.`)) {
+                // Set status didenda
+                db.ref(`piket_log/${todayStr}/${nama}`).set('denda');
+                
+                // Tambah saldo kas otomatis
+                db.ref('kas_balance').once('value', snap => {
+                    let current = snap.val() || 0;
+                    db.ref('kas_balance').set(current + dendaAmount);
+                });
+            }
+        }
+
+        function batalDenda(nama) {
+            if(confirm(`Batalkan denda untuk ${nama}? Saldo kas akan dikurangi 5.000.`)) {
+                db.ref(`piket_log/${todayStr}/${nama}`).remove();
+                db.ref('kas_balance').once('value', snap => {
+                    let current = snap.val() || 0;
+                    db.ref('kas_balance').set(current - dendaAmount);
+                });
+            }
+        }
+
+        function renderPiket(logData) {
             const list = document.getElementById('piket-list');
             list.innerHTML = '';
             
-            // Hardcode nama tim desainer (Bisa disesuaikan jika nambah)
-            const team = ['Indah', 'Nayla', 'Tya', 'Dadan']; 
+            const petugasHariIni = jadwalPiket[dayIndex];
 
-            team.forEach(name => {
-                let status = piketData[name] || 'belum';
-                
-                let btnGroup = '';
-                if (status === 'belum') {
-                    btnGroup = `
-                        <div class="flex gap-2">
-                            <button onclick="updatePiket('${name}', 'sudah')" class="bg-green-100 hover:bg-green-200 text-green-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition"><i class="ph-fill ph-broom"></i> Sudah Piket</button>
-                            <button onclick="updatePiket('${name}', 'denda')" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition"><i class="ph-fill ph-warning-circle"></i> Denda 5k</button>
-                        </div>
-                    `;
-                } else if (status === 'sudah') {
-                    btnGroup = `<div class="flex items-center gap-2"><span class="bg-green-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> AMAN</span> <button onclick="updatePiket('${name}', 'belum')" class="text-slate-300 hover:text-slate-500"><i class="ph-fill ph-arrow-counter-clockwise"></i></button></div>`;
+            if (petugasHariIni.length === 0) {
+                list.innerHTML = `<div class="text-center text-slate-400 font-bold text-xs p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">Yeay, hari ini Libur! Tidak ada jadwal piket.</div>`;
+                return;
+            }
+
+            petugasHariIni.forEach(name => {
+                let status = logData[name];
+                let actionUI = '';
+
+                if (status === 'sudah') {
+                    actionUI = `<span class="bg-green-100 text-green-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 border border-green-200"><i class="ph-fill ph-check-circle"></i> Selesai Piket</span>`;
                 } else if (status === 'denda') {
-                    btnGroup = `<div class="flex items-center gap-2"><span class="bg-red-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1"><i class="ph-fill ph-money"></i> BAYAR 5.000</span> <button onclick="updatePiket('${name}', 'belum')" class="text-slate-300 hover:text-slate-500"><i class="ph-fill ph-arrow-counter-clockwise"></i></button></div>`;
+                    let btnBatal = isAdmin ? `<button onclick="batalDenda('${name}')" class="ml-2 text-slate-400 hover:text-slate-600"><i class="ph-fill ph-arrow-counter-clockwise"></i></button>` : '';
+                    actionUI = `<div class="flex items-center"><span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 border border-red-200"><i class="ph-fill ph-money"></i> Masuk Kas (-5K)</span> ${btnBatal}</div>`;
+                } else {
+                    // Belum absen
+                    if (currentUser === name) {
+                        actionUI = `<button onclick="absenPiket()" class="bg-blue-500 hover:bg-blue-600 shadow-md text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition"><i class="ph-fill ph-broom"></i> Absen Piket</button>`;
+                    } else if (isAdmin) {
+                        actionUI = `<button onclick="beriDenda('${name}')" class="bg-red-500 hover:bg-red-600 shadow-md text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition"><i class="ph-fill ph-warning-circle"></i> Beri Denda 5rb</button>`;
+                    } else {
+                        actionUI = `<span class="bg-slate-100 text-slate-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase">Belum Absen</span>`;
+                    }
                 }
 
                 list.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center flex-wrap gap-3">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
                         <h4 class="font-black text-slate-700 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-2xl"></i> ${name}</h4>
-                        ${btnGroup}
+                        ${actionUI}
                     </div>
                 `;
             });
         }
 
-        // FUNGSI PINJAMAN KAS
-        function formatRupiah(angka) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-        }
-
-        async function ajukanKas(e) {
+        // ================= KASBON LOGIC =================
+        async function ajukanKasbon(e) {
             e.preventDefault();
+            const nominal = parseInt(document.getElementById('kbAmount').value);
+            const alasan = document.getElementById('kbReason').value;
             const id = Date.now();
-            const data = {
-                id: id,
-                name: document.getElementById('kasUser').value,
-                amount: parseInt(document.getElementById('kasAmount').value),
-                dateStr: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-                status: 'Belum Lunas'
-            };
-            db.ref('kas/' + id).set(data);
-            document.getElementById('kasForm').reset();
+            
+            db.ref('kasbon/' + id).set({
+                id: id, name: currentUser, amount: nominal, reason: alasan,
+                dateStr: todayStr, status: 'Menunggu'
+            });
+            document.getElementById('formKasbon').reset();
+            alert("Pengajuan Kasbon terkirim! Menunggu persetujuan Admin.");
         }
 
-        function lunasKas(id) {
-            if(confirm("Tandai pinjaman kas ini sudah LUNAS?")) {
-                db.ref('kas/' + id).remove(); // Hapus data setelah lunas biar bersih
+        function setujuKasbon(id) {
+            if(confirm("Setujui pinjaman ini?")) {
+                db.ref(`kasbon/${id}`).update({status: 'Disetujui'});
             }
         }
 
-        function renderKas(kasData) {
-            const list = document.getElementById('kas-list');
+        function tolakKasbon(id) {
+            if(confirm("Tolak dan hapus pengajuan ini?")) {
+                db.ref(`kasbon/${id}`).remove();
+            }
+        }
+
+        function lunasKasbon(id) {
+            if(confirm("Tandai kasbon ini LUNAS? Data akan diarsipkan/dihapus.")) {
+                db.ref(`kasbon/${id}`).remove();
+            }
+        }
+
+        function renderKasbon(data) {
+            const list = document.getElementById('kasbon-list');
             list.innerHTML = '';
             
-            if (kasData.length === 0) {
-                list.innerHTML = `<div class="text-center p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold text-xs">Yeay! Tidak ada yang bon kas. 🎉</div>`;
+            if(data.length === 0) {
+                list.innerHTML = `<div class="text-center p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold text-xs">Belum ada pengajuan kasbon.</div>`;
                 return;
             }
 
-            kasData.reverse().forEach(kas => {
+            data.reverse().forEach(item => {
+                let badge = ''; let adminBtns = '';
+
+                if (item.status === 'Menunggu') {
+                    badge = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-[9px] font-black uppercase">⏳ Menunggu</span>`;
+                    if (isAdmin) {
+                        adminBtns = `
+                        <div class="flex gap-2 w-full mt-3">
+                            <button onclick="setujuKasbon('${item.id}')" class="flex-1 bg-green-500 text-white p-2 rounded-xl text-[10px] font-black uppercase"><i class="ph-fill ph-check"></i> Setuju</button>
+                            <button onclick="tolakKasbon('${item.id}')" class="flex-1 bg-red-100 text-red-500 p-2 rounded-xl text-[10px] font-black uppercase">Tolak</button>
+                        </div>`;
+                    }
+                } else if (item.status === 'Disetujui') {
+                    badge = `<span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-[9px] font-black uppercase">💸 Disetujui (Belum Lunas)</span>`;
+                    if (isAdmin) {
+                        adminBtns = `<button onclick="lunasKasbon('${item.id}')" class="w-full mt-3 bg-slate-900 text-white p-2 rounded-xl text-[10px] font-black uppercase flex justify-center items-center gap-1"><i class="ph-fill ph-seal-check"></i> Tandai Lunas</button>`;
+                    }
+                }
+
                 list.innerHTML += `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
-                        <div>
-                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1"><i class="ph ph-calendar-blank"></i> ${kas.dateStr}</div>
-                            <h4 class="font-black text-slate-900">${kas.name}</h4>
-                            <div class="text-lg font-black text-orange-500 tracking-tighter">${formatRupiah(kas.amount)}</div>
+                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-black text-slate-900">${item.name}</h4>
+                                <div class="text-[9px] font-bold text-slate-400 uppercase"><i class="ph ph-calendar-blank"></i> ${item.dateStr}</div>
+                            </div>
+                            ${badge}
                         </div>
-                        <button onclick="lunasKas('${kas.id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-3 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition"><i class="ph-fill ph-check-circle"></i> LUNAS</button>
+                        <div class="text-xl font-black text-slate-800 tracking-tighter mb-1">${formatRupiah(item.amount)}</div>
+                        <div class="text-xs text-slate-500 font-medium bg-slate-50 p-2 rounded-xl mb-1 italic">"${item.reason}"</div>
+                        ${adminBtns}
                     </div>
                 `;
             });
@@ -159,44 +238,51 @@
             <i class="ph-fill ph-hexagon text-2xl text-blue-600"></i>
             <div>
                 <h1 class="text-lg font-extrabold tracking-tight text-slate-900 leading-none">Molusca<span class="text-blue-600">.</span></h1>
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Piket & Kas</span>
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Portal Keuangan</span>
             </div>
         </div>
         <button onclick="window.history.back()" class="text-[10px] font-black text-slate-600 bg-slate-100 px-3 py-2 rounded-xl uppercase hover:bg-slate-200 flex items-center gap-1"><i class="ph-fill ph-arrow-left"></i> KEMBALI</button>
     </header>
 
-    <main class="p-4 max-w-2xl mx-auto space-y-10 mt-2">
+    <main class="p-4 max-w-xl mx-auto space-y-8 mt-2">
         
+        <section class="bg-gradient-to-br from-blue-600 to-indigo-800 p-6 rounded-[32px] shadow-xl shadow-blue-200 text-white relative overflow-hidden">
+            <i class="ph-fill ph-wallet absolute -right-4 -bottom-4 text-9xl text-white opacity-10"></i>
+            <div class="relative z-10">
+                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-200 mb-1">Total Saldo Kas Molusca</h3>
+                <div id="saldoKas" class="text-4xl font-black tracking-tighter">Rp 0</div>
+                <p class="text-[9px] mt-2 text-blue-100 bg-black/20 inline-block px-3 py-1 rounded-full"><i class="ph-fill ph-info"></i> Saldo bertambah otomatis dari denda piket</p>
+            </div>
+        </section>
+
         <section>
             <div class="flex justify-between items-end mb-4 ml-1">
-                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-broom text-blue-500 text-xl"></i> Absen Piket</h2>
+                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-broom text-orange-500 text-xl"></i> Jadwal Piket Hari Ini</h2>
                 <div id="tanggalHariIni" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md"></div>
             </div>
+            
             <div id="piket-list" class="space-y-3">
                 </div>
         </section>
 
-        <section class="bg-slate-900 p-6 rounded-[32px] shadow-xl shadow-slate-200">
-            <h2 class="text-xs font-black text-white uppercase tracking-widest mb-5 flex items-center gap-2"><i class="ph-fill ph-wallet text-orange-400 text-lg"></i> Pinjam Kas</h2>
-            <form id="kasForm" onsubmit="ajukanKas(event)" class="space-y-4">
-                <div class="flex gap-3">
-                    <div class="relative w-1/2">
-                        <i class="ph-fill ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <select id="kasUser" class="w-full bg-white/10 border-none rounded-2xl py-4 pl-10 pr-4 text-white text-xs font-bold outline-none appearance-none">
-                            </select>
-                    </div>
-                    <div class="relative w-1/2">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
-                        <input type="number" id="kasAmount" required placeholder="50000" class="w-full bg-white/10 border-none rounded-2xl py-4 pl-10 pr-4 text-white text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
+        <section id="formKasbonArea" class="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+            <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2"><i class="ph-fill ph-hand-coins text-green-500 text-lg"></i> Form Pengajuan Kasbon</h2>
+            <form id="formKasbon" onsubmit="ajukanKasbon(event)" class="space-y-4">
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rp</span>
+                    <input type="number" id="kbAmount" required placeholder="Contoh: 50000" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-slate-900 text-sm font-black outline-none focus:ring-2 focus:ring-blue-500/20">
                 </div>
-                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl transition uppercase tracking-widest text-[10px] flex justify-center items-center gap-2"><i class="ph-fill ph-plus-circle"></i> Tambah Tagihan Kas</button>
+                <div class="relative">
+                    <i class="ph-fill ph-text-align-left absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="kbReason" required placeholder="Untuk keperluan apa?" autocomplete="off" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-slate-900 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-2xl transition uppercase tracking-widest text-[10px] flex justify-center items-center gap-2 shadow-lg shadow-slate-200"><i class="ph-fill ph-paper-plane-right"></i> Ajukan ke Bos</button>
             </form>
         </section>
 
         <section>
-            <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-1 flex items-center gap-2"><i class="ph-fill ph-receipt text-lg"></i> Kas Belum Lunas</h2>
-            <div id="kas-list" class="space-y-3">
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-1 flex items-center gap-2"><i class="ph-fill ph-receipt text-lg"></i> Riwayat & Status Kasbon</h2>
+            <div id="kasbon-list" class="space-y-4">
                 </div>
         </section>
 
