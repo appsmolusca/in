@@ -47,6 +47,8 @@
         function loadData() {
             db.ref('piket_log/' + todayStr).on('value', snap => renderPiket(snap.val() || {}));
             db.ref('kasbon').on('value', snap => renderKasbon(snap.val() ? Object.values(snap.val()) : []));
+            // Tambahan: Load semua data piket untuk mencari yang nunggak denda
+            db.ref('piket_log').on('value', snap => renderDenda(snap.val() || {}));
         }
 
         function absenPiket(namaYangPiket) {
@@ -79,11 +81,42 @@
                 let ui = '';
 
                 if (status === 'sudah') ui = `<span class="bg-green-100 text-green-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase"><i class="ph-fill ph-check-circle"></i> Selesai Piket</span>`;
-                else if (status === 'denda') ui = `<span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase">Didenda Bos</span>`;
+                else if (status === 'denda_belum') ui = `<span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase">Didenda Bos (Belum Bayar)</span>`;
+                else if (status === 'denda_lunas' || status === 'denda') ui = `<span class="bg-orange-100 text-orange-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase">Denda Lunas</span>`;
                 else ui = `<button onclick="absenPiket('${name}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md transition"><i class="ph-fill ph-hand-pointing"></i> Klik Absen</button>`;
 
-                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center"><h4 class="font-black text-slate-700 flex items-center gap-2"><i class="ph-fill ph-user-circle text-orange-500 text-xl"></i> ${name}</h4>${ui}</div>`;
+                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center"><h4 class="font-black text-slate-700 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-xl"></i> ${name}</h4>${ui}</div>`;
             });
+        }
+
+        // FUNGSI BARU: Nampilin daftar yang nunggak denda
+        function renderDenda(allLogs) {
+            const list = document.getElementById('denda-list');
+            list.innerHTML = '';
+            let adaNunggak = false;
+
+            // Cek semua tanggal di database
+            Object.keys(allLogs).forEach(tgl => {
+                const logs = allLogs[tgl];
+                Object.keys(logs).forEach(nama => {
+                    if (logs[nama] === 'denda_belum') {
+                        adaNunggak = true;
+                        list.innerHTML += `
+                            <div class="bg-red-50 p-4 rounded-2xl border border-red-100 flex justify-between items-center shadow-sm">
+                                <div>
+                                    <h4 class="font-black text-red-700 flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> ${nama}</h4>
+                                    <div class="text-[9px] font-bold text-red-400 mt-1 uppercase tracking-widest"><i class="ph ph-calendar-blank"></i> Tgl Bolos: ${tgl}</div>
+                                </div>
+                                <span class="bg-red-500 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm flex items-center gap-1">Ngutang 5k</span>
+                            </div>
+                        `;
+                    }
+                });
+            });
+
+            if (!adaNunggak) {
+                list.innerHTML = `<div class="text-center p-4 bg-green-50 text-green-600 font-bold text-xs rounded-2xl border border-dashed border-green-200">Aman! Tidak ada tim yang nunggak denda. 🎉</div>`;
+            }
         }
 
         function renderKasbon(data) {
@@ -102,19 +135,25 @@
 
     <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 py-4 px-6 border-b border-slate-100 flex justify-between items-center">
         <div class="flex items-center gap-2">
-            <i class="ph-fill ph-hexagon text-2xl text-orange-500"></i>
+            <i class="ph-fill ph-hexagon text-2xl text-blue-600"></i>
             <div><h1 class="text-lg font-extrabold tracking-tight text-slate-900 leading-none">Piket & Kas</h1></div>
         </div>
         <button onclick="logout()" class="text-[10px] font-black text-red-500 bg-red-50 px-3 py-2 rounded-xl uppercase hover:bg-red-100 flex items-center gap-1"><i class="ph-fill ph-sign-out"></i> LOGOUT</button>
     </header>
 
     <main class="p-4 max-w-xl mx-auto space-y-8 mt-2">
+        
         <section>
             <div class="flex justify-between items-end mb-4 ml-1">
                 <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest"><i class="ph-fill ph-broom text-blue-500"></i> Jadwal Piket Hari Ini</h2>
                 <div id="tanggalHariIni" class="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded"></div>
             </div>
             <div id="piket-list" class="space-y-3"></div>
+        </section>
+
+        <section class="pt-4 border-t border-slate-200">
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-1 flex items-center gap-2"><i class="ph-fill ph-warning-circle text-lg text-red-500"></i> Daftar Nunggak Denda</h2>
+            <div id="denda-list" class="space-y-3"></div>
         </section>
 
         <section class="bg-slate-900 p-6 rounded-[32px] shadow-xl text-white">
