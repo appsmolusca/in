@@ -78,8 +78,19 @@
                 let jo = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-black mr-2 uppercase text-[11px] tracking-tighter"><i class="ph ph-hash"></i>${task.joCode}</span>`;
 
                 if(task.status === 'Final') {
-                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center text-xs font-bold opacity-60";
-                    card.innerHTML = `<span class="text-slate-400">${jo} ${task.title}</span> <span class="text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded-md flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> FINAL</span>`;
+                    // MURNI FITUR UBAH STATUS (TANPA UBAH DESAIN LAIN)
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center text-xs font-bold opacity-70 hover:opacity-100 transition-opacity";
+                    card.innerHTML = `
+                        <span class="text-slate-400 truncate mr-2">${jo} ${task.title}</span> 
+                        <div class="relative shrink-0">
+                            <select onchange="updateStatus('${task.id}', this.value)" class="text-[10px] bg-green-50 text-green-600 border border-green-100 py-1 pl-2 pr-6 rounded-md font-black outline-none cursor-pointer appearance-none transition hover:bg-green-100">
+                                <option value="Final" selected>✅ FINAL</option>
+                                <option value="Lagi Dikerjain">⏳ Lagi Dikerjain</option>
+                                <option value="Nunggu Revisi">✍️ Nunggu Revisi</option>
+                                <option value="Tinggal Layout">🧩 Tinggal Layout</option>
+                            </select>
+                            <i class="ph-fill ph-caret-down absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-green-600 text-[10px]"></i>
+                        </div>`;
                     final.appendChild(card);
                 } else {
                     let statusColor = "text-blue-600 bg-blue-50/50 border-blue-100";
