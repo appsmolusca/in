@@ -52,6 +52,7 @@
             db.ref('piket_log').on('value', snap => renderRekapPiket(snap.val() || {}));
         }
 
+        // ================== FUNGSI SALDO ==================
         function updateSaldoManual() {
             const inputVal = document.getElementById('inputSaldoAwal').value;
             if (!inputVal) return alert("Masukkan nominal!");
@@ -68,11 +69,10 @@
             });
         }
 
-        // ================== FUNGSI PIKET & DENDA ==================
+        // ================== FUNGSI PIKET HARI INI ==================
         function beriDenda(nama) {
             if(confirm(`Tandai ${nama} Mangkir Piket? Status denda: BELUM BAYAR.`)) {
                 db.ref(`piket_log/${todayStr}/${nama}`).set('denda_belum');
-                // Saldo belum ditambah karena belum bayar
             }
         }
 
@@ -86,7 +86,6 @@
         function batalDenda(nama, statusSekarang, tgl) {
             if(confirm(`Hapus status riwayat piket ${nama}?`)) {
                 db.ref(`piket_log/${tgl}/${nama}`).remove();
-                // Kalau statusnya udah lunas, berarti uang kasnya dikurangi lagi
                 if (statusSekarang === 'denda_lunas' || statusSekarang === 'denda') {
                     ubahSaldo(5000, false);
                 }
@@ -110,14 +109,9 @@
                     <div class="flex gap-1 items-center">
                         <span class="bg-orange-100 text-orange-600 px-2 py-2 rounded-lg text-[9px] font-black uppercase"><i class="ph-fill ph-warning"></i> Nunggak 5k</span>
                         <button onclick="bayarDenda('${name}', '${todayStr}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase shadow-sm">Bayar</button>
-                        <button onclick="batalDenda('${name}', '${status}', '${todayStr}')" class="text-slate-400 hover:text-red-500 bg-slate-100 p-2 rounded-lg"><i class="ph-bold ph-x"></i></button>
                     </div>`;
                 } else if (status === 'denda_lunas' || status === 'denda') {
-                    ui = `
-                    <div class="flex gap-2 items-center">
-                        <span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase border border-red-200"><i class="ph-fill ph-money"></i> Lunas (+5k)</span>
-                        <button onclick="batalDenda('${name}', '${status}', '${todayStr}')" class="text-slate-400 hover:text-slate-600 bg-slate-100 p-2 rounded-lg"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
-                    </div>`;
+                    ui = `<span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase border border-red-200"><i class="ph-fill ph-money"></i> Lunas (+5k)</span>`;
                 } else {
                     ui = `<button onclick="beriDenda('${name}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md transition"><i class="ph-fill ph-warning-circle"></i> Denda 5.000</button>`;
                 }
@@ -126,6 +120,7 @@
             });
         }
 
+        // ================== FUNGSI PIKET MANUAL ==================
         function inputPiketManual(e) {
             e.preventDefault();
             const dateInput = document.getElementById('manualDate').value;
@@ -138,9 +133,35 @@
 
             if(confirm(`Set status untuk ${nama} pada tanggal ${dateStr}?`)) {
                 db.ref(`piket_log/${dateStr}/${nama}`).set(status);
-                // Kalau yang dipilih denda langsung lunas, otomatis tambah kas
                 if(status === 'denda_lunas') ubahSaldo(5000, true);
                 document.getElementById('formManual').reset();
+            }
+        }
+
+        // ================== FUNGSI EDIT & HAPUS LOG RIWAYAT ==================
+        function ubahStatusLog(nama, tgl, statusLama, statusBaru) {
+            if (statusLama === statusBaru) return;
+
+            let isLamaLunas = (statusLama === 'denda_lunas' || statusLama === 'denda');
+            let isBaruLunas = (statusBaru === 'denda_lunas');
+
+            // Logika potong/tambah saldo kas jika status berubah dari/ke Lunas
+            if (isLamaLunas && !isBaruLunas) {
+                ubahSaldo(5000, false); // Ditarik lagi uangnya
+            } else if (!isLamaLunas && isBaruLunas) {
+                ubahSaldo(5000, true); // Ditambah ke kas
+            }
+
+            db.ref(`piket_log/${tgl}/${nama}`).set(statusBaru);
+        }
+
+        function hapusLog(nama, tgl, statusLama) {
+            if(confirm(`Yakin hapus data piket ${nama} pada tanggal ${tgl} permanen?`)) {
+                // Tarik uang kas jika yang dihapus statusnya lunas
+                if (statusLama === 'denda_lunas' || statusLama === 'denda') {
+                    ubahSaldo(5000, false); 
+                }
+                db.ref(`piket_log/${tgl}/${nama}`).remove();
             }
         }
 
@@ -158,18 +179,27 @@
                 let itemUI = '';
                 Object.keys(logs).forEach(nama => {
                     let st = logs[nama];
-                    let badge = '';
                     
-                    if (st === 'sudah') {
-                        badge = `<span class="text-green-500 font-bold text-[10px] uppercase"><i class="ph-fill ph-check-circle"></i> Hadir</span>`;
-                    } else if (st === 'denda_lunas' || st === 'denda') {
-                        badge = `<span class="text-red-500 font-bold text-[10px] uppercase"><i class="ph-fill ph-money"></i> Denda Lunas</span>`;
-                    } else if (st === 'denda_belum') {
-                        // Tombol sakti buat nagih utang denda kemarin-kemarin
-                        badge = `<button onclick="bayarDenda('${nama}', '${dateStr}')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm transition">Bayar 5k</button>`;
-                    }
+                    // Dropdown Edit Cerdas
+                    let selectHTML = `
+                        <select onchange="ubahStatusLog('${nama}', '${dateStr}', '${st}', this.value)" class="text-[10px] font-bold bg-slate-50 border border-slate-200 rounded-md px-1 py-1 outline-none text-slate-700 cursor-pointer">
+                            <option value="sudah" ${st === 'sudah' ? 'selected' : ''}>✅ Hadir</option>
+                            <option value="denda_belum" ${st === 'denda_belum' ? 'selected' : ''}>⚠️ Nunggak 5k</option>
+                            <option value="denda_lunas" ${(st === 'denda_lunas' || st === 'denda') ? 'selected' : ''}>❌ Lunas (+5k)</option>
+                        </select>
+                    `;
+                    
+                    // Tombol Hapus
+                    let btnDelete = `<button onclick="hapusLog('${nama}', '${dateStr}', '${st}')" class="text-slate-300 hover:text-red-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-md transition" title="Hapus"><i class="ph-fill ph-trash text-sm"></i></button>`;
 
-                    itemUI += `<div class="flex justify-between items-center py-2 border-b border-slate-50 last:border-0"><span class="font-bold text-xs text-slate-700">${nama}</span>${badge}</div>`;
+                    itemUI += `
+                    <div class="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0">
+                        <span class="font-bold text-xs text-slate-700 flex items-center gap-1"><i class="ph-fill ph-user-circle text-slate-400"></i> ${nama}</span>
+                        <div class="flex items-center gap-1">
+                            ${selectHTML}
+                            ${btnDelete}
+                        </div>
+                    </div>`;
                 });
 
                 list.innerHTML += `
@@ -198,7 +228,7 @@
         function renderKasbon(data) {
             const list = document.getElementById('kasbon-list');
             list.innerHTML = '';
-            if(data.length === 0) { list.innerHTML = `<div class="text-center p-6 bg-slate-50 rounded-2xl text-slate-400 font-bold text-xs border border-dashed">Aman! Tidak ada pengajuan kasbon.</div>`; return; }
+            if(data.length === 0) { list.innerHTML = `<div class="text-center p-6 bg-slate-50 rounded-2xl text-slate-400 font-bold text-xs">Aman! Tidak ada pengajuan kasbon.</div>`; return; }
 
             data.reverse().forEach(item => {
                 let btns = '';
@@ -207,7 +237,7 @@
                 if (item.status === 'Menunggu') {
                     btns = `<div class="flex gap-2 mt-3"><button onclick="setujuKasbon('${item.id}', ${item.amount})" class="flex-1 bg-green-500 hover:bg-green-600 transition text-white p-2 rounded-xl text-[10px] font-black uppercase">Setuju (Potong Kas)</button><button onclick="tolakKasbon('${item.id}')" class="flex-1 bg-red-100 hover:bg-red-200 transition text-red-500 p-2 rounded-xl text-[10px] font-black uppercase">Tolak</button></div>`;
                 } else {
-                    btns = `<button onclick="lunasKasbon('${item.id}', ${item.amount})" class="w-full mt-3 bg-slate-900 hover:bg-slate-800 transition text-white p-3 rounded-xl text-[10px] font-black uppercase flex justify-center gap-1"><i class="ph-fill ph-seal-check"></i> Lunas (Balikin Kas)</button>`;
+                    btns = `<button onclick="lunasKasbon('${item.id}', ${item.amount})" class="w-full mt-3 bg-slate-900 hover:bg-slate-800 transition text-white p-3 rounded-xl text-[10px] font-black uppercase flex justify-center gap-1"><i class="ph-fill ph-seal-check"></i> Sudah Lunas (Balikin Kas)</button>`;
                 }
 
                 list.innerHTML += `<div class="bg-white p-5 rounded-3xl border shadow-sm"><div class="flex justify-between items-start mb-2"><div><h4 class="font-black text-slate-900">${item.name}</h4><div class="text-[9px] font-bold text-slate-400 uppercase">${item.dateStr}</div></div>${badge}</div><div class="text-xl font-black text-slate-800 tracking-tighter mb-1">${formatRupiah(item.amount)}</div><div class="text-xs text-slate-500 bg-slate-50 p-2 rounded-xl italic">"${item.reason}"</div>${btns}</div>`;
@@ -265,8 +295,8 @@
                 <div class="flex gap-3">
                     <select id="manualStatus" class="w-full bg-white/10 border-none rounded-xl p-3 text-white text-xs font-bold outline-none appearance-none">
                         <option value="sudah" class="text-slate-900">✅ Hadir Piket</option>
-                        <option value="denda_belum" class="text-slate-900">⚠️ Mangkir (Denda Belum Bayar)</option>
-                        <option value="denda_lunas" class="text-slate-900">❌ Mangkir (Denda Lunas +5K)</option>
+                        <option value="denda_belum" class="text-slate-900">⚠️ Nunggak Denda 5k</option>
+                        <option value="denda_lunas" class="text-slate-900">❌ Denda Lunas (+5K)</option>
                     </select>
                     <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-6 rounded-xl text-[10px] font-black uppercase whitespace-nowrap">Simpan</button>
                 </div>
@@ -277,6 +307,7 @@
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-1 flex items-center gap-2"><i class="ph-fill ph-clock-counter-clockwise text-lg"></i> Log Riwayat Piket</h2>
             <div id="rekap-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </section>
+
     </main>
 </body>
 </html>
