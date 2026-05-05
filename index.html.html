@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molusca Workspace - Super Apps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+            background-color: #F4F6F8;
+        }
+        /* Efek glassmorphism halus untuk header */
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.3); }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="pb-24 text-slate-800">
+
+    <!-- Header Glassmorphism -->
+    <header class="glass sticky top-0 z-50 py-4 px-6 shadow-sm flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                <i class="ph-bold ph-hexagon text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight text-slate-900 leading-none">Molusca<span class="text-blue-600">.</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Workspace Apps</p>
+            </div>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow flex items-center justify-center overflow-hidden">
+            <i class="ph-fill ph-user text-slate-400 text-xl"></i>
+        </div>
+    </header>
+
+    <main class="p-5 md:p-10 max-w-5xl mx-auto space-y-8">
+        
+        <!-- Greeting & Live Time -->
+        <section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-slate-100">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 mb-1" id="greetingText">Halo, Tim! 👋</h2>
+                <p class="text-sm font-semibold text-slate-500">Pilih modul aplikasi untuk mulai bekerja hari ini.</p>
+            </div>
+            <div class="text-right">
+                <div id="liveTime" class="text-3xl font-black text-blue-600 tracking-tighter">00:00</div>
+                <div id="liveDate" class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Memuat tanggal...</div>
+            </div>
+        </section>
+
+        <!-- Main Apps Grid -->
+        <section>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 ml-2">
+                <i class="ph-fill ph-squares-four text-lg"></i> Modul Aplikasi
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 md:gap-6">
+                
+                <!-- Card 1: Desainer -->
+                <a href="https://appsmolusca.github.io/in/desainer/" class="group block bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-purple-100 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-purple-50 rounded-full blur-2xl group-hover:bg-purple-100 transition-colors"></div>
+                    <div class="relative z-10 flex items-start gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-200 flex-shrink-0">
+                            <i class="ph-fill ph-pen-nib text-3xl text-white"></i>
+                        </div>
+                        <div class="pt-1">
+                            <h4 class="font-extrabold text-lg text-slate-900 group-hover:text-purple-600 transition-colors">Task Desainer</h4>
+                            <p class="text-xs font-medium text-slate-500 mt-1 leading-relaxed">Manajemen tugas harian, prioritas project, dan approval desain.</p>
+                            <div class="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                Buka Aplikasi <i class="ph-bold ph-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2: Konten Kreator -->
+                <a href="https://appsmolusca.github.io/in/desainer/creator_task" class="group block bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl group-hover:bg-blue-100 transition-colors"></div>
+                    <div class="relative z-10 flex items-start gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
+                            <i class="ph-fill ph-video-camera text-3xl text-white"></i>
+                        </div>
+                        <div class="pt-1">
+                            <h4 class="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">Konten Kreator</h4>
+                            <p class="text-xs font-medium text-slate-500 mt-1 leading-relaxed">Planner jadwal take, list konten, notifikasi deadline & klien.</p>
+                            <div class="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                Buka Aplikasi <i class="ph-bold ph-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 3: Keuangan & Piket -->
+                <a href="https://appsmolusca.github.io/in/piket/" class="group block bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-green-100 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-green-50 rounded-full blur-2xl group-hover:bg-green-100 transition-colors"></div>
+                    <div class="relative z-10 flex items-start gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-200 flex-shrink-0">
+                            <i class="ph-fill ph-wallet text-3xl text-white"></i>
+                        </div>
+                        <div class="pt-1 w-full">
+                            <h4 class="font-extrabold text-lg text-slate-900 group-hover:text-green-600 transition-colors">Keuangan & Piket</h4>
+                            <p class="text-xs font-medium text-slate-500 mt-1 leading-relaxed">Sistem kasir, catatan keuangan, dan jadwal piket kreatif studio.</p>
+                            
+                            <!-- Badges Login Info -->
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <div class="flex items-center gap-1 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">
+                                    <i class="ph-fill ph-user-circle text-slate-400 text-sm"></i>
+                                    <span class="text-[10px] font-bold text-slate-500">tim</span>
+                                </div>
+                                <div class="flex items-center gap-1 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">
+                                    <i class="ph-fill ph-lock-key text-slate-400 text-sm"></i>
+                                    <span class="text-[10px] font-bold text-slate-500">tim123</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 4: Assessment Izin / Leave Tracker -->
+                <a href="https://appsmolusca.github.io/in/desainer/izin" class="group block bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-red-100 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-red-50 rounded-full blur-2xl group-hover:bg-red-100 transition-colors"></div>
+                    <div class="relative z-10 flex items-start gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-200 flex-shrink-0">
+                            <i class="ph-fill ph-first-aid text-3xl text-white"></i>
+                        </div>
+                        <div class="pt-1">
+                            <h4 class="font-extrabold text-lg text-slate-900 group-hover:text-red-600 transition-colors">Form Izin & Sakit</h4>
+                            <p class="text-xs font-medium text-slate-500 mt-1 leading-relaxed">Sistem pengajuan cuti, izin, dan upload surat keterangan sakit.</p>
+                            <div class="mt-4 inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                Buka Aplikasi <i class="ph-bold ph-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+        
+        <!-- Footer Info -->
+        <div class="text-center mt-12 pb-8">
+            <i class="ph-fill ph-hexagon text-slate-300 text-3xl mb-2"></i>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Internal System • Molusca Project</p>
+        </div>
+
+    </main>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('liveTime').textContent = `${hours}:${minutes}`;
+
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById('liveDate').textContent = now.toLocaleDateString('id-ID', options);
+
+            const greetingEl = document.getElementById('greetingText');
+            if(hours >= 5 && hours < 11) greetingEl.innerHTML = 'Selamat Pagi, Tim! 🌅';
+            else if(hours >= 11 && hours < 15) greetingEl.innerHTML = 'Selamat Siang, Tim! ☀️';
+            else if(hours >= 15 && hours < 18) greetingEl.innerHTML = 'Selamat Sore, Tim! ☕';
+            else greetingEl.innerHTML = 'Selamat Malam, Tim! 🌙';
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock(); // Initialize immediately
+    </script>
+</body>
+</html>
