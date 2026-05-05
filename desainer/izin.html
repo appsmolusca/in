@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Izin & Sakit</title>
+    <title>Sistem Izin & Sakit - Molusca</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Tanpa Storage karena pakai Cloudinary) -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <!-- SheetJS untuk Export Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -28,9 +29,9 @@
             <i class="ph-fill ph-first-aid text-2xl text-red-500"></i>
             <h1 class="text-lg font-extrabold tracking-tight text-slate-900">Leave<span class="text-red-500">Tracker.</span></h1>
         </div>
-        <div class="text-xs font-bold bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full flex items-center gap-1">
-            <i class="ph-fill ph-users"></i> Tim Internal
-        </div>
+        <button onclick="openEmployeeModal()" class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+            <i class="ph-fill ph-users-three"></i> Kelola Tim
+        </button>
     </header>
 
     <main class="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
@@ -46,11 +47,7 @@
                     <div class="relative">
                         <i class="ph ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <select id="employeeName" required class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold outline-none appearance-none focus:ring-2 focus:ring-red-500/20">
-                            <option value="" disabled selected>Pilih Nama</option>
-                            <option value="Indah">Indah</option>
-                            <option value="Nayla">Nayla</option>
-                            <option value="Tya">Tya</option>
-                            <option value="Dadan">Dadan</option>
+                            <option value="" disabled selected>Memuat nama...</option>
                         </select>
                     </div>
                     <div class="relative">
@@ -79,12 +76,11 @@
                     <textarea id="leaveReason" required placeholder="Alasan lengkap (Misal: Demam tinggi / Acara keluarga)" rows="2" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-red-500/20 outline-none resize-none"></textarea>
                 </div>
 
-                <!-- Custom File Upload -->
                 <div class="relative">
                     <input type="file" id="proofImage" accept="image/*" class="hidden" onchange="previewFile()">
                     <label for="proofImage" id="uploadArea" class="upload-area flex flex-col items-center justify-center w-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl py-6 cursor-pointer hover:bg-slate-100 transition-all">
                         <i id="uploadIcon" class="ph ph-image text-3xl text-slate-400 mb-2"></i>
-                        <span id="uploadText" class="text-xs font-bold text-slate-500">Upload Surat Dokter / Bukti Foto</span>
+                        <span id="uploadText" class="text-xs font-bold text-slate-500">Upload Surat Dokter / Bukti (Cloudinary)</span>
                         <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">(Opsional / Wajib jika sakit)</span>
                     </label>
                 </div>
@@ -97,15 +93,40 @@
 
         <!-- Daftar Pengajuan / History -->
         <section>
-            <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 ml-2">
-                <i class="ph-fill ph-clock-counter-clockwise text-lg"></i> Riwayat Pengajuan
-            </h2>
+            <div class="flex justify-between items-center mb-4 ml-2">
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="ph-fill ph-clock-counter-clockwise text-lg"></i> Riwayat Pengajuan
+                </h2>
+                <button onclick="downloadExcel()" class="text-[10px] font-bold bg-green-50 text-green-600 hover:bg-green-500 hover:text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition uppercase tracking-widest border border-green-200">
+                    <i class="ph-bold ph-microsoft-excel-logo text-sm"></i> Export Excel
+                </button>
+            </div>
+            
             <div id="board-history" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="col-span-full text-center text-xs text-slate-400 py-8"><i class="ph ph-spinner animate-spin text-2xl mb-2"></i><br>Memuat data...</div>
             </div>
         </section>
 
     </main>
+
+    <!-- Modal Kelola Karyawan -->
+    <div id="employeeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex justify-center items-end md:items-center p-4" onclick="closeEmployeeModal(event)">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl transform transition-transform" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-users-three text-blue-500 text-lg"></i> Kelola Tim Internal</h3>
+                <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            
+            <div class="flex gap-2 mb-6">
+                <input type="text" id="newEmployeeName" placeholder="Nama Anggota Baru" class="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
+                <button onclick="addEmployee()" class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-xs hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center gap-1"><i class="ph-bold ph-plus"></i> Tambah</button>
+            </div>
+
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="employeeList">
+                <!-- List Karyawan disini -->
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Image Preview -->
     <div id="imageModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex justify-center items-center p-4" onclick="closeModal()">
@@ -114,29 +135,88 @@
     </div>
 
     <script>
-        // --- Firebase Configuration ---
+        // --- KONFIGURASI CLOUDINARY ---
+        // Ganti dengan data akun Cloudinary kamu
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/CLOUD_NAME_KAMU_DISINI/image/upload";
+        const CLOUDINARY_UPLOAD_PRESET = "molusca_izin"; 
+
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
-            authDomain: "appmoluscadesign.firebaseapp.com",
             databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "appmoluscadesign",
-            storageBucket: "appmoluscadesign.firebasestorage.app", // Penting untuk upload gambar
-            messagingSenderId: "800709666958",
-            appId: "1:800709666958:web:66f97b271f736e17c981df"
+            projectId: "appmoluscadesign"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const storage = firebase.storage();
         const dbRef = 'leave_requests';
+        const empRef = 'employees';
+
+        let globalRequestsData = []; // Untuk kebutuhan Export Excel
 
         function initApp() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').value = today;
             document.getElementById('endDate').value = today;
+            loadEmployees();
             loadData();
         }
 
-        // Preview nama file setelah dipilih
+        // --- CRUD KARYAWAN ---
+        function loadEmployees() {
+            db.ref(empRef).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const select = document.getElementById('employeeName');
+                const list = document.getElementById('employeeList');
+                
+                select.innerHTML = '<option value="" disabled selected>Pilih Nama Anggota</option>';
+                list.innerHTML = '';
+
+                if(data) {
+                    Object.entries(data).forEach(([id, emp]) => {
+                        // Update Select Dropdown
+                        select.innerHTML += `<option value="${emp.name}">${emp.name}</option>`;
+                        
+                        // Update Modal List
+                        list.innerHTML += `
+                            <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="text-xs font-bold text-slate-700">${emp.name}</span>
+                                <div class="flex gap-2">
+                                    <button onclick="editEmployee('${id}', '${emp.name}')" class="text-orange-500 hover:text-orange-600 bg-orange-50 p-1.5 rounded-lg"><i class="ph-fill ph-pencil-simple"></i></button>
+                                    <button onclick="deleteEmployee('${id}')" class="text-red-500 hover:text-red-600 bg-red-50 p-1.5 rounded-lg"><i class="ph-fill ph-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    list.innerHTML = '<div class="text-center text-xs text-slate-400 py-4">Belum ada data anggota tim.</div>';
+                }
+            });
+        }
+
+        function addEmployee() {
+            const name = document.getElementById('newEmployeeName').value.trim();
+            if(name === "") return alert("Nama tidak boleh kosong!");
+            db.ref(empRef).push({ name: name });
+            document.getElementById('newEmployeeName').value = '';
+        }
+
+        function editEmployee(id, oldName) {
+            const newName = prompt("Edit Nama Anggota:", oldName);
+            if(newName && newName.trim() !== "") {
+                db.ref(`${empRef}/${id}`).update({ name: newName.trim() });
+            }
+        }
+
+        function deleteEmployee(id) {
+            if(confirm("Yakin ingin menghapus anggota ini?")) {
+                db.ref(`${empRef}/${id}`).remove();
+            }
+        }
+
+        function openEmployeeModal() { document.getElementById('employeeModal').classList.remove('hidden'); }
+        function closeEmployeeModal(e) { if(!e || e.target.id === 'employeeModal' || !e.target) document.getElementById('employeeModal').classList.add('hidden'); }
+
+        // --- PREVIEW FILE ---
         function previewFile() {
             const file = document.getElementById('proofImage').files[0];
             const uploadText = document.getElementById('uploadText');
@@ -148,7 +228,7 @@
             }
         }
 
-        // Logika Submit Form
+        // --- SUBMIT FORM & UPLOAD CLOUDINARY ---
         async function submitLeave(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -166,28 +246,39 @@
             };
 
             btn.disabled = true;
-            btn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"></i> MENGIRIM...`;
 
             try {
-                // Proses upload gambar jika ada
                 if (file) {
-                    btn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"></i> UPLOAD FOTO...`;
-                    // Bikin folder 'bukti_izin' di Storage
-                    const fileRef = storage.ref(`bukti_izin/${reqData.id}_${file.name}`);
-                    await fileRef.put(file);
-                    reqData.proofUrl = await fileRef.getDownloadURL();
+                    btn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"></i> UPLOAD KE CLOUDINARY...`;
+                    
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+                    const res = await fetch(CLOUDINARY_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    
+                    const cloudData = await res.json();
+                    if(cloudData.secure_url) {
+                        reqData.proofUrl = cloudData.secure_url;
+                    } else {
+                        throw new Error("Upload ke Cloudinary gagal.");
+                    }
                 }
 
-                // Simpan ke Database (Realtime DB)
                 btn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"></i> MENYIMPAN DATA...`;
                 await db.ref(`${dbRef}/${reqData.id}`).set(reqData);
 
-                // Reset Form
                 document.getElementById('leaveForm').reset();
-                document.getElementById('uploadText').innerText = "Upload Surat Dokter / Bukti Foto";
+                document.getElementById('uploadText').innerText = "Upload Surat Dokter / Bukti (Cloudinary)";
                 document.getElementById('uploadText').className = "text-xs font-bold text-slate-500";
                 document.getElementById('uploadIcon').className = "ph ph-image text-3xl text-slate-400 mb-2";
-                initApp(); // reset dates
+                
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('startDate').value = today;
+                document.getElementById('endDate').value = today;
 
                 alert("Pengajuan berhasil dikirim!");
             } catch (error) {
@@ -199,12 +290,12 @@
             }
         }
 
-        // Ambil Data History
+        // --- LOAD DATA HISTORI ---
         function loadData() {
             db.ref(dbRef).on('value', (snapshot) => {
                 const data = snapshot.val();
-                const requests = data ? Object.values(data) : [];
-                renderBoard(requests);
+                globalRequestsData = data ? Object.values(data) : [];
+                renderBoard(globalRequestsData);
             });
         }
 
@@ -217,7 +308,6 @@
                 return;
             }
 
-            // Urutkan dari yang terbaru
             requests.sort((a, b) => b.id - a.id).forEach(req => {
                 let badgeColor = req.type === 'Sakit' ? 'bg-red-50 text-red-500 border-red-200' : 
                                  req.type === 'Cuti' ? 'bg-purple-50 text-purple-500 border-purple-200' : 
@@ -245,7 +335,6 @@
                         </div>
                         <button onclick="deleteRequest('${req.id}')" class="text-slate-300 hover:text-red-500 transition"><i class="ph-fill ph-trash text-lg"></i></button>
                     </div>
-                    
                     <div class="mb-3 flex items-center gap-2">
                         <span class="text-[10px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-lg border flex items-center gap-1 ${badgeColor}">
                             <i class="ph-fill ${iconType}"></i> ${req.type}
@@ -254,32 +343,24 @@
                             <i class="ph-fill ph-calendar-blank"></i> ${formatDateRange(req.startDate, req.endDate)}
                         </span>
                     </div>
-                    
                     <p class="text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">${req.reason}</p>
-                    
                     ${proofBtn}
                 `;
                 board.appendChild(card);
             });
         }
 
-        // Format tanggal jika lebih dari 1 hari
         function formatDateRange(start, end) {
-            const opt = { day: 'numeric', month: 'short' };
+            const opt = { day: 'numeric', month: 'short', year: 'numeric' };
             const s = new Date(start).toLocaleDateString('id-ID', opt);
             const e = new Date(end).toLocaleDateString('id-ID', opt);
             return s === e ? s : `${s} - ${e}`;
         }
 
-        // Hapus Data
         function deleteRequest(id) {
-            if(confirm("Hapus data pengajuan ini?")) {
-                db.ref(`${dbRef}/${id}`).remove();
-                // Opsional: Hapus file di storage juga jika ingin hemat kapasitas
-            }
+            if(confirm("Hapus data pengajuan ini?")) db.ref(`${dbRef}/${id}`).remove();
         }
 
-        // Logic Modal Gambar
         function openModal(url) {
             document.getElementById('modalImg').src = url;
             document.getElementById('imageModal').classList.remove('hidden');
@@ -287,6 +368,44 @@
         function closeModal() {
             document.getElementById('imageModal').classList.add('hidden');
             document.getElementById('modalImg').src = "";
+        }
+
+        // --- EXPORT KE EXCEL (SHEETJS) ---
+        function downloadExcel() {
+            if(globalRequestsData.length === 0) return alert("Belum ada data untuk di-export.");
+            
+            // Format data biar rapi di Excel
+            const formattedData = globalRequestsData.sort((a, b) => b.id - a.id).map((req, index) => ({
+                "No": index + 1,
+                "Nama Tim": req.name,
+                "Tipe Izin": req.type,
+                "Mulai Tanggal": new Date(req.startDate).toLocaleDateString('id-ID'),
+                "Sampai Tanggal": new Date(req.endDate).toLocaleDateString('id-ID'),
+                "Alasan Lengkap": req.reason,
+                "Waktu Submit": new Date(parseInt(req.id)).toLocaleString('id-ID'),
+                "Link Bukti Foto": req.proofUrl ? req.proofUrl : "Tidak ada file"
+            }));
+
+            // Bikin Workbook & Worksheet
+            const worksheet = XLSX.utils.json_to_sheet(formattedData);
+            
+            // Atur lebar kolom (estetika Excel)
+            worksheet['!cols'] = [
+                { wch: 5 },  // No
+                { wch: 15 }, // Nama
+                { wch: 15 }, // Tipe
+                { wch: 15 }, // Mulai
+                { wch: 15 }, // Sampai
+                { wch: 40 }, // Alasan
+                { wch: 20 }, // Waktu
+                { wch: 50 }  // Link Bukti
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Izin & Sakit");
+
+            // Trigger Download
+            XLSX.writeFile(workbook, "Rekap_Izin_Molusca.xlsx");
         }
     </script>
 </body>
