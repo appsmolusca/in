@@ -139,7 +139,7 @@
         // 1. GANTI BAGIAN INI DENGAN DATA CLOUDINARY
         // ==========================================
         // Masukkan Cloud Name kamu di URL ini (Ganti teks CLOUD_NAME_KAMU_DISINI)
-        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/CLOUD_NAME_KAMU_DISINI/image/upload";
+        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/molusca_izin/image/upload";
         
         // Pastikan nama preset ini sudah diset jadi "Unsigned" di Settings Cloudinary
         const CLOUDINARY_UPLOAD_PRESET = "molusca_izin"; 
@@ -247,7 +247,7 @@
             };
 
             // Cek URL Cloudinary
-            if(file && CLOUDINARY_URL.includes("CLOUD_NAME_KAMU_DISINI")) {
+            if(file && CLOUDINARY_URL.includes("molusca_izin")) {
                 alert("Upload Gagal: Kamu belum mengganti CLOUD_NAME_KAMU_DISINI di dalam kode HTML!");
                 return;
             }
