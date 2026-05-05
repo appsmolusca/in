@@ -6,17 +6,12 @@
     <title>Sistem Izin & Sakit - Molusca</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <!-- SheetJS untuk Export Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-user-select: none; user-select: none; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         .upload-area.dragover { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
@@ -135,15 +130,21 @@
     </div>
 
     <script>
-        // ==========================================
-        // 1. GANTI BAGIAN INI DENGAN DATA CLOUDINARY
-        // ==========================================
-        // Masukkan Cloud Name kamu di URL ini (Ganti teks CLOUD_NAME_KAMU_DISINI)
-        const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/molusca_izin/image/upload";
+        // =================================================================
+        // KONFIGURASI CLOUDINARY (ANTI GAGAL)
+        // =================================================================
         
-        // Pastikan nama preset ini sudah diset jadi "Unsigned" di Settings Cloudinary
+        // 1. Masukkan HANYA Cloud Name kamu di dalam tanda kutip ini.
+        // Biasanya bentuknya seperti "djqsxxxxx" atau nama custom.
+        const CLOUD_NAME = "KODE_CLOUD_NAME_DISINI"; 
+
+        // 2. Preset yang sudah dibuat
         const CLOUDINARY_UPLOAD_PRESET = "molusca_izin"; 
-        // ==========================================
+        
+        // JANGAN UBAH BARIS INI (Otomatis generate URL yang benar)
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+        
+        // =================================================================
 
         const firebaseConfig = {
             apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
@@ -165,13 +166,11 @@
             loadData();
         }
 
-        // --- CRUD KARYAWAN ---
         function loadEmployees() {
             db.ref(empRef).on('value', (snapshot) => {
                 const data = snapshot.val();
                 const select = document.getElementById('employeeName');
                 const list = document.getElementById('employeeList');
-                
                 select.innerHTML = '<option value="" disabled selected>Pilih Nama Anggota</option>';
                 list.innerHTML = '';
 
@@ -209,15 +208,12 @@
         }
 
         function deleteEmployee(id) {
-            if(confirm("Yakin ingin menghapus anggota ini?")) {
-                db.ref(`${empRef}/${id}`).remove();
-            }
+            if(confirm("Yakin ingin menghapus anggota ini?")) db.ref(`${empRef}/${id}`).remove();
         }
 
         function openEmployeeModal() { document.getElementById('employeeModal').classList.remove('hidden'); }
         function closeEmployeeModal(e) { if(!e || e.target.id === 'employeeModal' || !e.target) document.getElementById('employeeModal').classList.add('hidden'); }
 
-        // --- PREVIEW FILE ---
         function previewFile() {
             const file = document.getElementById('proofImage').files[0];
             const uploadText = document.getElementById('uploadText');
@@ -229,12 +225,17 @@
             }
         }
 
-        // --- SUBMIT FORM DENGAN ERROR HANDLING CLOUDINARY ---
         async function submitLeave(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             const file = document.getElementById('proofImage').files[0];
             
+            // Cek apakah Cloud Name masih default
+            if(file && (CLOUD_NAME === "KODE_CLOUD_NAME_DISINI" || CLOUD_NAME === "")) {
+                alert("Upload Dihentikan!\n\nSilakan buka file HTML, lalu isi variabel const CLOUD_NAME dengan Cloud Name milikmu.");
+                return;
+            }
+
             const reqData = {
                 id: Date.now().toString(),
                 name: document.getElementById('employeeName').value,
@@ -245,12 +246,6 @@
                 timestamp: new Date().toISOString(),
                 proofUrl: ""
             };
-
-            // Cek URL Cloudinary
-            if(file && CLOUDINARY_URL.includes("molusca_izin")) {
-                alert("Upload Gagal: Kamu belum mengganti CLOUD_NAME_KAMU_DISINI di dalam kode HTML!");
-                return;
-            }
 
             btn.disabled = true;
 
@@ -269,10 +264,10 @@
                     
                     const cloudData = await res.json();
                     
-                    // Deteksi Error dari Cloudinary
+                    // Menangkap error spesifik dari Cloudinary
                     if(!res.ok) {
-                        console.error("Cloudinary Error Detail:", cloudData);
-                        throw new Error("Gagal upload Cloudinary. Alasan: " + (cloudData.error?.message || "Unknown error"));
+                        console.error("Detail Error Cloudinary:", cloudData);
+                        throw new Error(cloudData.error?.message || "Kesalahan server Cloudinary");
                     }
 
                     reqData.proofUrl = cloudData.secure_url;
@@ -293,14 +288,14 @@
                 alert("Pengajuan berhasil dikirim!");
             } catch (error) {
                 console.error(error);
-                alert(error.message + "\n\nPastikan: \n1. Cloud Name benar.\n2. Upload Preset 'molusca_izin' sudah dibuat di menu settings > upload Cloudinary.\n3. Mode preset diset ke 'Unsigned'.");
+                // Alert akan menampilkan APA persisnya yang salah
+                alert("GAGAL UPLOAD KE CLOUDINARY:\n" + error.message + "\n\nPastikan 'molusca_izin' ada di menu Settings > Upload > Upload presets, dan Signing Mode-nya adalah 'Unsigned'.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-fill ph-paper-plane-right"></i> KIRIM PENGAJUAN`;
             }
         }
 
-        // --- LOAD DATA HISTORI ---
         function loadData() {
             db.ref(dbRef).on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -380,7 +375,6 @@
             document.getElementById('modalImg').src = "";
         }
 
-        // --- EXPORT KE EXCEL ---
         function downloadExcel() {
             if(globalRequestsData.length === 0) return alert("Belum ada data untuk di-export.");
             
