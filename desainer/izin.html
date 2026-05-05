@@ -117,9 +117,7 @@
                 <button onclick="addEmployee()" class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-xs hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center gap-1"><i class="ph-bold ph-plus"></i> Tambah</button>
             </div>
 
-            <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="employeeList">
-                <!-- List Karyawan disini -->
-            </div>
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="employeeList"></div>
         </div>
     </div>
 
@@ -130,21 +128,10 @@
     </div>
 
     <script>
-        // =================================================================
-        // KONFIGURASI CLOUDINARY (ANTI GAGAL)
-        // =================================================================
-        
-        // 1. Masukkan HANYA Cloud Name kamu di dalam tanda kutip ini.
-        // Biasanya bentuknya seperti "djqsxxxxx" atau nama custom.
-        const CLOUD_NAME = "molusca_izin"; 
-
-        // 2. Preset yang sudah dibuat
-        const CLOUDINARY_UPLOAD_PRESET = "molusca_izin"; 
-        
-        // JANGAN UBAH BARIS INI (Otomatis generate URL yang benar)
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-        
-        // =================================================================
+        // --- KONFIGURASI OTOMATIS CLOUDINARY ---
+        let CLOUD_NAME = localStorage.getItem('molusca_cloud_name') || "";
+        const CLOUDINARY_UPLOAD_PRESET = "molusca_izin"; // Sesuai nama folder Mas Dadan
+        // ---------------------------------------
 
         const firebaseConfig = {
             apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
@@ -202,9 +189,7 @@
 
         function editEmployee(id, oldName) {
             const newName = prompt("Edit Nama Anggota:", oldName);
-            if(newName && newName.trim() !== "") {
-                db.ref(`${empRef}/${id}`).update({ name: newName.trim() });
-            }
+            if(newName && newName.trim() !== "") db.ref(`${empRef}/${id}`).update({ name: newName.trim() });
         }
 
         function deleteEmployee(id) {
@@ -230,10 +215,15 @@
             const btn = document.getElementById('submitBtn');
             const file = document.getElementById('proofImage').files[0];
             
-            // Cek apakah Cloud Name masih default
-            if(file && (CLOUD_NAME === "molusca_izin" || CLOUD_NAME === "")) {
-                alert("Upload Dihentikan!\n\nSilakan buka file HTML, lalu isi variabel const CLOUD_NAME dengan Cloud Name milikmu.");
-                return;
+            // LOGIKA AUTO-DETECT CLOUD NAME
+            if (file && !CLOUD_NAME) {
+                CLOUD_NAME = prompt("⚠️ MASUKKAN CLOUD NAME\n\nUntuk mengaktifkan fitur upload foto, masukkan 'Cloud Name' akun Cloudinary Mas Dadan (Bisa dilihat di dashboard Cloudinary):");
+                if (!CLOUD_NAME || CLOUD_NAME.trim() === "") {
+                    alert("Upload dibatalkan. Sistem butuh Cloud Name untuk menyimpan foto.");
+                    CLOUD_NAME = ""; // Reset
+                    return;
+                }
+                localStorage.setItem('molusca_cloud_name', CLOUD_NAME.trim());
             }
 
             const reqData = {
@@ -253,6 +243,7 @@
                 if (file) {
                     btn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg"></i> UPLOAD FOTO...`;
                     
+                    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
                     const formData = new FormData();
                     formData.append("file", file);
                     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
@@ -264,10 +255,14 @@
                     
                     const cloudData = await res.json();
                     
-                    // Menangkap error spesifik dari Cloudinary
+                    // Kalau gagal karena Cloud Name salah, reset biar bisa input ulang
                     if(!res.ok) {
-                        console.error("Detail Error Cloudinary:", cloudData);
-                        throw new Error(cloudData.error?.message || "Kesalahan server Cloudinary");
+                        if (res.status === 404 || res.status === 400 || res.status === 401) {
+                            localStorage.removeItem('molusca_cloud_name');
+                            CLOUD_NAME = "";
+                        }
+                        console.error("Cloudinary Error:", cloudData);
+                        throw new Error(cloudData.error?.message || "Koneksi ke Cloudinary bermasalah");
                     }
 
                     reqData.proofUrl = cloudData.secure_url;
@@ -288,8 +283,7 @@
                 alert("Pengajuan berhasil dikirim!");
             } catch (error) {
                 console.error(error);
-                // Alert akan menampilkan APA persisnya yang salah
-                alert("GAGAL UPLOAD KE CLOUDINARY:\n" + error.message + "\n\nPastikan 'molusca_izin' ada di menu Settings > Upload > Upload presets, dan Signing Mode-nya adalah 'Unsigned'.");
+                alert("GAGAL UPLOAD FOTO:\n" + error.message + "\n\n💡 Pastikan 'Cloud Name' sudah benar dan Preset 'molusca_izin' modenya sudah 'Unsigned'. Sistem akan meminta Cloud Name lagi saat Anda mengulang upload.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="ph-fill ph-paper-plane-right"></i> KIRIM PENGAJUAN`;
