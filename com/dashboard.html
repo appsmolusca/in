@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Dashboard - Molusca Bos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-user-select: none; user-select: none; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#FBFBFE] pb-24 text-slate-800" onload="initApp()" oncontextmenu="return false;">
+
+    <header class="bg-slate-900 sticky top-0 z-50 py-4 px-6 border-b border-slate-800 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-2">
+            <i class="ph-fill ph-hexagon text-3xl text-white"></i>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight text-white leading-none">Molusca<span class="text-blue-500">.</span></h1>
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Super Dashboard</span>
+            </div>
+        </div>
+        <div class="text-[10px] font-black bg-white/10 text-white px-3 py-2 uppercase tracking-widest rounded-xl flex items-center gap-1 backdrop-blur-sm">
+            <i class="ph-fill ph-crown text-yellow-400"></i> Bos View
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+        <div class="flex flex-col sm:flex-row bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 gap-1.5">
+            <button onclick="switchTab('desainer')" id="btnDesainer" class="flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-blue-600 text-white shadow-md flex justify-center items-center gap-2">
+                <i class="ph-fill ph-paint-brush text-sm"></i> Tim Desainer
+            </button>
+            <button onclick="switchTab('konten')" id="btnKonten" class="flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50 flex justify-center items-center gap-2">
+                <i class="ph-fill ph-video-camera text-sm"></i> Tim Konten
+            </button>
+            <button onclick="switchTab('izin')" id="btnIzin" class="flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50 flex justify-center items-center gap-2">
+                <i class="ph-fill ph-first-aid text-sm"></i> Izin & Sakit
+            </button>
+        </div>
+    </div>
+
+    <main class="p-4 md:p-8 max-w-7xl mx-auto mt-2">
+
+        <div id="sectionDesainer" class="block animate-fade-in space-y-8">
+            <div class="flex items-center gap-2 mb-2 ml-1">
+                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest"><i class="ph-fill ph-kanban text-blue-500 text-lg"></i> Pantau Project Desain</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-pink-500 text-xl"></i> Indah</h3>
+                    <div id="board-Indah" class="space-y-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-purple-500 text-xl"></i> Nayla</h3>
+                    <div id="board-Nayla" class="space-y-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-teal-500 text-xl"></i> Tya</h3>
+                    <div id="board-Tya" class="space-y-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] ml-2 flex items-center gap-2"><i class="ph-fill ph-user-circle text-blue-500 text-xl"></i> Dadan</h3>
+                    <div id="board-Dadan" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <section class="pt-8 mt-8 border-t border-slate-200">
+                <h2 class="text-xs font-black text-green-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2"><i class="ph-fill ph-archive-box text-lg"></i> Final Archive</h2>
+                <div id="board-final" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+            </section>
+        </div>
+
+        <div id="sectionKonten" class="hidden animate-fade-in max-w-4xl mx-auto">
+            <div class="flex justify-between items-end mb-6 ml-1">
+                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2"><i class="ph-fill ph-files text-orange-500 text-lg"></i> Rekap Laporan Konten</h2>
+            </div>
+            <div id="bosContainerKonten">
+                <div class="text-center text-xs text-slate-400 py-8"><i class="ph ph-spinner animate-spin text-2xl mb-2"></i><br>Memuat data...</div>
+            </div>
+        </div>
+
+        <div id="sectionIzin" class="hidden animate-fade-in max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6 ml-1">
+                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <i class="ph-fill ph-first-aid text-red-500 text-lg"></i> Data Absensi Tim
+                </h2>
+                <span id="labelBulanIni" class="text-[10px] font-black bg-red-50 text-red-600 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-red-100">Bulan Ini</span>
+            </div>
+            
+            <div id="board-history-izin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-full text-center text-xs text-slate-400 py-8"><i class="ph ph-spinner animate-spin text-2xl mb-2"></i><br>Memuat data...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="imageModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden flex justify-center items-center p-4" onclick="closeModal()">
+        <img id="modalImg" src="" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-slate-700">
+        <button class="absolute top-6 right-6 text-white bg-white/10 border border-white/20 p-2 rounded-full hover:bg-white/30 transition"><i class="ph ph-x text-xl"></i></button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
+            authDomain: "appmoluscadesign.firebaseapp.com",
+            databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "appmoluscadesign"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Referensi Database
+        const dbTasks = 'tasks';
+        const dbReports = 'creator_reports_custom';
+        const dbLeave = 'leave_requests';
+
+        function initApp() {
+            // Set label bulan ini
+            const dateOpts = { month: 'long', year: 'numeric' };
+            document.getElementById('labelBulanIni').innerText = "Bulan: " + new Date().toLocaleDateString('id-ID', dateOpts);
+            
+            loadAllData();
+        }
+
+        // ================= TAB NAVIGATION LOGIC =================
+        function switchTab(tabName) {
+            const secDesainer = document.getElementById('sectionDesainer');
+            const secKonten = document.getElementById('sectionKonten');
+            const secIzin = document.getElementById('sectionIzin');
+            
+            const btnDesainer = document.getElementById('btnDesainer');
+            const btnKonten = document.getElementById('btnKonten');
+            const btnIzin = document.getElementById('btnIzin');
+
+            // Reset semua tampilan
+            secDesainer.classList.add('hidden'); secKonten.classList.add('hidden'); secIzin.classList.add('hidden');
+            
+            // Reset styling tombol (Inactive State)
+            const styleInactive = "flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-50 flex justify-center items-center gap-2";
+            btnDesainer.className = styleInactive; btnKonten.className = styleInactive; btnIzin.className = styleInactive;
+
+            // Set Active State
+            if(tabName === 'desainer') {
+                secDesainer.classList.remove('hidden');
+                btnDesainer.className = "flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-blue-600 text-white shadow-md flex justify-center items-center gap-2";
+            } else if(tabName === 'konten') {
+                secKonten.classList.remove('hidden');
+                btnKonten.className = "flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-orange-500 text-white shadow-md flex justify-center items-center gap-2";
+            } else if(tabName === 'izin') {
+                secIzin.classList.remove('hidden');
+                btnIzin.className = "flex-1 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all bg-red-500 text-white shadow-md flex justify-center items-center gap-2";
+            }
+        }
+
+        // ================= LOAD SEMUA DATA =================
+        function loadAllData() {
+            // Load Desainer
+            db.ref(dbTasks).on('value', snap => {
+                renderDesainerBoard(snap.val() ? Object.values(snap.val()) : []);
+            });
+            // Load Konten
+            db.ref(dbReports).on('value', snap => {
+                renderKontenBoard(snap.val() ? Object.values(snap.val()) : []);
+            });
+            // Load Izin/Sakit
+            db.ref(dbLeave).on('value', snap => {
+                renderIzinBoard(snap.val() ? Object.values(snap.val()) : []);
+            });
+        }
+
+        // ================= RENDER DESAINER (READ ONLY) =================
+        function renderDesainerBoard(tasks) {
+            const columns = { 
+                'Indah': document.getElementById('board-Indah'), 
+                'Nayla': document.getElementById('board-Nayla'), 
+                'Tya': document.getElementById('board-Tya'),
+                'Dadan': document.getElementById('board-Dadan') 
+            };
+            const finalBoard = document.getElementById('board-final');
+            Object.values(columns).forEach(c => c.innerHTML = ''); finalBoard.innerHTML = '';
+
+            tasks.reverse().forEach(task => {
+                const card = document.createElement('div');
+                let jo = `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[10px] font-black mr-2 tracking-tighter uppercase border border-slate-200"><i class="ph ph-hash"></i>${task.joCode}</span>`;
+
+                if (task.status === 'Final') {
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-100 text-[11px] font-bold text-slate-500";
+                    card.innerHTML = `<div><div class="truncate">${jo} ${task.title}</div><div class="mt-2 text-[9px] uppercase tracking-widest text-green-500"><i class="ph-fill ph-check-circle mr-1"></i>${task.assignee}</div></div>`;
+                    finalBoard.appendChild(card);
+                } else {
+                    let border = task.priority === 'Urgent' ? 'border-red-200 bg-red-50/10 shadow-sm' : 'border-slate-200 bg-white shadow-sm';
+                    let statusColor = "text-blue-600 bg-blue-50";
+                    if(task.status === 'Nunggu Revisi') statusColor = "text-red-500 bg-red-50";
+                    if(task.status === 'Tinggal Layout') statusColor = "text-orange-500 bg-orange-50";
+
+                    card.className = `p-5 rounded-[24px] border transition-all ${border}`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter"><i class="ph ph-calendar-blank"></i> ${task.dateStr}</span>
+                            ${task.priority === 'Urgent' ? '<span class="text-[9px] font-black text-red-500 uppercase flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>' : ''}
+                        </div>
+                        <h4 class="font-extrabold text-slate-900 text-sm leading-tight mb-3">${jo} ${task.title}</h4>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1"><i class="ph-fill ph-paper-plane-tilt"></i> By: ${task.sender}</div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-black px-3 py-2 rounded-xl uppercase flex items-center gap-1 ${statusColor}"><i class="ph-fill ph-clock-countdown"></i> ${task.status}</span>
+                            ${task.isPrintilan ? '<span class="text-[9px] font-black text-white bg-slate-800 px-3 py-2 rounded-xl uppercase tracking-widest flex items-center gap-1"><i class="ph-fill ph-lightning"></i> EXTRA</span>' : ''}
+                        </div>`;
+                    if(columns[task.assignee]) columns[task.assignee].appendChild(card);
+                }
+            });
+        }
+
+        // ================= RENDER KONTEN (READ ONLY) =================
+        function renderKontenBoard(reports) {
+            const container = document.getElementById('bosContainerKonten');
+            container.innerHTML = '';
+
+            if (reports.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs text-slate-400 py-8 border-2 border-dashed border-slate-200 rounded-3xl">Belum ada tim yang submit laporan.</div>`;
+                return;
+            }
+
+            const groupedReports = reports.reduce((acc, rep) => {
+                if (!acc[rep.dateVal]) acc[rep.dateVal] = [];
+                acc[rep.dateVal].push(rep);
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(groupedReports).sort((a, b) => new Date(b) - new Date(a));
+
+            sortedDates.forEach(date => {
+                const dateObj = new Date(date);
+                const tglFormat = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+                let groupHTML = `
+                <div class="mb-8">
+                    <h3 class="text-[11px] font-black text-white bg-slate-900 uppercase tracking-widest mb-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-md shadow-slate-300">
+                        <i class="ph-fill ph-calendar-blank text-orange-400 text-lg"></i> ${tglFormat}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                `;
+
+                groupedReports[date].reverse().forEach(rep => {
+                    groupHTML += `
+                        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                            <h4 class="font-black text-slate-800 text-sm mb-3 flex items-center gap-1.5"><i class="ph-fill ph-user-circle text-orange-500 text-xl"></i> ${rep.name}</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-100 p-4 rounded-2xl whitespace-pre-wrap font-medium">${rep.task}</p>
+                        </div>
+                    `;
+                });
+
+                groupHTML += `</div></div>`;
+                container.innerHTML += groupHTML;
+            });
+        }
+
+        // ================= RENDER IZIN & SAKIT (FILTER BULAN INI) =================
+        function renderIzinBoard(requests) {
+            const board = document.getElementById('board-history-izin');
+            board.innerHTML = '';
+
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            // Filter data HANYA untuk bulan ini
+            const filteredRequests = requests.filter(req => {
+                const startDate = new Date(req.startDate);
+                const endDate = new Date(req.endDate);
+                // Jika mulai atau selesai di bulan/tahun ini, tampilkan
+                return (startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear) ||
+                       (endDate.getMonth() === currentMonth && endDate.getFullYear() === currentYear);
+            });
+
+            if(filteredRequests.length === 0) {
+                board.innerHTML = `<div class="col-span-full text-center text-xs text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">Tidak ada data izin atau sakit untuk bulan ini. Alhamdulillah! 🎉</div>`;
+                return;
+            }
+
+            filteredRequests.sort((a, b) => b.id - a.id).forEach(req => {
+                let badgeColor = req.type === 'Sakit' ? 'bg-red-50 text-red-600 border-red-200' : 
+                                 req.type === 'Cuti' ? 'bg-purple-50 text-purple-600 border-purple-200' : 
+                                 'bg-yellow-50 text-yellow-600 border-yellow-200';
+                let iconType = req.type === 'Sakit' ? 'ph-thermometer' : req.type === 'Cuti' ? 'ph-airplane-tilt' : 'ph-envelope-open';
+
+                let proofBtn = req.proofUrl ? 
+                    `<button onclick="openModal('${req.proofUrl}')" class="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-extrabold p-3.5 rounded-xl uppercase tracking-widest flex justify-center items-center gap-2 transition-colors shadow-md">
+                        <i class="ph-bold ph-image text-lg text-slate-300"></i> Cek Foto Bukti
+                    </button>` : '';
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm relative";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 font-black text-sm uppercase">${req.name.charAt(0)}</div>
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-sm leading-none">${req.name}</h3>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">Tgl Lapor: ${new Date(parseInt(req.id)).toLocaleDateString('id-ID', {day:'numeric', month:'short'})}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4 flex flex-wrap items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-lg border flex items-center gap-1 ${badgeColor}">
+                            <i class="ph-fill ${iconType} text-sm"></i> ${req.type}
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-1">
+                            <i class="ph-fill ph-calendar-blank"></i> ${formatDateRange(req.startDate, req.endDate)}
+                        </span>
+                    </div>
+                    <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Alasan:</span>
+                        <p class="text-xs font-medium text-slate-700 leading-relaxed">${req.reason}</p>
+                    </div>
+                    ${proofBtn}
+                `;
+                board.appendChild(card);
+            });
+        }
+
+        function formatDateRange(start, end) {
+            const opt = { day: 'numeric', month: 'short', year: 'numeric' };
+            const s = new Date(start).toLocaleDateString('id-ID', opt);
+            const e = new Date(end).toLocaleDateString('id-ID', opt);
+            return s === e ? s : `${s} - ${e}`;
+        }
+
+        // ================= IMAGE MODAL =================
+        function openModal(url) {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImg').src = "";
+        }
+    </script>
+</body>
+</html>
