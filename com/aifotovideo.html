@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foto AI - Prototipe Final</title>
+    <title>Foto AI - Final Fixed Prototype</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -33,11 +33,15 @@
         .angle-slot.filled { border: 2px solid #10b981; }
         .angle-slot span { font-size: 0.6rem; font-weight: 700; color: #64748b; margin-top: 0.25rem; }
 
-        /* Animation Cards */
+        /* Animation Cards & Presets */
         .anim-card { border: 2px solid #f1f5f9; border-radius: 1.5rem; padding: 1.25rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 1rem; background: white; }
         .anim-card.selected { border-color: #6366f1; background: #eef2ff; }
+        
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .preset-card { min-width: 80px; height: 80px; border-radius: 1rem; background-size: cover; background-position: center; border: 3px solid transparent; cursor: pointer; position: relative; overflow: hidden; }
+        .preset-card.selected { border-color: #6366f1; transform: translateY(-2px); }
+        .preset-card .label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.5); color: white; font-size: 0.6rem; text-align: center; padding: 2px 0; font-weight: bold; }
 
-        /* Loading */
         .spinner { width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#0000 10%, #6366f1); -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0); animation: rotate 1s infinite linear; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -58,7 +62,7 @@
             <p class="text-slate-500 font-medium text-sm px-6">Solusi konten jualan pro untuk UMKM dalam hitungan detik.</p>
         </div>
         <div class="space-y-4">
-            <button onclick="navTo('screen-single-flow')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+            <button onclick="openCam('single', '', 'Foto Produk AI')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
                 <div class="text-left">
                     <h3 class="font-bold text-slate-800 text-lg">Foto Produk AI</h3>
                     <p class="text-slate-500 text-xs mt-1">Ganti latar belakang otomatis</p>
@@ -81,7 +85,7 @@
 
     <div id="screen-camera" class="screen p-0">
         <div class="absolute top-0 w-full p-4 z-20 flex items-center">
-            <button onclick="closeCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"><i data-lucide="x"></i></button>
+            <button onclick="abortCamera()" class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"><i data-lucide="x"></i></button>
             <h2 class="text-white font-bold ml-4" id="cam-title">Ambil Pose</h2>
         </div>
         <div class="cam-box">
@@ -102,6 +106,63 @@
         <canvas id="hidden-canvas" class="hidden"></canvas>
     </div>
 
+    <div id="screen-single-bg" class="screen">
+        <div class="flex items-center mb-4">
+            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="chevron-left"></i></button>
+            <h2 class="text-lg font-bold ml-2">Pilih Latar Belakang</h2>
+        </div>
+        
+        <div class="w-32 h-40 mx-auto bg-white rounded-2xl mb-4 shadow-sm border-4 border-white overflow-hidden relative">
+            <img id="single-preview-img" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 w-full bg-black/50 text-white text-[10px] text-center py-1">Produk Asli</div>
+        </div>
+
+        <div class="space-y-5 pb-4">
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase">1. Preset Tersedia</label>
+                <div class="flex overflow-x-auto gap-3 pb-2 hide-scroll">
+                    <div class="preset-card flex-none selected" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=150');"><div class="label">Kafe</div></div>
+                    <div class="preset-card flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');"><div class="label">Pantai</div></div>
+                    <div class="preset-card flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=150');"><div class="label">Minimalis</div></div>
+                    <div class="preset-card flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=150');"><div class="label">Podium</div></div>
+                    <div class="preset-card flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?w=150');"><div class="label">Kayu</div></div>
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase">2. Upload Sendiri</label>
+                <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between cursor-pointer" onclick="document.getElementById('custom-bg-upload').click()">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="image-plus" class="w-5 h-5"></i></div>
+                        <div><div class="font-bold text-indigo-900 text-sm">Pilih dari Galeri</div></div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-indigo-400"></i>
+                </div>
+                <input type="file" id="custom-bg-upload" accept="image/*" class="hidden">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3 text-pink-500"></i> 3. Prompt AI</label>
+                <textarea rows="2" placeholder="Cth: Di atas meja kafe..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm outline-none"></textarea>
+            </div>
+        </div>
+        <button onclick="startRendering('single')" class="mt-auto btn-primary w-full py-4 rounded-2xl font-bold text-lg flex justify-center items-center gap-2">
+            <i data-lucide="sparkles"></i> Generate Background
+        </button>
+    </div>
+
+    <div id="screen-single-result" class="screen">
+        <div class="flex items-center mb-6">
+            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button>
+            <h2 class="text-lg font-bold ml-2">Hasil Foto AI</h2>
+        </div>
+        <div class="w-full aspect-[3/4] bg-slate-900 rounded-3xl mb-6 relative overflow-hidden shadow-2xl">
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" class="w-full h-full object-cover">
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-auto">
+            <button class="bg-indigo-50 text-indigo-700 font-bold py-3 rounded-xl border border-indigo-200" onclick="navTo('screen-single-bg')">Edit Ulang</button>
+            <button class="btn-primary font-bold py-3 rounded-xl" onclick="alert('Tersimpan di Galeri!')">Simpan</button>
+        </div>
+    </div>
+
     <div id="screen-video-grid" class="screen">
         <div class="flex items-center mb-6">
             <button onclick="navTo('screen-home')" class="p-2"><i data-lucide="chevron-left"></i></button>
@@ -115,10 +176,6 @@
             <div id="slot-top" class="angle-slot" onclick="openCam('multi', 'slot-top', 'Atas')"><i data-lucide="plus" class="text-slate-300"></i><span>Atas</span></div>
             <div id="slot-bottom" class="angle-slot" onclick="openCam('multi', 'slot-bottom', 'Bawah')"><i data-lucide="plus" class="text-slate-300"></i><span>Bawah</span></div>
         </div>
-        <div class="p-4 bg-blue-50 rounded-2xl mb-8">
-            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Tips Pro</p>
-            <p class="text-xs text-blue-800 leading-relaxed">Semakin lengkap posenya, hasil video 3D akan terlihat semakin halus dan nyata!</p>
-        </div>
         <button onclick="navTo('screen-anim-select')" class="mt-auto btn-primary w-full py-4 rounded-2xl font-bold text-lg">Pilih Gaya Animasi</button>
     </div>
 
@@ -128,55 +185,39 @@
             <h2 class="text-xl font-bold ml-2">Gaya Animasi</h2>
         </div>
         <div class="space-y-4 mb-auto">
-            <div class="anim-card selected" onclick="selectAnim(this)">
-                <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center"><i data-lucide="hand"></i></div>
-                <div><h4 class="font-bold text-slate-800">Review Tangan</h4><p class="text-[10px] text-slate-500">Kesan produk sedang diulas langsung</p></div>
-            </div>
-            <div class="anim-card" onclick="selectAnim(this)">
-                <div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center"><i data-lucide="maximize"></i></div>
-                <div><h4 class="font-bold text-slate-800">Cinematic Zoom</h4><p class="text-[10px] text-slate-500">Transisi mewah fokus ke detail</p></div>
-            </div>
-            <div class="anim-card" onclick="selectAnim(this)">
-                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center"><i data-lucide="user-check"></i></div>
-                <div><h4 class="font-bold text-slate-800">AI Talent Model</h4><p class="text-[10px] text-slate-500">Model AI profesional memegang produk</p></div>
-            </div>
+            <div class="anim-card selected" onclick="selectAnim(this)"><div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center"><i data-lucide="hand"></i></div><div><h4 class="font-bold text-slate-800">Review Tangan</h4></div></div>
+            <div class="anim-card" onclick="selectAnim(this)"><div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center"><i data-lucide="maximize"></i></div><div><h4 class="font-bold text-slate-800">Cinematic Zoom</h4></div></div>
+            <div class="anim-card" onclick="selectAnim(this)"><div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center"><i data-lucide="user-check"></i></div><div><h4 class="font-bold text-slate-800">AI Talent Model</h4></div></div>
         </div>
-        <button onclick="startRendering()" class="mt-8 btn-primary w-full py-5 rounded-2xl font-bold text-lg flex justify-center items-center gap-3">
+        <button onclick="startRendering('video')" class="mt-8 btn-primary w-full py-5 rounded-2xl font-bold text-lg flex justify-center items-center gap-3">
             <i data-lucide="wand-2"></i> Generate Video & Caption
         </button>
     </div>
 
-    <div id="screen-loading" class="screen justify-center items-center text-center">
-        <div class="spinner mb-8"></div>
-        <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Meracik Keajaiban...</h2>
-        <p class="text-sm text-slate-500 font-medium px-10" id="load-msg">Menyatukan 6 sisi produk menjadi 3D</p>
-    </div>
-
-    <div id="screen-result" class="screen">
+    <div id="screen-video-result" class="screen">
         <div class="flex items-center justify-between mb-6">
-            <button onclick="navTo('screen-home')" class="p-2"><i data-lucide="x"></i></button>
+            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button>
             <h2 class="text-lg font-bold">Hasil Kreasi AI</h2>
             <div class="w-10"></div>
         </div>
-        
         <div class="w-full aspect-[9/16] bg-slate-900 rounded-[2.5rem] mb-6 relative overflow-hidden flex items-center justify-center shadow-2xl">
             <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" class="absolute inset-0 w-full h-full object-cover opacity-50">
-            <div class="z-10 bg-white/20 backdrop-blur-xl p-6 rounded-full text-white cursor-pointer hover:scale-110 transition-transform">
-                <i data-lucide="play" class="w-10 h-10 fill-current"></i>
-            </div>
+            <div class="z-10 bg-white/20 backdrop-blur-xl p-6 rounded-full text-white cursor-pointer"><i data-lucide="play" class="w-10 h-10 fill-current"></i></div>
         </div>
-
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-3xl mb-6 shadow-sm">
             <div class="flex justify-between items-center mb-3">
                 <span class="text-[10px] font-extrabold text-indigo-600 tracking-widest uppercase">Auto-Caption Pro</span>
                 <button onclick="alert('Caption disalin!')" class="text-xs font-bold text-indigo-700 bg-white px-3 py-1.5 rounded-lg shadow-sm">Copy</button>
             </div>
-            <p class="text-xs text-slate-700 leading-relaxed font-medium italic">
-                "Kualitas nggak pernah bohong! 😍 Koleksi terbaru ini beneran bikin stand out. Desain premium, material juara. Cocok buat kamu yang pengen tampil beda setiap hari. ✨<br><br>Gak usah mikir dua kali, stok terbatas! Klik keranjang kuning sekarang! 🛒🔥 #TikTokShop #RacunBelanja #UMKMBisa #FYP"
-            </p>
+            <p class="text-xs text-slate-700 leading-relaxed font-medium italic">"Kualitas nggak pernah bohong! 😍 Desain premium, material juara. Klik keranjang kuning sekarang! 🛒🔥 #TikTokShop #FYP"</p>
         </div>
-
         <button onclick="navTo('screen-home')" class="w-full py-4 border-2 border-slate-200 text-slate-600 font-bold rounded-2xl mb-4">Buat Baru</button>
+    </div>
+
+    <div id="screen-loading" class="screen justify-center items-center text-center">
+        <div class="spinner mb-8"></div>
+        <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Meracik Keajaiban...</h2>
+        <p class="text-sm text-slate-500 font-medium px-10" id="load-msg">Memproses data visual</p>
     </div>
 
 </div>
@@ -195,21 +236,26 @@
 
     const openCam = async (m, slot = '', title = '') => {
         mode = m; targetSlot = slot;
-        document.getElementById('cam-title').innerText = `Angle: ${title}`;
+        document.getElementById('cam-title').innerText = title;
         navTo('screen-camera');
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             document.getElementById('video-feed').srcObject = stream;
-        } catch (e) { alert("Izin kamera ditolak. Silakan gunakan tombol galeri."); }
+        } catch (e) { alert("Izin kamera ditolak. Gunakan tombol galeri di dalam kamera."); }
     };
 
-    const closeCamera = () => {
-        if(stream) stream.getTracks().forEach(t => t.stop());
+    const stopStream = () => {
+        if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    };
+
+    const abortCamera = () => {
+        stopStream();
         navTo(mode === 'single' ? 'screen-home' : 'screen-video-grid');
     };
 
     const takeSnapshot = () => {
         const video = document.getElementById('video-feed');
+        if (!video.videoWidth) return alert("Kamera belum memuat visual.");
         const canvas = document.getElementById('hidden-canvas');
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
@@ -224,13 +270,23 @@
         }
     };
 
+    // FIXED LOGIC ROUTING
     const saveImg = (data) => {
-        closeCamera();
-        if(mode === 'multi') {
+        stopStream(); // Matikan kamera
+        if(mode === 'single') {
+            document.getElementById('single-preview-img').src = data;
+            navTo('screen-single-bg'); // Langsung lempar ke layar background
+        } else if(mode === 'multi') {
             const slot = document.getElementById(targetSlot);
             slot.style.backgroundImage = `url(${data})`;
             slot.innerHTML = ''; slot.classList.add('filled');
+            navTo('screen-video-grid'); // Kembalikan ke grid 6 angle
         }
+    };
+
+    const selectPreset = (el) => {
+        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
     };
 
     const selectAnim = (el) => {
@@ -238,15 +294,21 @@
         el.classList.add('selected');
     };
 
-    const startRendering = () => {
+    // FUNGSI RENDER GABUNGAN
+    const startRendering = (type) => {
         navTo('screen-loading');
-        const msgs = [
-            "Menghapus background di 6 angle...",
-            "Membuat model 3D produk...",
-            "Menerapkan pencahayaan sinematik...",
-            "Menyusun pergerakan kamera TikTok...",
-            "Menulis caption jualan persuasif..."
-        ];
+        
+        let msgs = [];
+        let finalScreen = '';
+
+        if(type === 'single') {
+            msgs = ["Menghapus latar asli...", "Menyesuaikan pencahayaan AI...", "Finalisasi HD..."];
+            finalScreen = 'screen-single-result';
+        } else {
+            msgs = ["Membuat model 3D...", "Menyusun pergerakan TikTok...", "Menulis caption jualan..."];
+            finalScreen = 'screen-video-result';
+        }
+
         let i = 0;
         const interval = setInterval(() => {
             if(i < msgs.length) {
@@ -254,9 +316,9 @@
                 i++;
             } else {
                 clearInterval(interval);
-                navTo('screen-result');
+                navTo(finalScreen);
             }
-        }, 1500);
+        }, 1200);
     };
 </script>
 </body>
