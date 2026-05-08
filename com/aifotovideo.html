@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foto AI - Live Camera Prototype</title>
+    <title>Foto AI - Full Flow Prototype</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -19,7 +19,7 @@
         .mobile-frame {
             max-width: 414px; 
             width: 100%;
-            height: 896px; /* Fix height for app feel */
+            height: 896px;
             margin: 0 auto;
             background: #f8fafc;
             border-radius: 2.5rem;
@@ -33,34 +33,35 @@
         .screen { display: none; flex: 1; flex-direction: column; padding: 1.5rem; background: #f8fafc; height: 100%; overflow-y: auto; }
         .screen.active { display: flex; animation: slideIn 0.3s ease-out; }
         
-        /* Premium UI Elements */
         .text-gradient { background: linear-gradient(to right, #6366f1, #d946ef); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); transition: all 0.2s; }
         .btn-primary:active { transform: scale(0.95); }
 
-        /* LIVE CAMERA UI */
-        .cam-container { flex: 1; background: #000; border-radius: 1.5rem; overflow: hidden; position: relative; display: flex; flex-direction: column; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        /* Camera */
+        .cam-container { flex: 1; background: #000; border-radius: 1.5rem; overflow: hidden; position: relative; display: flex; flex-direction: column; margin-bottom: 1rem; }
         #live-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .cam-overlay { position: absolute; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column; pointer-events: none; }
-        .low-light { background: rgba(239, 68, 68, 0.9); color: white; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.75rem; font-weight: bold; margin: 1rem auto; display: flex; align-items: center; gap: 0.5rem; animation: pulse 1.5s infinite; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); }
-        .guide-box { border: 2px dashed rgba(255,255,255,0.7); width: 65%; height: 50%; margin: auto; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); }
-        
-        /* Camera Controls */
+        .cam-overlay { position: absolute; z-index: 10; width: 100%; height: 100%; pointer-events: none; }
+        .guide-box { border: 2px dashed rgba(255,255,255,0.7); width: 65%; height: 50%; margin: 4rem auto 0; border-radius: 1rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); }
         .cam-controls { position: absolute; bottom: 0; width: 100%; padding: 2rem 1rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 20; display: flex; justify-content: space-around; align-items: center; }
         .shutter-btn { width: 70px; height: 70px; background: white; border-radius: 50%; border: 4px solid #cbd5e1; outline: 4px solid white; cursor: pointer; transition: all 0.1s; }
-        .shutter-btn:active { transform: scale(0.9); background: #e2e8f0; }
+        .shutter-btn:active { transform: scale(0.9); }
         .gallery-btn { width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 1rem; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); }
 
-        /* Slots */
-        .photo-slot { aspect-ratio: 1; border: 2px dashed #cbd5e1; border-radius: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: white; transition: all 0.2s; position: relative; overflow: hidden; background-size: cover; background-position: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .photo-slot:hover { border-color: #6366f1; background: #eef2ff; }
+        /* UI Elements */
+        .photo-slot { aspect-ratio: 1; border: 2px dashed #cbd5e1; border-radius: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: white; background-size: cover; background-position: center; }
         .photo-slot.filled { border: 2px solid #10b981; }
-        .photo-slot.filled .slot-content { display: none; }
+        
+        /* Horizontal Scroll for Presets */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .preset-card { min-width: 80px; height: 80px; border-radius: 1rem; background-size: cover; background-position: center; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .preset-card.selected { border-color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(99,102,241,0.3); }
+        .preset-card .label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.5); color: white; font-size: 0.6rem; text-align: center; padding: 2px 0; font-weight: bold; }
+
+        .spinner { width: 50px; height: 50px; border-radius: 50%; background: conic-gradient(#0000 10%, #4f46e5); -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 6px),#000 0); animation: spin 1s infinite linear; }
         
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        
-        /* Hidden Canvas for capturing */
+        @keyframes spin { to { transform: rotate(1turn); } }
         #capture-canvas { display: none; }
     </style>
 </head>
@@ -108,20 +109,15 @@
 
         <div class="cam-container rounded-none mb-0">
             <video id="live-video" autoplay playsinline></video>
-            
             <div class="cam-overlay">
-                <div class="low-light"><i data-lucide="sun-dim" class="w-4 h-4"></i> Cahaya Kurang!</div>
                 <div class="guide-box text-white/60 text-sm font-medium text-center">Posisikan produk<br>di area ini</div>
             </div>
-
             <div class="cam-controls">
                 <div class="flex flex-col items-center gap-1" onclick="document.getElementById('hidden-upload').click()">
                     <div class="gallery-btn"><i data-lucide="image-plus" class="w-6 h-6"></i></div>
                     <span class="text-white text-[10px] font-bold tracking-wider">GALERI</span>
                 </div>
-                
                 <div class="shutter-btn" onclick="capturePhoto()"></div>
-                
                 <div class="flex flex-col items-center gap-1">
                     <div class="gallery-btn" style="background: transparent; border: none;"><i data-lucide="zap" class="w-6 h-6"></i></div>
                 </div>
@@ -132,6 +128,85 @@
         <canvas id="capture-canvas"></canvas>
     </div>
 
+    <div id="screen-foto-bg" class="screen">
+        <div class="flex items-center mb-4">
+            <button onclick="openFlow('single')" class="p-2 -ml-2 text-slate-600"><i data-lucide="chevron-left"></i></button>
+            <h2 class="font-bold text-lg ml-2 text-slate-800">Pilih Latar Belakang</h2>
+        </div>
+        
+        <div class="w-32 h-40 mx-auto bg-slate-200 rounded-2xl mb-4 shadow-sm border-2 border-white overflow-hidden relative" id="single-preview">
+            <div class="absolute bottom-0 w-full bg-black/50 text-white text-[10px] text-center py-1">Produk Asli</div>
+        </div>
+
+        <div class="space-y-5 pb-4">
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase tracking-wide">1. Pilih Preset Tersedia (10 Vibe)</label>
+                <div class="flex overflow-x-auto gap-3 pb-2 hide-scroll snap-x">
+                    <div class="preset-card snap-center flex-none selected" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=150');"><div class="label">Kafe</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=150');"><div class="label">Pantai</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=150');"><div class="label">Minimalis</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=150');"><div class="label">Neon</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=150');"><div class="label">Podium</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?w=150');"><div class="label">Kayu</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1588854337236-6889d631faa8?w=150');"><div class="label">Marmer</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=150');"><div class="label">Cyberpunk</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?w=150');"><div class="label">Studio Gelap</div></div>
+                    <div class="preset-card snap-center flex-none" onclick="selectPreset(this)" style="background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=150');"><div class="label">Pegunungan</div></div>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase tracking-wide">2. Upload Background Sendiri</label>
+                <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors" onclick="document.getElementById('custom-bg-upload').click()">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="image-plus" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-indigo-900 text-sm">Pilih dari Galeri</div>
+                            <div class="text-[10px] text-indigo-600">Gunakan foto latarmu sendiri</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-indigo-400"></i>
+                </div>
+                <input type="file" id="custom-bg-upload" accept="image/*" class="hidden" onchange="alert('Background kustom berhasil dipilih!')">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-2 uppercase tracking-wide flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3 text-pink-500"></i> 3. Generate via AI Prompt</label>
+                <textarea rows="2" placeholder="Contoh: Di atas meja granit dengan pencahayaan matahari pagi..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"></textarea>
+            </div>
+        </div>
+        
+        <button onclick="generateSinglePhoto()" class="mt-auto w-full btn-primary font-bold py-4 rounded-2xl text-lg flex justify-center items-center gap-2">
+            <i data-lucide="sparkles"></i> Generate Background AI
+        </button>
+    </div>
+
+    <div id="screen-loading" class="screen justify-center items-center text-center">
+        <div class="spinner mb-8"></div>
+        <h2 class="text-2xl font-extrabold text-slate-800 mb-2">AI Sedang Bekerja...</h2>
+        <p class="text-sm text-slate-500 font-medium" id="loading-text">Menghapus background asli</p>
+    </div>
+
+    <div id="screen-single-result" class="screen">
+        <div class="flex items-center mb-6">
+            <button onclick="navTo('screen-home')" class="p-2 -ml-2 text-slate-600"><i data-lucide="x"></i></button>
+            <h2 class="font-bold text-lg ml-2 text-slate-800">Hasil Foto AI</h2>
+        </div>
+
+        <div class="w-full aspect-[3/4] bg-slate-900 rounded-3xl mb-6 relative flex justify-center items-center overflow-hidden shadow-2xl">
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" class="w-full h-full object-cover">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-auto">
+            <button class="bg-indigo-50 text-indigo-700 font-bold py-3 rounded-xl border border-indigo-200 flex justify-center items-center gap-2" onclick="navTo('screen-foto-bg')">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Edit Ulang
+            </button>
+            <button class="btn-primary font-bold py-3 rounded-xl flex justify-center items-center gap-2" onclick="alert('Foto berhasil disimpan ke Galeri!')">
+                <i data-lucide="download" class="w-5 h-5"></i> Simpan
+            </button>
+        </div>
+    </div>
+
     <div id="screen-video-grid" class="screen">
         <div class="flex items-center mb-2">
             <button onclick="navTo('screen-home')" class="p-2 -ml-2 text-slate-600"><i data-lucide="chevron-left"></i></button>
@@ -140,73 +215,14 @@
         <p class="text-slate-500 text-sm mb-6 ml-2 font-medium">Tap kotak untuk foto atau pilih dari galeri.</p>
 
         <div class="grid grid-cols-2 gap-4 mb-auto">
-            <div id="slot-atas" class="photo-slot" onclick="openFlow('multi', 'slot-atas', 'Tampak Atas')">
-                <div class="slot-content text-center">
-                    <div class="bg-indigo-50 p-3 rounded-full inline-block mb-2 text-indigo-500"><i data-lucide="camera"></i></div>
-                    <span class="block text-sm font-bold text-slate-700">Tampak Atas</span>
-                </div>
-            </div>
-            <div id="slot-bawah" class="photo-slot" onclick="openFlow('multi', 'slot-bawah', 'Tampak Bawah')">
-                <div class="slot-content text-center">
-                    <div class="bg-indigo-50 p-3 rounded-full inline-block mb-2 text-indigo-500"><i data-lucide="camera"></i></div>
-                    <span class="block text-sm font-bold text-slate-700">Tampak Bawah</span>
-                </div>
-            </div>
-            <div id="slot-kiri" class="photo-slot" onclick="openFlow('multi', 'slot-kiri', 'Tampak Kiri')">
-                <div class="slot-content text-center">
-                    <div class="bg-indigo-50 p-3 rounded-full inline-block mb-2 text-indigo-500"><i data-lucide="camera"></i></div>
-                    <span class="block text-sm font-bold text-slate-700">Tampak Kiri</span>
-                </div>
-            </div>
-            <div id="slot-kanan" class="photo-slot" onclick="openFlow('multi', 'slot-kanan', 'Tampak Kanan')">
-                <div class="slot-content text-center">
-                    <div class="bg-indigo-50 p-3 rounded-full inline-block mb-2 text-indigo-500"><i data-lucide="camera"></i></div>
-                    <span class="block text-sm font-bold text-slate-700">Tampak Kanan</span>
-                </div>
-            </div>
+            <div id="slot-atas" class="photo-slot" onclick="openFlow('multi', 'slot-atas', 'Tampak Atas')"><div class="slot-content text-center"><i data-lucide="camera" class="mx-auto mb-2 text-slate-400"></i><span class="text-xs font-bold text-slate-600">Atas</span></div></div>
+            <div id="slot-bawah" class="photo-slot" onclick="openFlow('multi', 'slot-bawah', 'Tampak Bawah')"><div class="slot-content text-center"><i data-lucide="camera" class="mx-auto mb-2 text-slate-400"></i><span class="text-xs font-bold text-slate-600">Bawah</span></div></div>
+            <div id="slot-kiri" class="photo-slot" onclick="openFlow('multi', 'slot-kiri', 'Tampak Kiri')"><div class="slot-content text-center"><i data-lucide="camera" class="mx-auto mb-2 text-slate-400"></i><span class="text-xs font-bold text-slate-600">Kiri</span></div></div>
+            <div id="slot-kanan" class="photo-slot" onclick="openFlow('multi', 'slot-kanan', 'Tampak Kanan')"><div class="slot-content text-center"><i data-lucide="camera" class="mx-auto mb-2 text-slate-400"></i><span class="text-xs font-bold text-slate-600">Kanan</span></div></div>
         </div>
 
-        <button onclick="navTo('screen-video-style')" class="mt-8 w-full btn-primary font-bold py-4 rounded-2xl text-lg flex justify-center gap-2 items-center">
+        <button onclick="navTo('screen-home'); alert('Pilih Animasi... (Fitur Video Dummy)')" class="mt-8 w-full btn-primary font-bold py-4 rounded-2xl text-lg flex justify-center gap-2 items-center">
             Pilih Animasi <i data-lucide="arrow-right" class="w-5 h-5"></i>
-        </button>
-    </div>
-
-    <div id="screen-foto-bg" class="screen">
-        <div class="flex items-center mb-6">
-            <button onclick="openFlow('single')" class="p-2 -ml-2 text-slate-600"><i data-lucide="chevron-left"></i></button>
-            <h2 class="font-bold text-lg ml-2 text-slate-800">Review & Background</h2>
-        </div>
-        
-        <div class="w-1/2 aspect-[3/4] mx-auto bg-slate-200 rounded-2xl mb-6 shadow-md border-4 border-white overflow-hidden" id="single-preview"></div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="text-sm font-bold text-slate-700 block mb-2">Prompt AI Latar</label>
-                <textarea rows="3" placeholder="Ketik disini... (Cth: Di atas meja kafe estetik)" class="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-            </div>
-        </div>
-        <button onclick="navTo('screen-home')" class="mt-auto w-full btn-primary font-bold py-4 rounded-2xl text-lg">Simpan Hasil</button>
-    </div>
-
-    <div id="screen-video-style" class="screen">
-        <div class="flex items-center mb-6">
-            <button onclick="navTo('screen-video-grid')" class="p-2 -ml-2 text-slate-600"><i data-lucide="chevron-left"></i></button>
-            <h2 class="font-bold text-lg ml-2 text-slate-800">Gaya Presentasi</h2>
-        </div>
-        
-        <div class="space-y-3 mb-auto">
-            <div class="p-4 bg-indigo-50 border-2 border-indigo-500 rounded-2xl flex items-center gap-4 cursor-pointer">
-                <div class="bg-white p-3 rounded-xl text-indigo-600"><i data-lucide="hand"></i></div>
-                <div><div class="font-bold text-slate-800">Review Tangan</div><div class="text-xs text-slate-500">Animasi dipegang tangan</div></div>
-            </div>
-            <div class="p-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-4 cursor-pointer">
-                <div class="bg-slate-100 p-3 rounded-xl text-slate-500"><i data-lucide="zoom-in"></i></div>
-                <div><div class="font-bold text-slate-800">Cinematic Zoom</div><div class="text-xs text-slate-500">Transisi halus AI</div></div>
-            </div>
-        </div>
-        
-        <button onclick="navTo('screen-home'); alert('Mulai Render Video AI!')" class="mt-6 w-full btn-primary font-bold py-4 rounded-2xl flex justify-center items-center gap-2 text-lg">
-            <i data-lucide="wand-2"></i> Buat Video
         </button>
     </div>
 
@@ -215,95 +231,95 @@
 <script>
     lucide.createIcons();
 
-    // STATE MANAGEMENT
-    let currentMode = ''; // 'single' atau 'multi'
-    let currentSlotId = ''; // ID slot jika mode multi
+    let currentMode = ''; 
+    let currentSlotId = ''; 
     let camStream = null;
 
-    // NAVIGASI UMUM
     const navTo = (screenId) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
     };
 
-    // BUKA KAMERA & SET KONTEKS
     const openFlow = async (mode, slotId = '', title = 'Kamera AI Studio') => {
         currentMode = mode;
         currentSlotId = slotId;
-        
         document.getElementById('cam-title').innerText = title;
         navTo('screen-camera');
-        
-        // Mulai Akses Webcam/Kamera HP
         try {
             const videoElement = document.getElementById('live-video');
-            camStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } // Mengutamakan kamera belakang di HP
-            });
+            camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             videoElement.srcObject = camStream;
         } catch (err) {
-            console.error("Kamera gagal diakses:", err);
-            alert("Izin kamera ditolak atau tidak tersedia di perangkat ini. Anda tetap bisa menggunakan tombol Galeri.");
+            console.error(err);
+            alert("Izin kamera ditolak. Gunakan tombol Galeri.");
         }
     };
 
-    // TUTUP KAMERA
     const closeCamera = () => {
-        if (camStream) {
-            camStream.getTracks().forEach(track => track.stop()); // Matikan lampu kamera
-        }
+        if (camStream) camStream.getTracks().forEach(track => track.stop());
         if (currentMode === 'single') navTo('screen-home');
         if (currentMode === 'multi') navTo('screen-video-grid');
     };
 
-    // PROSES SIMPAN FOTO (Dari Jepret atau Galeri)
     const processImage = (dataUrl) => {
-        closeCamera(); // Tutup & matikan kamera
-        
+        closeCamera(); 
         if (currentMode === 'single') {
-            // Mode Foto Cerdas -> Lanjut ke Pilih BG
             const previewDiv = document.getElementById('single-preview');
             previewDiv.style.backgroundImage = `url(${dataUrl})`;
-            previewDiv.style.backgroundSize = 'cover';
-            previewDiv.style.backgroundPosition = 'center';
+            previewDiv.style.backgroundSize = 'contain';
+            previewDiv.style.backgroundRepeat = 'no-repeat';
             navTo('screen-foto-bg');
         } 
         else if (currentMode === 'multi') {
-            // Mode Video 4 Angle -> Isi Slot -> Kembali ke Grid
             const slot = document.getElementById(currentSlotId);
             slot.style.backgroundImage = `url(${dataUrl})`;
             slot.classList.add('filled');
+            slot.innerHTML = ''; // bersihkan icon
             navTo('screen-video-grid');
         }
     };
 
-    // TOMBOL JEPRET (Capture dari tag <video>)
     const capturePhoto = () => {
         const video = document.getElementById('live-video');
-        if (!camStream || !video.videoWidth) {
-            alert("Kamera belum siap, atau gunakan tombol Galeri.");
-            return;
-        }
+        if (!camStream || !video.videoWidth) return alert("Kamera belum siap.");
         const canvas = document.getElementById('capture-canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Ubah jadi base64 image
-        const dataUrl = canvas.toDataURL('image/png');
-        processImage(dataUrl);
+        processImage(canvas.toDataURL('image/png'));
     };
 
-    // TOMBOL GALERI (Handle file upload)
     const handleGalleryUpload = (input) => {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                processImage(e.target.result);
-            }
+            reader.onload = (e) => processImage(e.target.result);
             reader.readAsDataURL(input.files[0]);
         }
+    };
+
+    // Fungsi Pilih 10 Preset
+    const selectPreset = (element) => {
+        document.querySelectorAll('.preset-card').forEach(el => el.classList.remove('selected', 'border-indigo-500'));
+        element.classList.add('selected', 'border-indigo-500');
+    };
+
+    // Fungsi Mocking Generate Final
+    const generateSinglePhoto = () => {
+        navTo('screen-loading');
+        const texts = ["Menghapus background asli...", "Menyesuaikan pencahayaan (Relighting)...", "Mengaplikasikan background baru...", "Finalisasi resolusi HD..."];
+        let i = 0;
+        
+        const interval = setInterval(() => {
+            if(i < texts.length) {
+                document.getElementById('loading-text').innerText = texts[i];
+                i++;
+            } else {
+                clearInterval(interval);
+                navTo('screen-single-result');
+                document.getElementById('loading-text').innerText = "Menghapus background asli"; // reset text
+            }
+        }, 1000);
     };
 </script>
 
