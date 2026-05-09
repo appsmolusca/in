@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foto AI - Final Fixed Prototype</title>
+    <title>Foto AI - The Ultimate Prototype</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,8 +18,15 @@
         .screen { display: none; flex: 1; flex-direction: column; padding: 1.5rem; background: #f8fafc; height: 100%; overflow-y: auto; }
         .screen.active { display: flex; animation: fadeIn 0.3s ease-out; }
         
-        .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); }
+        .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); transition: 0.2s;}
         .btn-primary:active { transform: scale(0.96); }
+
+        /* Form & Paywall */
+        .input-field { w-full; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 1rem; outline: none; transition: 0.2s; background: white; font-weight: 500; }
+        .input-field:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+        .plan-card { border: 2px solid #e2e8f0; border-radius: 1.5rem; padding: 1.5rem; background: white; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .plan-card.selected { border-color: #6366f1; background: #eef2ff; box-shadow: 0 10px 20px -5px rgba(99,102,241,0.2); }
+        .badge-best { position: absolute; top: 0; right: 0; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 800; padding: 0.25rem 1rem; border-bottom-left-radius: 1rem; }
 
         /* Camera Feed */
         .cam-box { flex: 1; background: #000; border-radius: 2rem; overflow: hidden; position: relative; }
@@ -53,34 +60,70 @@
 
 <div class="mobile-frame">
     
-    <div id="screen-home" class="screen active justify-center text-center">
-        <div class="mb-12">
-            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
-                <i data-lucide="sparkles" class="w-10 h-10"></i>
-            </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Foto <span class="text-indigo-600">Ai</span></h1>
-            <p class="text-slate-500 font-medium text-sm px-6">Solusi konten jualan pro untuk UMKM dalam hitungan detik.</p>
+    <div id="screen-login" class="screen justify-center">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner"><i data-lucide="lock" class="w-10 h-10"></i></div>
+            <h1 class="text-3xl font-extrabold text-slate-900 mb-2">Masuk Akun</h1>
+            <p class="text-slate-500 font-medium text-sm">Masuk untuk mulai studio AI-mu.</p>
         </div>
+        <div class="space-y-4 mb-8">
+            <input type="email" placeholder="Email UMKM" class="input-field w-full" value="admin@umkm.com">
+            <input type="password" placeholder="Password" class="input-field w-full" value="123456">
+        </div>
+        <button onclick="doLogin()" class="btn-primary w-full py-4 rounded-2xl font-bold text-lg">Masuk Dashboard</button>
+    </div>
+
+    <div id="screen-home" class="screen text-center">
+        <div class="flex justify-between items-center mb-8">
+            <div class="text-left">
+                <h2 class="text-xl font-extrabold text-slate-900">Halo, Kreator! 👋</h2>
+                <p class="text-xs text-slate-500 font-medium mt-1">Kuota Gratis: <span id="quota-display" class="font-bold text-green-600">1/1</span></p>
+            </div>
+            <div class="w-10 h-10 bg-slate-200 rounded-full cursor-pointer flex items-center justify-center" onclick="resetApp()"><i data-lucide="log-out" class="w-5 h-5 text-slate-500"></i></div>
+        </div>
+
+        <div class="mb-10">
+            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner"><i data-lucide="sparkles" class="w-10 h-10"></i></div>
+            <h1 class="text-3xl font-extrabold text-slate-900 mb-2">Foto <span class="text-indigo-600">Ai</span></h1>
+        </div>
+
         <div class="space-y-4">
-            <button onclick="openCam('single', '', 'Foto Produk AI')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+            <button onclick="checkAccess('single')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
                 <div class="text-left">
                     <h3 class="font-bold text-slate-800 text-lg">Foto Produk AI</h3>
                     <p class="text-slate-500 text-xs mt-1">Ganti latar belakang otomatis</p>
                 </div>
-                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    <i data-lucide="image" class="w-6 h-6"></i>
-                </div>
+                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><i data-lucide="image" class="w-6 h-6"></i></div>
             </button>
-            <button onclick="navTo('screen-video-grid')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+            <button onclick="checkAccess('multi')" class="w-full bg-white p-6 rounded-[2rem] flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-all group">
                 <div class="text-left">
                     <h3 class="font-bold text-slate-800 text-lg">Video 3D Reels</h3>
                     <p class="text-slate-500 text-xs mt-1">Video promosi dari 6 angle</p>
                 </div>
-                <div class="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600 group-hover:bg-pink-600 group-hover:text-white transition-colors">
-                    <i data-lucide="video" class="w-6 h-6"></i>
-                </div>
+                <div class="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-600"><i data-lucide="video" class="w-6 h-6"></i></div>
             </button>
         </div>
+    </div>
+
+    <div id="screen-paywall" class="screen">
+        <div class="flex items-center mb-6"><button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button></div>
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full mx-auto flex items-center justify-center mb-4"><i data-lucide="crown" class="w-8 h-8"></i></div>
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Upgrade ke Pro</h2>
+            <p class="text-sm text-slate-500 font-medium px-4">Batas percobaan gratis Anda sudah habis. Langganan sekarang untuk akses tanpa batas.</p>
+        </div>
+        <div class="space-y-4 mb-auto">
+            <div class="plan-card" onclick="selectPlan(this)">
+                <h3 class="font-bold text-slate-800 mb-2">Bulanan</h3>
+                <div class="text-2xl font-extrabold text-indigo-600">Rp 500.000<span class="text-sm text-slate-400 font-medium">/bln</span></div>
+            </div>
+            <div class="plan-card selected border-indigo-600 bg-indigo-50" onclick="selectPlan(this)">
+                <div class="badge-best">HEMAT 16%</div>
+                <h3 class="font-bold text-slate-800 mb-2">Tahunan</h3>
+                <div class="text-2xl font-extrabold text-indigo-600">Rp 5.000.000<span class="text-sm text-slate-400 font-medium">/thn</span></div>
+            </div>
+        </div>
+        <button onclick="alert('Diarahkan ke Payment Gateway (Midtrans)...')" class="mt-8 btn-primary w-full py-4 rounded-2xl font-bold text-lg">Lanjut Pembayaran</button>
     </div>
 
     <div id="screen-camera" class="screen p-0">
@@ -92,9 +135,7 @@
             <video id="video-feed" autoplay playsinline></video>
             <div class="cam-ui">
                 <div class="low-light-tag"><i data-lucide="sun-dim" class="w-4 h-4"></i> Cahaya Kurang!</div>
-                <div class="m-auto border-2 border-white/30 border-dashed w-64 h-80 rounded-3xl flex items-center justify-center">
-                    <span class="text-white/40 text-[10px] font-bold">POSISIKAN PRODUK DISINI</span>
-                </div>
+                <div class="m-auto border-2 border-white/30 border-dashed w-64 h-80 rounded-3xl flex items-center justify-center"><span class="text-white/40 text-[10px] font-bold">POSISIKAN PRODUK DISINI</span></div>
                 <div class="p-10 flex justify-around items-center bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white" onclick="document.getElementById('file-upload').click()"><i data-lucide="image-plus"></i></div>
                     <div class="w-20 h-20 bg-white rounded-full border-[6px] border-white/30 flex items-center justify-center" onclick="takeSnapshot()"><div class="w-14 h-14 rounded-full border-2 border-black/10"></div></div>
@@ -107,10 +148,7 @@
     </div>
 
     <div id="screen-single-bg" class="screen">
-        <div class="flex items-center mb-4">
-            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="chevron-left"></i></button>
-            <h2 class="text-lg font-bold ml-2">Pilih Latar Belakang</h2>
-        </div>
+        <div class="flex items-center mb-4"><button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="chevron-left"></i></button><h2 class="text-lg font-bold ml-2">Pilih Latar Belakang</h2></div>
         
         <div class="w-32 h-40 mx-auto bg-white rounded-2xl mb-4 shadow-sm border-4 border-white overflow-hidden relative">
             <img id="single-preview-img" class="w-full h-full object-cover">
@@ -131,17 +169,14 @@
             <div>
                 <label class="text-xs font-bold text-slate-500 block mb-2 uppercase">2. Upload Sendiri</label>
                 <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between cursor-pointer" onclick="document.getElementById('custom-bg-upload').click()">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="image-plus" class="w-5 h-5"></i></div>
-                        <div><div class="font-bold text-indigo-900 text-sm">Pilih dari Galeri</div></div>
-                    </div>
+                    <div class="flex items-center gap-3"><div class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="image-plus" class="w-5 h-5"></i></div><div><div class="font-bold text-indigo-900 text-sm">Pilih dari Galeri</div></div></div>
                     <i data-lucide="chevron-right" class="text-indigo-400"></i>
                 </div>
                 <input type="file" id="custom-bg-upload" accept="image/*" class="hidden">
             </div>
             <div>
                 <label class="text-xs font-bold text-slate-500 block mb-2 uppercase flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3 text-pink-500"></i> 3. Prompt AI</label>
-                <textarea rows="2" placeholder="Cth: Di atas meja kafe..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm outline-none"></textarea>
+                <textarea rows="2" placeholder="Cth: Di atas meja kafe dengan lampu neon..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm outline-none"></textarea>
             </div>
         </div>
         <button onclick="startRendering('single')" class="mt-auto btn-primary w-full py-4 rounded-2xl font-bold text-lg flex justify-center items-center gap-2">
@@ -150,24 +185,18 @@
     </div>
 
     <div id="screen-single-result" class="screen">
-        <div class="flex items-center mb-6">
-            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button>
-            <h2 class="text-lg font-bold ml-2">Hasil Foto AI</h2>
-        </div>
+        <div class="flex items-center mb-6"><button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button><h2 class="text-lg font-bold ml-2">Hasil Foto AI</h2></div>
         <div class="w-full aspect-[3/4] bg-slate-900 rounded-3xl mb-6 relative overflow-hidden shadow-2xl">
             <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" class="w-full h-full object-cover">
         </div>
         <div class="grid grid-cols-2 gap-3 mb-auto">
             <button class="bg-indigo-50 text-indigo-700 font-bold py-3 rounded-xl border border-indigo-200" onclick="navTo('screen-single-bg')">Edit Ulang</button>
-            <button class="btn-primary font-bold py-3 rounded-xl" onclick="alert('Tersimpan di Galeri!')">Simpan</button>
+            <button class="btn-primary font-bold py-3 rounded-xl" onclick="finishProcess('Foto tersimpan di Galeri!')">Simpan Hasil</button>
         </div>
     </div>
 
     <div id="screen-video-grid" class="screen">
-        <div class="flex items-center mb-6">
-            <button onclick="navTo('screen-home')" class="p-2"><i data-lucide="chevron-left"></i></button>
-            <h2 class="text-xl font-bold ml-2">Set 6 Pose Produk</h2>
-        </div>
+        <div class="flex items-center mb-6"><button onclick="navTo('screen-home')" class="p-2"><i data-lucide="chevron-left"></i></button><h2 class="text-xl font-bold ml-2">Set 6 Pose Produk</h2></div>
         <div class="angle-grid mb-6">
             <div id="slot-front" class="angle-slot" onclick="openCam('multi', 'slot-front', 'Depan')"><i data-lucide="plus" class="text-slate-300"></i><span>Depan</span></div>
             <div id="slot-back" class="angle-slot" onclick="openCam('multi', 'slot-back', 'Belakang')"><i data-lucide="plus" class="text-slate-300"></i><span>Belakang</span></div>
@@ -180,10 +209,7 @@
     </div>
 
     <div id="screen-anim-select" class="screen">
-        <div class="flex items-center mb-8">
-            <button onclick="navTo('screen-video-grid')" class="p-2"><i data-lucide="chevron-left"></i></button>
-            <h2 class="text-xl font-bold ml-2">Gaya Animasi</h2>
-        </div>
+        <div class="flex items-center mb-8"><button onclick="navTo('screen-video-grid')" class="p-2"><i data-lucide="chevron-left"></i></button><h2 class="text-xl font-bold ml-2">Gaya Animasi</h2></div>
         <div class="space-y-4 mb-auto">
             <div class="anim-card selected" onclick="selectAnim(this)"><div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center"><i data-lucide="hand"></i></div><div><h4 class="font-bold text-slate-800">Review Tangan</h4></div></div>
             <div class="anim-card" onclick="selectAnim(this)"><div class="w-14 h-14 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center"><i data-lucide="maximize"></i></div><div><h4 class="font-bold text-slate-800">Cinematic Zoom</h4></div></div>
@@ -195,11 +221,7 @@
     </div>
 
     <div id="screen-video-result" class="screen">
-        <div class="flex items-center justify-between mb-6">
-            <button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button>
-            <h2 class="text-lg font-bold">Hasil Kreasi AI</h2>
-            <div class="w-10"></div>
-        </div>
+        <div class="flex items-center justify-between mb-6"><button onclick="navTo('screen-home')" class="p-2 -ml-2"><i data-lucide="x"></i></button><h2 class="text-lg font-bold">Hasil Kreasi AI</h2><div class="w-10"></div></div>
         <div class="w-full aspect-[9/16] bg-slate-900 rounded-[2.5rem] mb-6 relative overflow-hidden flex items-center justify-center shadow-2xl">
             <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" class="absolute inset-0 w-full h-full object-cover opacity-50">
             <div class="z-10 bg-white/20 backdrop-blur-xl p-6 rounded-full text-white cursor-pointer"><i data-lucide="play" class="w-10 h-10 fill-current"></i></div>
@@ -211,11 +233,11 @@
             </div>
             <p class="text-xs text-slate-700 leading-relaxed font-medium italic">"Kualitas nggak pernah bohong! 😍 Desain premium, material juara. Klik keranjang kuning sekarang! 🛒🔥 #TikTokShop #FYP"</p>
         </div>
-        <button onclick="navTo('screen-home')" class="w-full py-4 border-2 border-slate-200 text-slate-600 font-bold rounded-2xl mb-4">Buat Baru</button>
+        <button onclick="finishProcess('Project Selesai!')" class="w-full py-4 border-2 border-slate-200 text-slate-600 font-bold rounded-2xl mb-4">Buat Project Baru</button>
     </div>
 
     <div id="screen-loading" class="screen justify-center items-center text-center">
-        <div class="spinner mb-8"></div>
+        <div class="spinner mb-8 mx-auto"></div>
         <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Meracik Keajaiban...</h2>
         <p class="text-sm text-slate-500 font-medium px-10" id="load-msg">Memproses data visual</p>
     </div>
@@ -225,33 +247,55 @@
 <script>
     lucide.createIcons();
 
+    // === SYSTEM STATE ===
+    let isLoggedIn = localStorage.getItem('fotoAi_logged') === 'true';
+    let usageCount = parseInt(localStorage.getItem('fotoAi_usage')) || 0;
+    
     let stream = null;
     let mode = '';
     let targetSlot = '';
 
-    const navTo = (id) => {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    // === LOGIN & QUOTA ===
+    const initApp = () => {
+        if (!isLoggedIn) navTo('screen-login');
+        else { updateQuotaDisplay(); navTo('screen-home'); }
+    };
+    const doLogin = () => { localStorage.setItem('fotoAi_logged', 'true'); isLoggedIn = true; updateQuotaDisplay(); navTo('screen-home'); };
+    const resetApp = () => { localStorage.clear(); isLoggedIn = false; usageCount = 0; navTo('screen-login'); };
+    
+    const updateQuotaDisplay = () => {
+        const quotaText = document.getElementById('quota-display');
+        if (usageCount === 0) { quotaText.innerText = "1/1"; quotaText.className = "font-bold text-green-600"; } 
+        else { quotaText.innerText = "Habis (0/1)"; quotaText.className = "font-bold text-red-500"; }
     };
 
-    const openCam = async (m, slot = '', title = '') => {
-        mode = m; targetSlot = slot;
-        document.getElementById('cam-title').innerText = title;
-        navTo('screen-camera');
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            document.getElementById('video-feed').srcObject = stream;
-        } catch (e) { alert("Izin kamera ditolak. Gunakan tombol galeri di dalam kamera."); }
+    const checkAccess = (flowType) => {
+        if (usageCount >= 1) navTo('screen-paywall'); // Hit Paywall
+        else openCam(flowType, '', flowType === 'single' ? 'Foto Produk AI' : 'Angle Video 3D'); // Lolos
     };
 
-    const stopStream = () => {
-        if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    const finishProcess = (msg) => {
+        alert(msg);
+        usageCount++; // POTONG KUOTA SAAT USER KLIK SIMPAN/SELESAI
+        localStorage.setItem('fotoAi_usage', usageCount);
+        updateQuotaDisplay();
+        navTo('screen-home');
     };
 
-    const abortCamera = () => {
-        stopStream();
-        navTo(mode === 'single' ? 'screen-home' : 'screen-video-grid');
+    // === UI NAVIGATION ===
+    const navTo = (id) => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+    const selectPlan = (el) => { document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected', 'border-indigo-600', 'bg-indigo-50')); el.classList.add('selected', 'border-indigo-600', 'bg-indigo-50'); };
+    const selectPreset = (el) => { document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); };
+    const selectAnim = (el) => { document.querySelectorAll('.anim-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); };
+
+    // === CAMERA MOCKUP ===
+    const openCam = async (m, slot, title) => {
+        mode = m; targetSlot = slot; document.getElementById('cam-title').innerText = title; navTo('screen-camera');
+        try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); document.getElementById('video-feed').srcObject = stream; } 
+        catch (e) { alert("Izin kamera ditolak. Gunakan tombol galeri di dalam layar kamera."); }
     };
+    const stopStream = () => { if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } };
+    const abortCamera = () => { stopStream(); navTo(mode === 'single' ? 'screen-home' : 'screen-video-grid'); };
 
     const takeSnapshot = () => {
         const video = document.getElementById('video-feed');
@@ -270,56 +314,34 @@
         }
     };
 
-    // FIXED LOGIC ROUTING
     const saveImg = (data) => {
-        stopStream(); // Matikan kamera
+        stopStream();
         if(mode === 'single') {
             document.getElementById('single-preview-img').src = data;
-            navTo('screen-single-bg'); // Langsung lempar ke layar background
+            navTo('screen-single-bg'); // Lempar ke layar edit background
         } else if(mode === 'multi') {
             const slot = document.getElementById(targetSlot);
             slot.style.backgroundImage = `url(${data})`;
             slot.innerHTML = ''; slot.classList.add('filled');
-            navTo('screen-video-grid'); // Kembalikan ke grid 6 angle
+            navTo('screen-video-grid'); // Lempar kembali ke grid 6 angle
         }
     };
 
-    const selectPreset = (el) => {
-        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-    };
-
-    const selectAnim = (el) => {
-        document.querySelectorAll('.anim-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-    };
-
-    // FUNGSI RENDER GABUNGAN
+    // === RENDERING MOCKUP ===
     const startRendering = (type) => {
         navTo('screen-loading');
+        let msgs = type === 'single' ? ["Menghapus latar asli...", "Menyesuaikan pencahayaan AI...", "Finalisasi resolusi HD..."] : ["Membuat model 3D...", "Menyusun pergerakan kamera...", "Menulis caption jualan TikTok..."];
+        let finalScreen = type === 'single' ? 'screen-single-result' : 'screen-video-result';
         
-        let msgs = [];
-        let finalScreen = '';
-
-        if(type === 'single') {
-            msgs = ["Menghapus latar asli...", "Menyesuaikan pencahayaan AI...", "Finalisasi HD..."];
-            finalScreen = 'screen-single-result';
-        } else {
-            msgs = ["Membuat model 3D...", "Menyusun pergerakan TikTok...", "Menulis caption jualan..."];
-            finalScreen = 'screen-video-result';
-        }
-
         let i = 0;
         const interval = setInterval(() => {
-            if(i < msgs.length) {
-                document.getElementById('load-msg').innerText = msgs[i];
-                i++;
-            } else {
-                clearInterval(interval);
-                navTo(finalScreen);
-            }
+            if(i < msgs.length) { document.getElementById('load-msg').innerText = msgs[i]; i++; } 
+            else { clearInterval(interval); navTo(finalScreen); }
         }, 1200);
     };
+
+    // Run Initialization
+    initApp();
 </script>
 </body>
 </html>
