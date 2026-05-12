@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookSmart Pro V9 - Luxury Super App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #FF7A9A;
+            --primary-light: #FFF0F3;
+            --accent: #FF4D79;
+            --bg-color: #FAFAFA;
+            --text-main: #2D3436;
+            --text-muted: #636E72;
+            --white: #FFFFFF;
+            --success: #48BB78;
+            --warning: #F6AD55;
+            --border: #F1F5F9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #E9ECEF; display: flex; justify-content: center; color: var(--text-main); }
+
+        /* App Container */
+        .app-container {
+            width: 100%; max-width: 414px; background-color: var(--bg-color);
+            min-height: 100vh; position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            overflow-x: hidden; padding-bottom: 110px;
+        }
+
+        /* Overlay & Modals */
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index: 2000; display:none; justify-content:center; align-items:center; padding:20px; }
+        .modal-bottom { position: fixed; bottom:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index: 3000; display:none; align-items:flex-end; }
+        .modal-content { background:white; width:100%; max-width:414px; border-radius:30px 30px 0 0; padding:25px; animation: slideUp 0.4s ease; max-height: 85vh; overflow-y:auto; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Header */
+        .header { padding: 24px 20px 16px; display: flex; justify-content: space-between; align-items: center; background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .sos-btn { background: #FFF5F7; border: 1.5px solid var(--primary); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+        /* Views */
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        /* Components */
+        .card { margin: 0 20px 16px; background: var(--white); border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .section-title { padding: 0 20px; margin: 24px 0 12px; font-size: 1.1rem; font-weight: 700; display: flex; justify-content: space-between; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 15px; width: 100%; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* Recipe Details */
+        .yt-frame { width:100%; aspect-ratio:16/9; background:#000; border-radius:15px; display:flex; align-items:center; justify-content:center; color:white; margin:15px 0; cursor:pointer; }
+        .nutri-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:20px; }
+        .nutri-box { background: var(--primary-light); padding:10px; border-radius:12px; text-align:center; }
+        .nutri-val { font-weight:700; color:var(--accent); font-size:0.85rem; display:block; }
+        .nutri-lab { font-size:0.6rem; color:var(--text-muted); }
+
+        /* Chef's Horizontal */
+        .chef-scroll { display: flex; gap: 15px; overflow-x: auto; padding: 0 20px 10px; scrollbar-width: none; }
+        .chef-scroll::-webkit-scrollbar { display: none; }
+        .chef-card { min-width: 150px; background: white; border-radius: 18px; border: 1px solid var(--border); overflow: hidden; }
+        .chef-img { height: 100px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--primary); }
+
+        /* Schedule & Stats */
+        .meal-row { display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #FAFAFA; cursor: pointer; }
+        .meal-row:last-child { border-bottom: none; }
+        .badge-booster { background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; }
+
+        /* Grocery AI */
+        .price-chip { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+        .p-up { background: #FEE2E2; color: #DC2626; }
+        .p-down { background: #DCFCE7; color: #16A34A; }
+
+        /* Lounge Post */
+        .feed-post { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+        .comment-box { background: #F8FAFC; padding: 10px; border-radius: 12px; margin-top: 10px; font-size: 0.75rem; }
+
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: var(--white); display: flex; justify-content: space-between; padding: 15px 10px 30px; border-top: 1px solid var(--border); border-radius: 25px 25px 0 0; z-index: 1000; }
+        .nav-item { border: none; background: none; color: #B2BEC3; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--accent); font-weight: 700; }
+        .nav-item i { font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <div id="recipe-modal" class="modal-bottom" onclick="closeRecipe()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 id="m-title" style="font-size: 1.2rem; color: var(--accent);">Resep Detail</h2>
+                <i class="fa-solid fa-times" onclick="closeRecipe()" style="cursor:pointer; font-size:1.2rem;"></i>
+            </div>
+            
+            <div class="yt-frame" onclick="alert('Memutar YouTube Tutorial...')">
+                <i class="fa-brands fa-youtube" style="font-size:3.5rem; color:red;"></i>
+                <span style="margin-left:10px; font-weight:700;">Play Tutorial</span>
+            </div>
+
+            <div class="nutri-grid">
+                <div class="nutri-box"><span class="nutri-val" id="m-cal">350</span><span class="nutri-lab">Kkal</span></div>
+                <div class="nutri-box"><span class="nutri-val" id="m-pro">20g</span><span class="nutri-lab">Pro</span></div>
+                <div class="nutri-box"><span class="nutri-val" id="m-car">40g</span><span class="nutri-lab">Karb</span></div>
+                <div class="nutri-box"><span class="nutri-val" id="m-fat">15g</span><span class="nutri-lab">Lemak</span></div>
+            </div>
+
+            <h4 style="margin-bottom:10px;">Langkah Memasak:</h4>
+            <p id="m-steps" style="font-size:0.85rem; line-height:1.6; color:var(--text-muted);">
+                1. Siapkan bahan dasar ayam dan bumbu.<br>
+                2. Tumis hingga harum dan masukkan protein.<br>
+                3. Tambahkan air dan koreksi rasa.
+            </p>
+            <button class="btn-primary" style="margin-top:20px;" onclick="addToGrocery()">Tambahkan ke Shopping List</button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div>
+            <h1 style="font-size: 1.1rem;">Halo, Bunda Amanda! ✨</h1>
+            <p style="font-size: 0.7rem; color: var(--text-muted);">Senin, 11 Mei 2026</p>
+        </div>
+        <button class="sos-btn" onclick="alert('Mencari restoran sehat terdekat...')">🛋️ Lagi Capek?</button>
+    </header>
+
+    <div id="views">
+        
+        <div id="view-home" class="view-section active">
+            
+            <div class="card" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Berat Amanda: <b>12.5 kg</b></span>
+                    <span class="badge-booster" style="background:white;">MODE BOOSTER</span>
+                </div>
+                <p style="font-size: 0.75rem; opacity: 0.9; margin-top: 8px;">Butuh +200 kkal hari ini untuk kembali ke kurva hijau.</p>
+            </div>
+
+            <div class="card" style="border: 2px dashed var(--primary); background: var(--primary-light); text-align:center; padding: 25px; cursor: pointer;" onclick="alert('Membuka Kamera AI...')">
+                <i class="fa-solid fa-camera-retro" style="font-size: 2rem; color: var(--primary); margin-bottom: 8px;"></i>
+                <h4 style="font-size: 0.9rem; color: var(--primary);">Snap & Cook AI</h4>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Foto isi kulkas, biarkan AI meracik resep.</p>
+            </div>
+
+            <div class="section-title">Jadwal Makan Hari Ini</div>
+            <div class="card">
+                <div class="meal-row" onclick="openRecipe('Nasi Ayam Teriyaki', 380, 22, 45, 12, '1. Potong ayam dada fillet.<br>2. Tumis dengan saus teriyaki dan bombay.<br>3. Tambahkan brokoli rebus.')">
+                    <div style="font-size:0.75rem; font-weight:700; color:var(--accent);">12:00</div>
+                    <div style="flex:1">
+                        <h4 style="font-size:0.85rem;">Siang: Nasi Ayam Teriyaki</h4>
+                        <p style="font-size:0.7rem; color:var(--text-muted);">Tutorial YouTube Tersedia</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#DDD;"></i>
+                </div>
+                <div class="meal-row" onclick="openRecipe('Alpukat Kocok Keju', 250, 5, 20, 18, '1. Lumatkan alpukat mentega.<br>2. Campur dengan sedikit madu.<br>3. Beri topping keju parut melimpah.')">
+                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">15:30</div>
+                    <div style="flex:1">
+                        <h4 style="font-size:0.85rem;">Sore: Alpukat Kocok Keju</h4>
+                        <span class="badge-booster">BB Booster Menu</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#DDD;"></i>
+                </div>
+            </div>
+
+            <div class="section-title">Resep Signature Chef</div>
+            <div class="chef-scroll">
+                <div class="chef-card" onclick="openRecipe('Salmon Mentai', 420, 28, 30, 18, 'Resep eksklusif dari Chef Juna...')">
+                    <div class="chef-img"><i class="fa-solid fa-plate-wheat"></i></div>
+                    <div class="chef-info"><h5>Salmon Mentai</h5><p style="font-size:0.6rem;">Chef Juna</p></div>
+                </div>
+                <div class="chef-card" onclick="openRecipe('Beef Donburi', 510, 32, 55, 15, 'Resep eksklusif dari Chef Renatta...')">
+                    <div class="chef-img"><i class="fa-solid fa-bowl-rice"></i></div>
+                    <div class="chef-info"><h5>Beef Donburi</h5><p style="font-size:0.6rem;">Chef Renatta</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-planner" class="view-section">
+            <h2 class="section-title">Meal Planner Mingguan</h2>
+            <div class="card">
+                <div style="padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #FAFAFA;">
+                    <span style="font-size:0.7rem; font-weight:700; color:var(--primary);">SENIN</span>
+                    <h4 style="font-size:0.85rem; margin-top:5px;">Nasi Ayam Teriyaki + Sup Sayur</h4>
+                </div>
+                <div style="padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #FAFAFA;">
+                    <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">SELASA</span>
+                    <h4 style="font-size:0.85rem; margin-top:5px;">Ikan Dori Panggang + Kentang Purée</h4>
+                </div>
+                <div>
+                    <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">RABU</span>
+                    <h4 style="font-size:0.85rem; margin-top:5px;">Sup Makaroni Daging Sapi</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-idea" class="view-section">
+            <h2 class="section-title">Ide Masak Bunda</h2>
+            <div class="card">
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <input type="text" id="idea-in" placeholder="Contoh: Bikin dimsum minggu depan" style="flex:1; padding:12px; border-radius:12px; border:1px solid var(--border); outline:none; font-size:0.85rem;">
+                    <button style="background:var(--primary); color:white; border:none; padding:0 15px; border-radius:12px;" onclick="addIdea()"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div id="idea-list"></div>
+            </div>
+        </div>
+
+        <div id="view-grocery" class="view-section">
+            <h2 class="section-title">AI Shopping Assistant</h2>
+            
+            <div class="card" style="background: #F0F9FF; border-color: #BAE6FD;">
+                <p style="font-size:0.75rem; color:#0369A1; line-height:1.4;">
+                    <i class="fa-solid fa-robot"></i> <b>AI Insight:</b> Harga Ayam Fillet naik <span style="color:red; font-weight:700;">5%</span>. AI menyarankan beli <b>Ikan Dori</b> sebagai alternatif protein murah hari ini.
+                </p>
+            </div>
+
+            <div class="card">
+                <span style="font-size:0.65rem; font-weight:700; color:var(--primary); text-transform:uppercase;">Daging & Sayur</span>
+                <div class="meal-row">
+                    <div style="flex:1; display:flex; gap:10px; align-items:center;">
+                        <input type="checkbox"> <span style="font-size:0.85rem;">Ayam Fillet (500g)</span>
+                    </div>
+                    <span class="price-chip p-up">Rp 38.000 ▲</span>
+                </div>
+                <div class="meal-row">
+                    <div style="flex:1; display:flex; gap:10px; align-items:center;">
+                        <input type="checkbox"> <span style="font-size:0.85rem;">Brokoli Hijau</span>
+                    </div>
+                    <span class="price-chip p-down">Rp 12.000 ▼</span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin: 0 20px;">
+                <button class="btn-primary" style="background:#25D366;" onclick="alert('Membuka WhatsApp...')"><i class="fa-brands fa-whatsapp"></i> Kirim ke Suami</button>
+                <button class="btn-primary" style="background:#334155;" onclick="alert('Daftar Belanja Disalin!')"><i class="fa-solid fa-copy"></i> Salin List</button>
+            </div>
+        </div>
+
+        <div id="view-lounge" class="view-section">
+            <h2 class="section-title">Mom's Lounge</h2>
+            <div class="card">
+                <textarea id="post-in" placeholder="Bagikan hasil masakanmu hari ini, Bun..." style="width:100%; border:none; outline:none; resize:none; font-size:0.85rem; min-height:60px;"></textarea>
+                <button class="btn-primary" style="margin-top:10px;" onclick="addPost()">Posting ke Komunitas</button>
+            </div>
+            <div id="feed-list"></div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('home', this)"><i class="fa-solid fa-house"></i><span>Home</span></button>
+        <button class="nav-item" onclick="switchTab('planner', this)"><i class="fa-solid fa-calendar-check"></i><span>Planner</span></button>
+        <button class="nav-item" onclick="switchTab('idea', this)"><i class="fa-solid fa-lightbulb"></i><span>Ide</span></button>
+        <button class="nav-item" onclick="switchTab('grocery', this)"><i class="fa-solid fa-cart-shopping"></i><span>Belanja</span></button>
+        <button class="nav-item" onclick="switchTab('lounge', this)"><i class="fa-solid fa-users"></i><span>Lounge</span></button>
+    </nav>
+</div>
+
+<script>
+    // Database Cache
+    let db = JSON.parse(localStorage.getItem('cooksmart_v9')) || {
+        ideas: ["Ide menu bekal sekolah", "Coba resep Chef Arnold"],
+        posts: [{ author: "Bunda Rini", initial: "BR", content: "Salmon Mentai Chef Juna beneran juara, anakku Amanda lahap bgt!", comments: [] }]
+    };
+
+    function save() { localStorage.setItem('cooksmart_v9', JSON.stringify(db)); }
+
+    // Tab Logic
+    function switchTab(viewId, btn) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        btn.classList.add('active');
+        if(viewId === 'idea') renderIdeas();
+        if(viewId === 'lounge') renderFeed();
+        window.scrollTo(0,0);
+    }
+
+    // Recipe Logic
+    function openRecipe(title, cal, pro, car, fat, steps) {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-cal').innerText = cal;
+        document.getElementById('m-pro').innerText = pro + 'g';
+        document.getElementById('m-car').innerText = car + 'g';
+        document.getElementById('m-fat').innerText = fat + 'g';
+        document.getElementById('m-steps').innerHTML = steps;
+        document.getElementById('recipe-modal').style.display = 'flex';
+    }
+    function closeRecipe() { document.getElementById('recipe-modal').style.display = 'none'; }
+    function addToGrocery() { alert('Bahan otomatis ditambahkan ke Shopping List!'); closeRecipe(); }
+
+    // Ideas Logic
+    function renderIdeas() {
+        const list = document.getElementById('idea-list');
+        list.innerHTML = db.ideas.map((idea, i) => `
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #FAFAFA; font-size:0.85rem;">
+                <span>${idea}</span>
+                <i class="fa-solid fa-trash-can" style="color:#DDD; cursor:pointer;" onclick="deleteIdea(${i})"></i>
+            </div>
+        `).join('');
+    }
+    function addIdea() {
+        const input = document.getElementById('idea-in');
+        if(input.value) { db.ideas.unshift(input.value); input.value = ""; save(); renderIdeas(); }
+    }
+    function deleteIdea(i) { db.ideas.splice(i, 1); save(); renderIdeas(); }
+
+    // Lounge Logic
+    function renderFeed() {
+        const list = document.getElementById('feed-list');
+        list.innerHTML = db.posts.map((post, i) => `
+            <div class="card feed-post">
+                <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+                    <div class="avatar">${post.initial}</div>
+                    <h5 style="font-size:0.85rem;">${post.author}</h5>
+                </div>
+                <p style="font-size:0.85rem; line-height:1.5;">${post.content}</p>
+                <div style="margin-top:12px; display:flex; gap:15px; font-size:0.75rem; color:var(--primary); font-weight:700;">
+                    <span><i class="fa-regular fa-heart"></i> Suka</span>
+                    <span onclick="alert('Komentar menyusul!')"><i class="fa-regular fa-comment"></i> Komentar</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    function addPost() {
+        const input = document.getElementById('post-in');
+        if(input.value) { db.posts.unshift({ author: "Mom Amanda", initial: "MA", content: input.value, comments: [] }); input.value = ""; save(); renderFeed(); }
+    }
+
+    window.onload = () => { renderIdeas(); renderFeed(); };
+</script>
+
+</body>
+</html>
