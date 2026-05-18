@@ -45,7 +45,29 @@
 
         function formatRupiah(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
 
+        // FUNGSI BARU: Daftarkan otomatis jadwal hari ini ke Firebase dengan status 'belum'
+        function initTodayPiket() {
+            const petugas = jadwalPiket[dayIndex];
+            if (petugas && petugas.length > 0) {
+                db.ref('piket_log/' + todayStr).once('value', snap => {
+                    const logData = snap.val() || {};
+                    let updates = {};
+                    let statusChanged = false;
+                    petugas.forEach(name => {
+                        if (!logData[name]) {
+                            updates[name] = 'belum';
+                            statusChanged = true;
+                        }
+                    });
+                    if (statusChanged) {
+                        db.ref('piket_log/' + todayStr).update(updates);
+                    }
+                });
+            }
+        }
+
         function loadData() {
+            initTodayPiket(); // Jalankan inisialisasi otomatis
             db.ref('kas_balance').on('value', snap => document.getElementById('saldoKas').innerText = formatRupiah(snap.val() || 0));
             db.ref('piket_log/' + todayStr).on('value', snap => renderPiketHariIni(snap.val() || {}));
             db.ref('kasbon').on('value', snap => renderKasbon(snap.val() ? Object.values(snap.val()) : []));
@@ -113,6 +135,7 @@
                 } else if (status === 'denda_lunas' || status === 'denda') {
                     ui = `<span class="bg-red-100 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase border border-red-200"><i class="ph-fill ph-money"></i> Lunas (+5k)</span>`;
                 } else {
+                    // Jika status 'belum' atau undefined, tampilkan tombol denda manual
                     ui = `<button onclick="beriDenda('${name}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-md transition"><i class="ph-fill ph-warning-circle"></i> Denda 5.000</button>`;
                 }
 
@@ -145,11 +168,10 @@
             let isLamaLunas = (statusLama === 'denda_lunas' || statusLama === 'denda');
             let isBaruLunas = (statusBaru === 'denda_lunas');
 
-            // Logika potong/tambah saldo kas jika status berubah dari/ke Lunas
             if (isLamaLunas && !isBaruLunas) {
-                ubahSaldo(5000, false); // Ditarik lagi uangnya
+                ubahSaldo(5000, false); 
             } else if (!isLamaLunas && isBaruLunas) {
-                ubahSaldo(5000, true); // Ditambah ke kas
+                ubahSaldo(5000, true); 
             }
 
             db.ref(`piket_log/${tgl}/${nama}`).set(statusBaru);
@@ -157,7 +179,6 @@
 
         function hapusLog(nama, tgl, statusLama) {
             if(confirm(`Yakin hapus data piket ${nama} pada tanggal ${tgl} permanen?`)) {
-                // Tarik uang kas jika yang dihapus statusnya lunas
                 if (statusLama === 'denda_lunas' || statusLama === 'denda') {
                     ubahSaldo(5000, false); 
                 }
@@ -180,16 +201,15 @@
                 Object.keys(logs).forEach(nama => {
                     let st = logs[nama];
                     
-                    // Dropdown Edit Cerdas
+                    // Modifikasi: Jika statusnya 'belum' (lewat hari), otomatis pilih opsi Nunggak 5k di dropdown
                     let selectHTML = `
                         <select onchange="ubahStatusLog('${nama}', '${dateStr}', '${st}', this.value)" class="text-[10px] font-bold bg-slate-50 border border-slate-200 rounded-md px-1 py-1 outline-none text-slate-700 cursor-pointer">
                             <option value="sudah" ${st === 'sudah' ? 'selected' : ''}>✅ Hadir</option>
-                            <option value="denda_belum" ${st === 'denda_belum' ? 'selected' : ''}>⚠️ Nunggak 5k</option>
+                            <option value="denda_belum" ${(st === 'denda_belum' || st === 'belum') ? 'selected' : ''}>⚠️ Nunggak 5k</option>
                             <option value="denda_lunas" ${(st === 'denda_lunas' || st === 'denda') ? 'selected' : ''}>❌ Lunas (+5k)</option>
                         </select>
                     `;
                     
-                    // Tombol Hapus
                     let btnDelete = `<button onclick="hapusLog('${nama}', '${dateStr}', '${st}')" class="text-slate-300 hover:text-red-500 bg-white shadow-sm border border-slate-100 p-1.5 rounded-md transition" title="Hapus"><i class="ph-fill ph-trash text-sm"></i></button>`;
 
                     itemUI += `
@@ -307,7 +327,6 @@
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-1 flex items-center gap-2"><i class="ph-fill ph-clock-counter-clockwise text-lg"></i> Log Riwayat Piket</h2>
             <div id="rekap-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </section>
-
     </main>
 </body>
 </html>
