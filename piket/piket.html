@@ -44,10 +44,31 @@
 
         function formatRupiah(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
 
+        // FUNGSI BARU: Daftarkan otomatis jadwal hari ini ke Firebase dengan status 'belum'
+        function initTodayPiket() {
+            const petugas = jadwalPiket[dayIndex];
+            if (petugas && petugas.length > 0) {
+                db.ref('piket_log/' + todayStr).once('value', snap => {
+                    const logData = snap.val() || {};
+                    let updates = {};
+                    let statusChanged = false;
+                    petugas.forEach(name => {
+                        if (!logData[name]) {
+                            updates[name] = 'belum';
+                            statusChanged = true;
+                        }
+                    });
+                    if (statusChanged) {
+                        db.ref('piket_log/' + todayStr).update(updates);
+                    }
+                });
+            }
+        }
+
         function loadData() {
+            initTodayPiket(); // Jalankan inisialisasi otomatis
             db.ref('piket_log/' + todayStr).on('value', snap => renderPiket(snap.val() || {}));
             db.ref('kasbon').on('value', snap => renderKasbon(snap.val() ? Object.values(snap.val()) : []));
-            // Tambahan: Load semua data piket untuk mencari yang nunggak denda
             db.ref('piket_log').on('value', snap => renderDenda(snap.val() || {}));
         }
 
@@ -89,17 +110,16 @@
             });
         }
 
-        // FUNGSI BARU: Nampilin daftar yang nunggak denda
         function renderDenda(allLogs) {
             const list = document.getElementById('denda-list');
             list.innerHTML = '';
             let adaNunggak = false;
 
-            // Cek semua tanggal di database
             Object.keys(allLogs).forEach(tgl => {
                 const logs = allLogs[tgl];
                 Object.keys(logs).forEach(nama => {
-                    if (logs[nama] === 'denda_belum') {
+                    // MODIFIKASI: Jika status denda_belum, ATAU status 'belum' dan tanggalnya BUKAN HARI INI, maka masuk daftar denda.
+                    if (logs[nama] === 'denda_belum' || (logs[nama] === 'belum' && tgl !== todayStr)) {
                         adaNunggak = true;
                         list.innerHTML += `
                             <div class="bg-red-50 p-4 rounded-2xl border border-red-100 flex justify-between items-center shadow-sm">
