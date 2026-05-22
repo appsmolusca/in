@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Molusca v.1</title>
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style> 
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; } 
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .modal-enter { animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="pb-20 text-slate-800" onload="initApp()">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 border-b border-slate-200 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-indigo-600 to-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/30">
+                <i class="ph-bold ph-rocket text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-black tracking-tight leading-none">Project Molusca <span class="text-blue-600">v.1</span></h1>
+                <div id="realtimeClock" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Memuat waktu...</div>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="exportToExcel()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition hidden md:flex">
+                <i class="ph-bold ph-file-xls text-base"></i> Excel
+            </button>
+            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition shadow-md shadow-blue-500/30">
+                <i class="ph-bold ph-plus"></i> Project Baru
+            </button>
+        </div>
+    </header>
+
+    <main class="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+        
+        <!-- Top Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-slate-400 font-bold text-xs uppercase tracking-wider mb-2">Total Project</div>
+                <div class="text-3xl font-black" id="statTotal">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-blue-500 font-bold text-xs uppercase tracking-wider mb-2">Sedang Berjalan</div>
+                <div class="text-3xl font-black text-blue-600" id="statRunning">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-orange-500 font-bold text-xs uppercase tracking-wider mb-2">Mendekati Deadline</div>
+                <div class="text-3xl font-black text-orange-600" id="statWarning">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-emerald-500 font-bold text-xs uppercase tracking-wider mb-2">Selesai</div>
+                <div class="text-3xl font-black text-emerald-600" id="statDone">0</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Tren Project Per Bulan</h3>
+                <canvas id="monthlyChart" height="100"></canvas>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Distribusi Status Project</h3>
+                <canvas id="statusChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div>
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-kanban text-blue-500 text-xl"></i> Papan Progress
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start" id="kanbanBoard">
+                <!-- Kolom Desain -->
+                <div class="bg-slate-100/50 rounded-2xl p-3 border border-slate-200">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 ml-1 flex justify-between"><span>🎨 Desain/Revisi</span> <span id="countDesain" class="bg-slate-200 px-2 rounded-md">0</span></div>
+                    <div id="colDesain" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <!-- Kolom Sample -->
+                <div class="bg-indigo-50/50 rounded-2xl p-3 border border-indigo-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-3 ml-1 flex justify-between"><span>✂️ Sample</span> <span id="countSample" class="bg-indigo-100 px-2 rounded-md">0</span></div>
+                    <div id="colSample" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <!-- Kolom Packing/QC -->
+                <div class="bg-orange-50/50 rounded-2xl p-3 border border-orange-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-orange-600 mb-3 ml-1 flex justify-between"><span>📦 Packing & QC</span> <span id="countPacking" class="bg-orange-100 px-2 rounded-md">0</span></div>
+                    <div id="colPacking" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <!-- Kolom Selesai -->
+                <div class="bg-emerald-50/50 rounded-2xl p-3 border border-emerald-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-3 ml-1 flex justify-between"><span>✅ Selesai</span> <span id="countSelesai" class="bg-emerald-100 px-2 rounded-md">0</span></div>
+                    <div id="colSelesai" class="space-y-3 min-h-[100px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master Data Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-8">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Master Data</h3>
+                <button onclick="exportToExcel()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg md:hidden">Download Excel</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+                        <tr>
+                            <th class="px-5 py-3">Klien & Info</th>
+                            <th class="px-5 py-3">Deadline</th>
+                            <th class="px-5 py-3">Status Pembayaran</th>
+                            <th class="px-5 py-3">Status Pengerjaan</th>
+                            <th class="px-5 py-3">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-slate-100 text-xs font-medium">
+                        <!-- Data Masuk Sini -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Form Tambah/Edit -->
+    <div id="modalForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl modal-enter">
+            <div class="sticky top-0 bg-white/90 backdrop-blur z-10 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h2 id="modalTitle" class="text-sm font-black uppercase tracking-widest text-slate-800">Tambah Project Baru</h2>
+                <button onclick="closeModal()" class="bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <form id="projectForm" onsubmit="saveData(event)" class="p-6 space-y-5">
+                <input type="hidden" id="inputId">
+                
+                <!-- Info Klien -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Klien / Perusahaan</label>
+                        <input type="text" id="inputKlien" required placeholder="Cth: BRI, Pertamina, Budi" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Penanggung Jawab (PIC)</label>
+                        <input type="text" id="inputPic" required placeholder="Nama tim internal" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Detail Kerjaan -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Daftar Pekerjaan</label>
+                    <textarea id="inputPekerjaan" required rows="2" placeholder="Cth: Hamper A (50pcs), Hamper B (20pcs)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Link Referensi (Opsional)</label>
+                    <input type="url" id="inputLink" placeholder="Link GDrive / Pinterest" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
+                </div>
+
+                <!-- Waktu -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tgl Masuk</label>
+                        <input type="date" id="inputTglMasuk" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-orange-600">Tgl Deadline</label>
+                        <input type="date" id="inputTglDeadline" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-orange-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Status & Keuangan -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Pembayaran</label>
+                        <select id="inputPembayaran" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition font-bold">
+                            <option value="Belum Bayar">🔴 Belum Bayar</option>
+                            <option value="DP Masuk">🟡 DP Masuk</option>
+                            <option value="Lunas">🟢 Lunas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi Produksi</label>
+                        <input type="text" id="inputLokasi" placeholder="Vendor A, Pabrik B..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <!-- Workflow / Alur -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-blue-600 uppercase mb-1">Status Utama</label>
+                            <select id="inputStatus" onchange="toggleSampleInput()" required class="w-full border border-blue-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 bg-white font-bold text-blue-700 shadow-sm">
+                                <option value="Proses">⏳ Proses Awal</option>
+                                <option value="Desain">🖌️ Desain</option>
+                                <option value="Revisi">🔁 Revisi</option>
+                                <option value="ACC">✔️ ACC Desain</option>
+                                <option value="Sample">✂️ Pembuatan Sample</option>
+                                <option value="Produksi">🏭 Produksi Massal</option>
+                                <option value="Selesai">✅ Project Selesai</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-orange-600 uppercase mb-1">Status Finishing</label>
+                            <select id="inputFinishing" class="w-full border border-orange-200 rounded-xl p-2.5 text-xs outline-none focus:border-orange-500 bg-white font-bold text-orange-700 shadow-sm">
+                                <option value="-">- Belum Finishing -</option>
+                                <option value="QC">🔍 QC (Quality Control)</option>
+                                <option value="Packing">📦 Packing</option>
+                                <option value="Siap Kirim">🚚 Siap Kirim</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="wrapSample" class="hidden">
+                        <label class="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Siapa Pembuat Sample?</label>
+                        <input type="text" id="inputPembuatSample" placeholder="Nama pembuat sample..." class="w-full bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-500 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-2">
+                    <button type="button" onclick="closeModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl text-xs font-black uppercase transition">Batal</button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-black uppercase shadow-md shadow-blue-500/30 transition">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
+            authDomain: "appmoluscadesign.firebaseapp.com",
+            databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "appmoluscadesign",
+            storageBucket: "appmoluscadesign.firebasestorage.app",
+            messagingSenderId: "800709666958",
+            appId: "1:800709666958:web:66f97b271f736e17c981df"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const refProject = db.ref('project_molusca_v1');
+
+        let globalData = [];
+        let chartBulanan, chartStatus;
+
+        // --- INIT & REALTIME TIME ---
+        function initApp() {
+            setInterval(() => {
+                document.getElementById('realtimeClock').innerText = new Date().toLocaleString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' });
+            }, 1000);
+            
+            // Set Default Date Input
+            document.getElementById('inputTglMasuk').valueAsDate = new Date();
+            
+            fetchDataRealtime();
+        }
+
+        // --- FETCH DATA FIREBASE ---
+        function fetchDataRealtime() {
+            refProject.on('value', snap => {
+                const data = snap.val();
+                globalData = [];
+                if(data) {
+                    globalData = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
+                }
+                renderDashboard();
+            });
+        }
+
+        // --- LOGIC COUNTDOWN & DEADLINE ---
+        function getDeadlineInfo(deadlineStr, status) {
+            if(status === 'Selesai') return { text: 'Selesai', color: 'bg-emerald-100 text-emerald-700', icon: 'ph-check-circle' };
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const deadline = new Date(deadlineStr);
+            const diffTime = deadline - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) return { text: `Terlewat ${Math.abs(diffDays)} Hari`, color: 'bg-red-100 text-red-700 border-red-200', icon: 'ph-warning-circle' };
+            if (diffDays === 0) return { text: 'Deadline Hari Ini!', color: 'bg-orange-100 text-orange-700 border-orange-200 animate-pulse', icon: 'ph-clock-countdown' };
+            if (diffDays <= 3) return { text: `${diffDays} Hari Lagi`, color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: 'ph-clock' };
+            return { text: `${diffDays} Hari Lagi`, color: 'bg-blue-50 text-blue-600 border-blue-100', icon: 'ph-calendar-blank' };
+        }
+
+        function getPaymentBadge(status) {
+            if(status === 'Lunas') return `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold"><i class="ph-fill ph-check-circle"></i> Lunas</span>`;
+            if(status === 'DP Masuk') return `<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold"><i class="ph-fill ph-coin"></i> DP</span>`;
+            return `<span class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold"><i class="ph-fill ph-x-circle"></i> Belum Bayar</span>`;
+        }
+
+        // --- RENDER SEMUA UI ---
+        function renderDashboard() {
+            renderStats();
+            renderCharts();
+            renderKanban();
+            renderTable();
+        }
+
+        function renderStats() {
+            let total = globalData.length;
+            let running = 0;
+            let warning = 0;
+            let done = 0;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            globalData.forEach(p => {
+                if(p.status === 'Selesai') {
+                    done++;
+                } else {
+                    running++;
+                    const deadline = new Date(p.tglDeadline);
+                    const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+                    if(diffDays <= 3) warning++;
+                }
+            });
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statRunning').innerText = running;
+            document.getElementById('statWarning').innerText = warning;
+            document.getElementById('statDone').innerText = done;
+        }
+
+        function renderKanban() {
+            let htmlDesain = '', htmlSample = '', htmlPacking = '', htmlSelesai = '';
+            let cDesain = 0, cSample = 0, cPacking = 0, cSelesai = 0;
+
+            globalData.forEach(p => {
+                const deadline = getDeadlineInfo(p.tglDeadline, p.status);
+                const payment = getPaymentBadge(p.pembayaran);
+                const isUrgent = deadline.text.includes('Terlewat') || deadline.text.includes('Hari Ini');
+
+                const cardHTML = `
+                    <div class="bg-white p-3 rounded-xl border ${isUrgent ? 'border-red-300 shadow-red-100' : 'border-slate-200 shadow-sm'} group relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-black text-sm text-slate-800 leading-tight">${p.klien}</h4>
+                            ${payment}
+                        </div>
+                        <div class="text-[10px] text-slate-500 mb-2 line-clamp-2 leading-relaxed font-medium">${p.pekerjaan}</div>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div class="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                <span class="block text-[8px] uppercase font-bold text-slate-400">PIC</span>
+                                <span class="text-[10px] font-black text-slate-700 truncate"><i class="ph-fill ph-user text-blue-500"></i> ${p.pic}</span>
+                            </div>
+                            <div class="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                <span class="block text-[8px] uppercase font-bold text-slate-400">Finishing</span>
+                                <span class="text-[10px] font-black text-orange-600 truncate">${p.finishing !== '-' ? p.finishing : 'Proses'}</span>
+                            </div>
+                        </div>
+                        ${p.status === 'Sample' && p.pembuatSample ? `<div class="bg-indigo-50 text-[9px] font-bold text-indigo-600 p-1.5 rounded-lg mb-2">✂️ Dibuat: ${p.pembuatSample}</div>` : ''}
+                        
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 mt-1">
+                            <div class="flex items-center gap-1 border px-2 py-1 rounded-md text-[9px] font-black uppercase ${deadline.color}">
+                                <i class="ph-bold ${deadline.icon}"></i> ${deadline.text}
+                            </div>
+                            <button onclick="editData('${p.id}')" class="text-slate-400 hover:text-blue-600 transition bg-slate-50 hover:bg-blue-50 p-1.5 rounded-md"><i class="ph-bold ph-pencil-simple"></i></button>
+                        </div>
+                    </div>
+                `;
+
+                if(p.status === 'Selesai') {
+                    htmlSelesai += cardHTML; cSelesai++;
+                } else if(p.status === 'Sample') {
+                    htmlSample += cardHTML; cSample++;
+                } else if(p.finishing === 'Packing' || p.finishing === 'QC' || p.finishing === 'Siap Kirim') {
+                    htmlPacking += cardHTML; cPacking++;
+                } else {
+                    htmlDesain += cardHTML; cDesain++;
+                }
+            });
+
+            document.getElementById('colDesain').innerHTML = htmlDesain || '<div class="text-[10px] text-center text-slate-400 p-4 font-bold border border-dashed rounded-xl">Kosong</div>';
+            document.getElementById('colSample').innerHTML = htmlSample || '<div class="text-[10px] text-center text-slate-400 p-4 font-bold border border-dashed rounded-xl">Kosong</div>';
+            document.getElementById('colPacking').innerHTML = htmlPacking || '<div class="text-[10px] text-center text-slate-400 p-4 font-bold border border-dashed rounded-xl">Kosong</div>';
+            document.getElementById('colSelesai').innerHTML = htmlSelesai || '<div class="text-[10px] text-center text-slate-400 p-4 font-bold border border-dashed rounded-xl">Kosong</div>';
+
+            document.getElementById('countDesain').innerText = cDesain;
+            document.getElementById('countSample').innerText = cSample;
+            document.getElementById('countPacking').innerText = cPacking;
+            document.getElementById('countSelesai').innerText = cSelesai;
+        }
+
+        function renderTable() {
+            let html = '';
+            globalData.forEach((p, index) => {
+                const deadline = getDeadlineInfo(p.tglDeadline, p.status);
+                html += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-5 py-3">
+                            <div class="font-black text-slate-800 text-sm">${p.klien}</div>
+                            <div class="text-[10px] text-slate-500 max-w-[200px] truncate" title="${p.pekerjaan}">${p.pekerjaan}</div>
+                            ${p.link ? `<a href="${p.link}" target="_blank" class="text-[9px] text-blue-500 hover:underline inline-flex items-center gap-0.5 mt-0.5 font-bold"><i class="ph-bold ph-link"></i> Referensi</a>` : ''}
+                        </td>
+                        <td class="px-5 py-3">
+                            <div class="font-bold text-slate-700">${p.tglDeadline}</div>
+                            <div class="text-[9px] mt-0.5 px-1.5 py-0.5 rounded inline-block font-bold uppercase ${deadline.color}">${deadline.text}</div>
+                        </td>
+                        <td class="px-5 py-3">${getPaymentBadge(p.pembayaran)}</td>
+                        <td class="px-5 py-3">
+                            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded text-[10px] font-black uppercase inline-block mb-1">${p.status}</span>
+                            <br>
+                            <span class="text-[9px] text-slate-500 font-bold"><i class="ph-fill ph-user"></i> PIC: ${p.pic}</span>
+                        </td>
+                        <td class="px-5 py-3">
+                            <div class="flex gap-2">
+                                <button onclick="editData('${p.id}')" class="bg-slate-100 hover:bg-blue-100 text-slate-600 hover:text-blue-600 p-2 rounded-lg transition"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button onclick="deleteData('${p.id}')" class="bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 p-2 rounded-lg transition"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('dataTableBody').innerHTML = html || '<tr><td colspan="5" class="text-center py-6 text-slate-400 font-bold text-xs">Belum ada data project</td></tr>';
+        }
+
+        // --- CHARTS (CHART.JS) ---
+        function renderCharts() {
+            // Group data by Month
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+            let monthlyCounts = Array(12).fill(0);
+            let statusCounts = { 'Desain/Revisi':0, 'Sample':0, 'Produksi/Proses':0, 'Selesai':0 };
+
+            globalData.forEach(p => {
+                // Month Count
+                const date = new Date(p.tglMasuk);
+                monthlyCounts[date.getMonth()]++;
+
+                // Status Count
+                if(p.status === 'Selesai') statusCounts['Selesai']++;
+                else if(p.status === 'Sample') statusCounts['Sample']++;
+                else if(p.status === 'Desain' || p.status === 'Revisi' || p.status === 'ACC') statusCounts['Desain/Revisi']++;
+                else statusCounts['Produksi/Proses']++;
+            });
+
+            if(chartBulanan) chartBulanan.destroy();
+            const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+            chartBulanan = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: monthNames,
+                    datasets: [{
+                        label: 'Project Masuk',
+                        data: monthlyCounts,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: {display:false} }, scales: { y: { beginAtZero: true, ticks: {stepSize:1} } } }
+            });
+
+            if(chartStatus) chartStatus.destroy();
+            const ctx2 = document.getElementById('statusChart').getContext('2d');
+            chartStatus = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#f59e0b', '#6366f1', '#3b82f6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'right', labels: {font:{size:10, family:'Plus Jakarta Sans'}} } } }
+            });
+        }
+
+        // --- MODAL & FORM LOGIC ---
+        function openModal() {
+            document.getElementById('projectForm').reset();
+            document.getElementById('inputId').value = '';
+            document.getElementById('modalTitle').innerText = 'Tambah Project Baru';
+            document.getElementById('inputTglMasuk').valueAsDate = new Date();
+            toggleSampleInput();
+            document.getElementById('modalForm').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalForm').classList.add('hidden');
+        }
+
+        function toggleSampleInput() {
+            const status = document.getElementById('inputStatus').value;
+            const wrap = document.getElementById('wrapSample');
+            const input = document.getElementById('inputPembuatSample');
+            if(status === 'Sample') {
+                wrap.classList.remove('hidden');
+                input.required = true;
+            } else {
+                wrap.classList.add('hidden');
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function saveData(e) {
+            e.preventDefault();
+            const id = document.getElementById('inputId').value;
+            
+            const payload = {
+                klien: document.getElementById('inputKlien').value,
+                pic: document.getElementById('inputPic').value,
+                pekerjaan: document.getElementById('inputPekerjaan').value,
+                link: document.getElementById('inputLink').value,
+                tglMasuk: document.getElementById('inputTglMasuk').value,
+                tglDeadline: document.getElementById('inputTglDeadline').value,
+                pembayaran: document.getElementById('inputPembayaran').value,
+                lokasi: document.getElementById('inputLokasi').value,
+                status: document.getElementById('inputStatus').value,
+                finishing: document.getElementById('inputFinishing').value,
+                pembuatSample: document.getElementById('inputPembuatSample').value,
+                timestamp: Date.now()
+            };
+
+            if(id) {
+                // Update
+                refProject.child(id).update(payload)
+                    .then(() => { closeModal(); })
+                    .catch(err => alert("Error: " + err));
+            } else {
+                // Create
+                refProject.push(payload)
+                    .then(() => { closeModal(); })
+                    .catch(err => alert("Error: " + err));
+            }
+        }
+
+        function editData(id) {
+            const data = globalData.find(p => p.id === id);
+            if(!data) return;
+
+            document.getElementById('inputId').value = data.id;
+            document.getElementById('modalTitle').innerText = 'Edit Project';
+            
+            document.getElementById('inputKlien').value = data.klien;
+            document.getElementById('inputPic').value = data.pic;
+            document.getElementById('inputPekerjaan').value = data.pekerjaan;
+            document.getElementById('inputLink').value = data.link || '';
+            document.getElementById('inputTglMasuk').value = data.tglMasuk;
+            document.getElementById('inputTglDeadline').value = data.tglDeadline;
+            document.getElementById('inputPembayaran').value = data.pembayaran;
+            document.getElementById('inputLokasi').value = data.lokasi || '';
+            document.getElementById('inputStatus').value = data.status;
+            document.getElementById('inputFinishing').value = data.finishing || '-';
+            document.getElementById('inputPembuatSample').value = data.pembuatSample || '';
+            
+            toggleSampleInput();
+            document.getElementById('modalForm').classList.remove('hidden');
+        }
+
+        function deleteData(id) {
+            if(confirm("Yakin ingin menghapus project ini secara permanen?")) {
+                refProject.child(id).remove();
+            }
+        }
+
+        // --- EXPORT TO EXCEL ---
+        function exportToExcel() {
+            if(globalData.length === 0) {
+                alert("Tidak ada data untuk diekspor."); return;
+            }
+
+            const exportData = globalData.map((p, index) => ({
+                "No": index + 1,
+                "Nama Klien": p.klien,
+                "PIC": p.pic,
+                "Daftar Pekerjaan": p.pekerjaan,
+                "Tanggal Masuk": p.tglMasuk,
+                "Deadline": p.tglDeadline,
+                "Status Pembayaran": p.pembayaran,
+                "Lokasi Produksi": p.lokasi,
+                "Status Pengerjaan": p.status,
+                "Pembuat Sample": p.pembuatSample || '-',
+                "Status Finishing": p.finishing,
+                "Link Referensi": p.link || '-'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Project");
+            
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Report_Molusca_${dateStr}.xlsx`);
+        }
+    </script>
+</body>
+</html>
