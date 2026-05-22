@@ -17,24 +17,21 @@
     <i class="ph-fill ph-package absolute -right-20 -bottom-20 text-[300px] text-white opacity-5 -z-10"></i>
 
     <div class="flex-grow flex flex-col items-center justify-center p-6 w-full max-w-xl mx-auto">
-        
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4 border border-blue-400/30">
                 <i class="ph-bold ph-rocket text-3xl text-white"></i>
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight mb-2">Portal Tracking</h1>
-            <p class="text-sm font-medium text-slate-400">Lacak status pesanan dan produksi hampers Anda secara Real-Time.</p>
+            <p class="text-sm font-medium text-slate-400">Lacak status pesanan secara Real-Time.</p>
         </div>
 
-        <div class="w-full bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl flex items-center mb-6">
+        <div class="w-full bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20 shadow-xl flex items-center mb-6 focus-within:border-white/50 transition">
             <input type="text" id="inputCekResi" placeholder="Masukkan Resi (cth: MOL-XXXXX)" class="w-full bg-transparent p-4 text-white font-black uppercase tracking-widest outline-none placeholder-slate-400">
-            <button onclick="cekResi()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-black transition shadow-md shadow-blue-500/20">
-                <i class="ph-bold ph-magnifying-glass text-xl"></i>
-            </button>
+            <button onclick="cekResi()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-black transition shadow-md shadow-blue-500/20"><i class="ph-bold ph-magnifying-glass text-xl"></i></button>
         </div>
 
         <div id="errorKlien" class="hidden w-full text-center text-red-300 text-xs font-bold p-4 bg-red-900/30 border border-red-500/30 rounded-xl backdrop-blur-md">
-            Resi tidak ditemukan. Periksa kembali penulisan Anda.
+            Resi tidak ditemukan.
         </div>
 
         <div id="resultKlien" class="hidden w-full bg-white rounded-[32px] p-6 shadow-2xl">
@@ -72,7 +69,7 @@
             </div>
 
             <a id="btnPdf" href="#" target="_blank" class="hidden w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl text-xs font-black uppercase justify-center items-center gap-2 transition shadow-lg">
-                <i class="ph-bold ph-file-pdf text-lg text-red-400"></i> Tampilkan & Download PDF
+                <i class="ph-bold ph-file-pdf text-lg text-red-400"></i> Download File PDF / Invoice
             </a>
             <div id="noPdf" class="hidden text-center text-[10px] font-bold text-slate-400 uppercase">
                 File PDF / Invoice belum tersedia
@@ -92,7 +89,7 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const refProject = db.ref('project_molusca_v3');
+        const refProject = db.ref('project_molusca_pro');
         let globalData = [];
 
         refProject.on('value', snap => {
@@ -103,7 +100,6 @@
         function cekResi() {
             const resi = document.getElementById('inputCekResi').value.trim().toUpperCase();
             if(!resi) return;
-            
             const data = globalData.find(p => p.resiCode === resi);
             
             if(data) {
@@ -112,9 +108,8 @@
                 
                 document.getElementById('resKlien').innerText = data.klien;
                 document.getElementById('resPekerjaan').innerText = data.pekerjaan;
-                document.getElementById('resDetail').innerText = data.detailProgress || "Belum ada catatan detail dari tim.";
+                document.getElementById('resDetail').innerText = data.detailProgress || "Tim kami belum menambahkan detail progress khusus.";
 
-                // Handle PDF Button
                 const btnPdf = document.getElementById('btnPdf');
                 const noPdf = document.getElementById('noPdf');
                 if(data.pdfLink && data.pdfLink.trim() !== '') {
@@ -126,30 +121,32 @@
                     noPdf.classList.remove('hidden');
                 }
 
-                // Stepper Logic
+                // Stepper Mapping Logic
                 const s1 = document.getElementById('step1'), s2 = document.getElementById('step2'), s3 = document.getElementById('step3'), s4 = document.getElementById('step4');
                 const prog = document.getElementById('stepProgress');
                 
                 [s1, s2, s3, s4].forEach(s => { s.className = 'w-10 h-10 rounded-full bg-slate-100 text-slate-300 flex items-center justify-center font-black text-lg border-4 border-white'; });
                 
                 let w = '0%';
-                let activeClass = 'w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-lg border-4 border-blue-100 ring-4 ring-blue-50 scale-110 transition';
-                let pastClass = 'w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-lg border-4 border-white';
+                let act = 'w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-lg border-4 border-blue-100 ring-4 ring-blue-50 scale-110 transition';
+                let pst = 'w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-lg border-4 border-white';
 
-                if(['Proses', 'Desain'].includes(data.status)) {
-                    s1.className = activeClass; w = '0%';
-                } else if (data.status === 'Sample') {
-                    s1.className = pastClass; s2.className = activeClass; w = '33%';
-                } else if (data.status === 'Produksi') {
-                    s1.className = pastClass; s2.className = pastClass; s3.className = activeClass; w = '66%';
-                } else if (data.status === 'Selesai') {
-                    s1.className = pastClass; s2.className = pastClass; s3.className = pastClass; 
+                const st = data.status;
+                const fn = data.finishing;
+
+                if(['Proses', 'Desain', 'Revisi', 'ACC'].includes(st)) {
+                    s1.className = act; w = '0%';
+                } else if (st === 'Sample') {
+                    s1.className = pst; s2.className = act; w = '33%';
+                } else if (st === 'Produksi' || fn === 'QC' || fn === 'Packing') {
+                    s1.className = pst; s2.className = pst; s3.className = act; w = '66%';
+                } else if (st === 'Selesai' || fn === 'Siap Kirim') {
+                    s1.className = pst; s2.className = pst; s3.className = pst; 
                     s4.className = 'w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-lg shadow-lg border-4 border-emerald-100 ring-4 ring-emerald-50 scale-110 transition'; 
                     w = '100%';
                     prog.className = 'absolute left-6 top-1/2 -translate-y-1/2 h-1.5 bg-emerald-500 -z-10 rounded-full transition-all duration-700';
                 }
                 prog.style.width = w;
-
             } else {
                 document.getElementById('resultKlien').classList.add('hidden');
                 document.getElementById('errorKlien').classList.remove('hidden');
