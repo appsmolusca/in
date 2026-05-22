@@ -3,16 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Project Molusca</title>
+    <title>Project Molusca v.1 - Pro</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style> 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; } 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .modal-enter { animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .timeline-item::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: -24px; width: 2px; background: #e2e8f0; }
+        .timeline-item:last-child::before { display: none; }
     </style>
 </head>
 <body class="pb-20 text-slate-800" onload="initApp()">
@@ -23,32 +35,92 @@
                 <i class="ph-bold ph-rocket text-2xl text-white"></i>
             </div>
             <div>
-                <h1 class="text-lg font-black tracking-tight leading-none">Admin Molusca <span class="text-blue-600">Pro</span></h1>
-                <div class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Super Admin Dashboard</div>
+                <h1 class="text-lg font-black tracking-tight leading-none">Project Molusca <span class="text-blue-600">v.1</span></h1>
+                <div id="realtimeClock" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Memuat waktu...</div>
             </div>
         </div>
         <div class="flex gap-2">
-            <a href="client.html" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition">
-                <i class="ph-bold ph-magnifying-glass"></i> Tes Portal Klien
+            <a href="client.html" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition shadow-md hidden md:flex">
+                <i class="ph-bold ph-user"></i> Portal Klien
             </a>
-            <a href="creative.html" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition">
+            <a href="creative.html" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition hidden md:flex">
                 <i class="ph-bold ph-eye"></i> View Kreatif
             </a>
+            <button onclick="exportToExcel()" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition hidden md:flex">
+                <i class="ph-bold ph-file-xls text-base"></i> Excel
+            </button>
             <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase flex items-center gap-2 transition shadow-md shadow-blue-500/30">
                 <i class="ph-bold ph-plus"></i> Project Baru
             </button>
         </div>
     </header>
 
-    <main class="p-4 md:p-6 max-w-7xl mx-auto space-y-6 mt-4">
+    <main class="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+        
         <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition">
             <i class="ph-bold ph-magnifying-glass text-slate-400 text-xl ml-3"></i>
-            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari nomor resi, klien, atau PIC..." class="w-full bg-transparent p-3 text-sm font-semibold outline-none placeholder-slate-400">
+            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari nama klien, nomor resi (MOL-XXX), pekerjaan, atau PIC..." class="w-full bg-transparent p-3 text-sm font-semibold outline-none placeholder-slate-400">
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-slate-400 font-bold text-xs uppercase tracking-wider mb-2">Total Project</div>
+                <div class="text-3xl font-black" id="statTotal">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-blue-500 font-bold text-xs uppercase tracking-wider mb-2">Sedang Berjalan</div>
+                <div class="text-3xl font-black text-blue-600" id="statRunning">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-orange-500 font-bold text-xs uppercase tracking-wider mb-2">Mendekati Deadline</div>
+                <div class="text-3xl font-black text-orange-600" id="statWarning">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div class="text-emerald-500 font-bold text-xs uppercase tracking-wider mb-2">Selesai</div>
+                <div class="text-3xl font-black text-emerald-600" id="statDone">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Tren Project Per Bulan</h3>
+                <canvas id="monthlyChart" height="100"></canvas>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Distribusi Status Project</h3>
+                <div class="h-48 relative">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-kanban text-blue-500 text-xl"></i> Papan Progress
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start" id="kanbanBoard">
+                <div class="bg-slate-100/50 rounded-2xl p-3 border border-slate-200">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 ml-1 flex justify-between"><span>🎨 Desain/Revisi</span> <span id="countDesain" class="bg-slate-200 px-2 rounded-md">0</span></div>
+                    <div id="colDesain" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <div class="bg-indigo-50/50 rounded-2xl p-3 border border-indigo-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-3 ml-1 flex justify-between"><span>✂️ Sample</span> <span id="countSample" class="bg-indigo-100 px-2 rounded-md">0</span></div>
+                    <div id="colSample" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <div class="bg-orange-50/50 rounded-2xl p-3 border border-orange-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-orange-600 mb-3 ml-1 flex justify-between"><span>📦 Packing & QC</span> <span id="countPacking" class="bg-orange-100 px-2 rounded-md">0</span></div>
+                    <div id="colPacking" class="space-y-3 min-h-[100px]"></div>
+                </div>
+                <div class="bg-emerald-50/50 rounded-2xl p-3 border border-emerald-100">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-3 ml-1 flex justify-between"><span>✅ Selesai</span> <span id="countSelesai" class="bg-emerald-100 px-2 rounded-md">0</span></div>
+                    <div id="colSelesai" class="space-y-3 min-h-[100px]"></div>
+                </div>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-8">
-            <div class="p-5 border-b border-slate-100 bg-slate-50">
-                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Master Data (Bisa Edit)</h3>
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Master Data</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm whitespace-nowrap">
@@ -56,8 +128,9 @@
                         <tr>
                             <th class="px-5 py-3">Resi & Klien</th>
                             <th class="px-5 py-3">Deadline</th>
-                            <th class="px-5 py-3">Status Utama</th>
-                            <th class="px-5 py-3 text-right">Aksi Admin</th>
+                            <th class="px-5 py-3">Pembayaran</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody" class="divide-y divide-slate-100 text-xs font-medium">
@@ -68,58 +141,124 @@
     </main>
 
     <div id="modalForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="bg-white rounded-[24px] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl modal-enter">
             <div class="sticky top-0 bg-white/90 backdrop-blur z-10 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h2 class="text-sm font-black uppercase tracking-widest text-slate-800">Form Project</h2>
+                <h2 id="modalTitle" class="text-sm font-black uppercase tracking-widest text-slate-800">Manajemen Project</h2>
                 <button onclick="closeModal('modalForm')" class="bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200 transition"><i class="ph-bold ph-x"></i></button>
             </div>
-            <form id="projectForm" onsubmit="saveData(event)" class="p-6 space-y-4">
+            <form id="projectForm" onsubmit="saveData(event)" class="p-6 space-y-5">
                 <input type="hidden" id="inputId">
                 <input type="hidden" id="inputResiCode">
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Klien</label>
-                        <input type="text" id="inputKlien" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nama Klien / Perusahaan</label>
+                        <input type="text" id="inputKlien" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tgl Deadline</label>
-                        <input type="date" id="inputTglDeadline" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">PIC Internal</label>
+                        <input type="text" id="inputPic" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Detail Pekerjaan (Singkat)</label>
-                    <input type="text" id="inputPekerjaan" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Daftar Pekerjaan</label>
+                    <textarea id="inputPekerjaan" required rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500"></textarea>
                 </div>
 
-                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-widest text-blue-600"><i class="ph-bold ph-eye"></i> Tampilan di Portal Klien</h3>
-                    
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Progres Saat Ini</label>
-                        <select id="inputStatus" class="w-full bg-white border border-blue-200 rounded-xl p-2.5 text-xs outline-none font-bold text-blue-700 shadow-sm">
-                            <option value="Proses">⏳ Konfirmasi & Proses Awal</option>
-                            <option value="Desain">🖌️ Proses Desain</option>
-                            <option value="Sample">✂️ Pembuatan Sample</option>
-                            <option value="Produksi">🏭 Produksi Massal Hampers</option>
-                            <option value="Selesai">✅ Selesai & Siap Kirim</option>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tgl Masuk</label>
+                        <input type="date" id="inputTglMasuk" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-orange-600">Tgl Deadline</label>
+                        <input type="date" id="inputTglDeadline" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-orange-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Pembayaran</label>
+                        <select id="inputPembayaran" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 font-bold">
+                            <option value="Belum Bayar">🔴 Belum Bayar</option>
+                            <option value="DP Masuk">🟡 DP Masuk</option>
+                            <option value="Lunas">🟢 Lunas</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Detail Progress (Terlihat oleh klien)</label>
-                        <textarea id="inputDetailProgress" rows="3" placeholder="Contoh: Saat ini sedang proses perakitan box hampers 50/100 pcs..." class="w-full bg-white border border-blue-200 rounded-xl p-2.5 text-xs outline-none"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Link PDF (Invoice / Desain Acc) - Kosongkan jika tidak ada</label>
-                        <input type="url" id="inputPdfLink" placeholder="https://drive.google.com/..." class="w-full bg-white border border-blue-200 rounded-xl p-2.5 text-xs outline-none">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lokasi Produksi</label>
+                        <input type="text" id="inputLokasi" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500">
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-black uppercase shadow-md transition">Simpan Project</button>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-blue-600 uppercase mb-1">Status Utama</label>
+                            <select id="inputStatus" onchange="toggleSampleInput()" class="w-full border border-blue-200 rounded-xl p-2.5 text-xs outline-none focus:border-blue-500 bg-white font-bold text-blue-700 shadow-sm">
+                                <option value="Proses">⏳ Proses Awal</option>
+                                <option value="Desain">🖌️ Desain</option>
+                                <option value="Revisi">🔁 Revisi</option>
+                                <option value="ACC">✔️ ACC Desain</option>
+                                <option value="Sample">✂️ Pembuatan Sample</option>
+                                <option value="Produksi">🏭 Produksi Massal</option>
+                                <option value="Selesai">✅ Project Selesai</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-orange-600 uppercase mb-1">Status Finishing</label>
+                            <select id="inputFinishing" class="w-full border border-orange-200 rounded-xl p-2.5 text-xs outline-none focus:border-orange-500 bg-white font-bold text-orange-700 shadow-sm">
+                                <option value="-">- Belum Finishing -</option>
+                                <option value="QC">🔍 QC (Quality Control)</option>
+                                <option value="Packing">📦 Packing</option>
+                                <option value="Siap Kirim">🚚 Siap Kirim</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="wrapSample" class="hidden">
+                        <label class="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Siapa Pembuat Sample?</label>
+                        <input type="text" id="inputPembuatSample" class="w-full bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-indigo-600"><i class="ph-bold ph-eye"></i> Info Untuk Portal Klien</h3>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Progress (Dilihat Klien)</label>
+                        <textarea id="inputDetailProgress" rows="2" placeholder="Contoh: Saat ini sedang merakit box hampers 50/100 pcs..." class="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-xs outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Link File / Invoice PDF (Kosongkan jika belum ada)</label>
+                        <input type="url" id="inputPdfLink" placeholder="https://drive.google.com/..." class="w-full bg-white border border-indigo-200 rounded-xl p-2.5 text-xs outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-black uppercase shadow-md shadow-blue-500/30 transition">Simpan Data</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modalDetail" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[24px] w-full max-w-lg shadow-2xl modal-enter">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="text-sm font-black uppercase tracking-widest text-slate-800">Detail & Riwayat</h2>
+                <button onclick="closeModal('modalDetail')" class="bg-slate-100 p-2 rounded-full text-slate-500"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 text-center">
+                    <div class="text-[10px] font-black uppercase text-slate-400 mb-1">Kode Resi Project</div>
+                    <div class="text-2xl font-black text-blue-600 tracking-widest" id="detailResi">MOL-XXXX</div>
+                </div>
+                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i class="ph-bold ph-clock-counter-clockwise text-blue-500"></i> Audit Trail (Jejak Waktu)
+                </h3>
+                <div id="timelineContainer" class="space-y-4 relative ml-2">
+                    </div>
+            </div>
         </div>
     </div>
 
@@ -135,12 +274,17 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const refProject = db.ref('project_molusca_v3'); // DB Baru
+        const refProject = db.ref('project_molusca_pro'); 
 
         let globalData = [];
         let filteredData = [];
+        let chartBulanan, chartStatus;
 
         function initApp() {
+            setInterval(() => {
+                document.getElementById('realtimeClock').innerText = new Date().toLocaleString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            }, 1000);
+            
             refProject.on('value', snap => {
                 const data = snap.val();
                 globalData = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
@@ -149,73 +293,277 @@
         }
 
         function handleSearch() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            filteredData = q ? globalData.filter(p => p.klien.toLowerCase().includes(q) || p.resiCode.toLowerCase().includes(q)) : [...globalData];
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if(query.trim() === '') {
+                filteredData = [...globalData];
+            } else {
+                filteredData = globalData.filter(p => 
+                    p.klien.toLowerCase().includes(query) || 
+                    p.pekerjaan.toLowerCase().includes(query) ||
+                    p.pic.toLowerCase().includes(query) ||
+                    (p.resiCode && p.resiCode.toLowerCase().includes(query))
+                );
+            }
+            renderStats();
+            renderCharts();
+            renderKanban();
             renderTable();
+        }
+
+        function exportToExcel() {
+            if(filteredData.length === 0) return alert('Tidak ada data untuk diexport!');
+            const ws = XLSX.utils.json_to_sheet(filteredData.map(d => ({
+                "Kode Resi": d.resiCode || '-',
+                "Klien": d.klien,
+                "PIC": d.pic,
+                "Pekerjaan": d.pekerjaan,
+                "Tgl Masuk": d.tglMasuk,
+                "Tgl Deadline": d.tglDeadline,
+                "Pembayaran": d.pembayaran,
+                "Status Utama": d.status,
+                "Finishing": d.finishing !== '-' ? d.finishing : ''
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Project Data");
+            XLSX.writeFile(wb, "Data_Project_Molusca.xlsx");
+        }
+
+        function generateResi() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let res = 'MOL-';
+            for(let i=0; i<4; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+            return res;
+        }
+
+        function renderStats() {
+            let total = filteredData.length, running = 0, warning = 0, done = 0;
+            const today = new Date(); today.setHours(0,0,0,0);
+            filteredData.forEach(p => {
+                if(p.status === 'Selesai') done++;
+                else {
+                    running++;
+                    const deadline = new Date(p.tglDeadline);
+                    if(Math.ceil((deadline - today) / 86400000) <= 3) warning++;
+                }
+            });
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statRunning').innerText = running;
+            document.getElementById('statWarning').innerText = warning;
+            document.getElementById('statDone').innerText = done;
+        }
+
+        function renderCharts() {
+            if(!filteredData.length) return;
+            
+            // Setup Chart Bulanan
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+            let monthlyCounts = Array(12).fill(0);
+            
+            // Setup Chart Status
+            let statusCounts = { 'Proses': 0, 'Desain': 0, 'Revisi': 0, 'ACC': 0, 'Sample': 0, 'Produksi': 0, 'Selesai': 0 };
+            
+            filteredData.forEach(p => { 
+                if(p.tglMasuk) {
+                    const m = new Date(p.tglMasuk).getMonth();
+                    if(!isNaN(m)) monthlyCounts[m]++; 
+                }
+                if(statusCounts[p.status] !== undefined) {
+                    statusCounts[p.status]++;
+                }
+            });
+
+            // Render Bar Chart
+            if(chartBulanan) chartBulanan.destroy();
+            chartBulanan = new Chart(document.getElementById('monthlyChart'), {
+                type: 'bar', 
+                data: { 
+                    labels: monthNames, 
+                    datasets: [{ label: 'Project Masuk', data: monthlyCounts, backgroundColor: '#3b82f6', borderRadius: 4 }] 
+                },
+                options: { responsive: true, plugins: { legend: {display:false} } }
+            });
+
+            // Render Doughnut Chart
+            if(chartStatus) chartStatus.destroy();
+            chartStatus = new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#94a3b8', '#3b82f6', '#f43f5e', '#8b5cf6', '#f59e0b', '#14b8a6', '#10b981'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } 
+                }
+            });
+        }
+
+        function getDeadlineInfo(deadlineStr, status) {
+            if(status === 'Selesai') return { text: 'Selesai', color: 'bg-emerald-100 text-emerald-700' };
+            const diffDays = Math.ceil((new Date(deadlineStr) - new Date().setHours(0,0,0,0)) / 86400000);
+            if (diffDays < 0) return { text: `Terlewat ${Math.abs(diffDays)} Hari`, color: 'bg-red-100 text-red-700 border border-red-200 shadow-sm shadow-red-200' };
+            if (diffDays === 0) return { text: 'Deadline Hari Ini!', color: 'bg-orange-100 text-orange-700 border border-orange-200 animate-pulse' };
+            if (diffDays <= 3) return { text: `${diffDays} Hari Lagi`, color: 'bg-yellow-100 text-yellow-700' };
+            return { text: `${diffDays} Hari Lagi`, color: 'bg-blue-50 text-blue-600' };
+        }
+
+        function renderKanban() {
+            let htmlDesain = '', htmlSample = '', htmlPacking = '', htmlSelesai = '';
+            let cD=0, cS=0, cP=0, cSel=0;
+
+            filteredData.forEach(p => {
+                const deadline = getDeadlineInfo(p.tglDeadline, p.status);
+                const isUrgent = deadline.text.includes('Terlewat') || deadline.text.includes('Hari Ini');
+
+                const cardHTML = `
+                    <div class="bg-white p-3 rounded-xl border ${isUrgent ? 'border-red-300 shadow-red-100 border-2' : 'border-slate-200'} group relative">
+                        <div class="text-[9px] font-black text-blue-500 tracking-wider mb-0.5">${p.resiCode || 'NO-RESI'}</div>
+                        <h4 class="font-black text-sm text-slate-800 leading-tight mb-1">${p.klien}</h4>
+                        <div class="text-[10px] text-slate-500 mb-2 line-clamp-2 font-medium">${p.pekerjaan}</div>
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 mt-1">
+                            <div class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${deadline.color}">${deadline.text}</div>
+                            <div class="flex gap-1">
+                                <button onclick="showDetail('${p.id}')" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded-md transition"><i class="ph-bold ph-clock-counter-clockwise"></i></button>
+                                <button onclick="editData('${p.id}')" class="text-slate-400 hover:bg-slate-50 p-1.5 rounded-md transition"><i class="ph-bold ph-pencil-simple"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                if(p.status === 'Selesai') { htmlSelesai += cardHTML; cSel++; }
+                else if(p.status === 'Sample') { htmlSample += cardHTML; cS++; }
+                else if(['Packing', 'QC', 'Siap Kirim', 'Produksi'].includes(p.status) || ['Packing', 'QC', 'Siap Kirim'].includes(p.finishing)) { htmlPacking += cardHTML; cP++; }
+                else { htmlDesain += cardHTML; cD++; }
+            });
+
+            document.getElementById('colDesain').innerHTML = htmlDesain;
+            document.getElementById('colSample').innerHTML = htmlSample;
+            document.getElementById('colPacking').innerHTML = htmlPacking;
+            document.getElementById('colSelesai').innerHTML = htmlSelesai;
+            
+            document.getElementById('countDesain').innerText = cD;
+            document.getElementById('countSample').innerText = cS;
+            document.getElementById('countPacking').innerText = cP;
+            document.getElementById('countSelesai').innerText = cSel;
         }
 
         function renderTable() {
             let html = '';
             filteredData.forEach(p => {
                 html += `
-                <tr class="hover:bg-slate-50 border-b border-slate-100">
-                    <td class="px-5 py-3">
-                        <div class="text-[10px] font-black text-blue-600 bg-blue-50 inline-block px-2 py-1 rounded mb-1 border border-blue-100">${p.resiCode}</div>
-                        <div class="font-black text-slate-800 text-sm">${p.klien}</div>
-                    </td>
-                    <td class="px-5 py-3 font-bold text-slate-600">${p.tglDeadline}</td>
-                    <td class="px-5 py-3 font-black text-[10px] uppercase text-slate-500">${p.status}</td>
-                    <td class="px-5 py-3 text-right">
-                        <button onclick="editData('${p.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md"><i class="ph-bold ph-pencil-simple"></i> Edit</button>
-                    </td>
-                </tr>`;
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="px-5 py-3">
+                            <div class="text-[9px] font-black text-blue-500 bg-blue-50 inline-block px-1.5 py-0.5 rounded mb-1 border border-blue-100">${p.resiCode || '-'}</div>
+                            <div class="font-black text-slate-800 text-sm">${p.klien}</div>
+                        </td>
+                        <td class="px-5 py-3 font-bold text-slate-700">${p.tglDeadline}</td>
+                        <td class="px-5 py-3"><span class="text-[10px] font-bold uppercase">${p.pembayaran}</span></td>
+                        <td class="px-5 py-3 font-bold text-[10px] uppercase text-slate-500">${p.status} ${p.finishing !== '-' ? `<span class="text-orange-500">> ${p.finishing}</span>` : ''}</td>
+                        <td class="px-5 py-3 text-right">
+                            <button onclick="showDetail('${p.id}')" class="bg-blue-50 text-blue-600 p-2 rounded-lg mr-1"><i class="ph-bold ph-clock-counter-clockwise"></i></button>
+                            <button onclick="editData('${p.id}')" class="bg-slate-100 text-slate-600 p-2 rounded-lg"><i class="ph-bold ph-pencil-simple"></i></button>
+                        </td>
+                    </tr>`;
             });
             document.getElementById('dataTableBody').innerHTML = html;
-        }
-
-        function generateResi() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let res = 'MOL-';
-            for(let i=0; i<5; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
-            return res;
         }
 
         function openModal() {
             document.getElementById('projectForm').reset();
             document.getElementById('inputId').value = '';
             document.getElementById('inputResiCode').value = generateResi();
+            toggleSampleInput();
             document.getElementById('modalForm').classList.remove('hidden');
         }
+
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        
+        function toggleSampleInput() {
+            document.getElementById('wrapSample').classList.toggle('hidden', document.getElementById('inputStatus').value !== 'Sample');
+        }
 
         function saveData(e) {
             e.preventDefault();
             const id = document.getElementById('inputId').value;
+            const resi = document.getElementById('inputResiCode').value;
+            const newStatus = document.getElementById('inputStatus').value;
+            const newFinish = document.getElementById('inputFinishing').value;
+            const now = new Date().toLocaleString('id-ID');
+            
+            let historyLog = [];
             const payload = {
-                resiCode: document.getElementById('inputResiCode').value,
                 klien: document.getElementById('inputKlien').value,
+                pic: document.getElementById('inputPic').value,
                 pekerjaan: document.getElementById('inputPekerjaan').value,
+                tglMasuk: document.getElementById('inputTglMasuk').value,
                 tglDeadline: document.getElementById('inputTglDeadline').value,
-                status: document.getElementById('inputStatus').value,
+                pembayaran: document.getElementById('inputPembayaran').value,
+                lokasi: document.getElementById('inputLokasi').value,
+                status: newStatus,
+                finishing: newFinish,
+                pembuatSample: document.getElementById('inputPembuatSample').value,
                 detailProgress: document.getElementById('inputDetailProgress').value,
-                pdfLink: document.getElementById('inputPdfLink').value
+                pdfLink: document.getElementById('inputPdfLink').value,
+                resiCode: resi
             };
 
-            if(id) refProject.child(id).update(payload).then(() => closeModal('modalForm'));
-            else refProject.push(payload).then(() => closeModal('modalForm'));
+            if(id) {
+                const oldData = globalData.find(p => p.id === id);
+                historyLog = oldData.history ? [...oldData.history] : [];
+                
+                if(oldData.status !== newStatus) historyLog.push({ text: `Status berubah: ${oldData.status} ➡️ ${newStatus}`, time: now });
+                if(oldData.finishing !== newFinish) historyLog.push({ text: `Finishing diupdate menjadi: ${newFinish}`, time: now });
+                
+                if(historyLog.length > (oldData.history?.length || 0)) payload.history = historyLog;
+                refProject.child(id).update(payload).then(() => closeModal('modalForm'));
+            } else {
+                payload.history = [{ text: 'Project dibuat di Master Data', time: now }];
+                refProject.push(payload).then(() => closeModal('modalForm'));
+            }
         }
 
         function editData(id) {
             const data = globalData.find(p => p.id === id);
             document.getElementById('inputId').value = data.id;
-            document.getElementById('inputResiCode').value = data.resiCode;
+            document.getElementById('inputResiCode').value = data.resiCode || generateResi();
             document.getElementById('inputKlien').value = data.klien;
-            document.getElementById('inputTglDeadline').value = data.tglDeadline;
+            document.getElementById('inputPic').value = data.pic;
             document.getElementById('inputPekerjaan').value = data.pekerjaan;
+            document.getElementById('inputTglMasuk').value = data.tglMasuk;
+            document.getElementById('inputTglDeadline').value = data.tglDeadline;
+            document.getElementById('inputPembayaran').value = data.pembayaran;
+            document.getElementById('inputLokasi').value = data.lokasi || '';
             document.getElementById('inputStatus').value = data.status;
+            document.getElementById('inputFinishing').value = data.finishing || '-';
             document.getElementById('inputDetailProgress').value = data.detailProgress || '';
             document.getElementById('inputPdfLink').value = data.pdfLink || '';
+            toggleSampleInput();
             document.getElementById('modalForm').classList.remove('hidden');
+        }
+
+        function showDetail(id) {
+            const data = globalData.find(p => p.id === id);
+            document.getElementById('detailResi').innerText = data.resiCode || 'TIDAK ADA RESI';
+            let tlHTML = '';
+            if(data.history && data.history.length > 0) {
+                [...data.history].reverse().forEach((h) => {
+                    tlHTML += `
+                    <div class="relative pl-6 timeline-item mb-4">
+                        <div class="absolute left-0 top-1 w-6 h-6 bg-blue-100 rounded-full border-2 border-white flex items-center justify-center -translate-x-1.5 shadow-sm">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-400 mb-0.5">${h.time}</div>
+                        <div class="text-xs font-bold text-slate-700">${h.text}</div>
+                    </div>`;
+                });
+            } else {
+                tlHTML = '<div class="text-xs text-slate-400 text-center font-bold">Belum ada riwayat</div>';
+            }
+            document.getElementById('timelineContainer').innerHTML = tlHTML;
+            document.getElementById('modalDetail').classList.remove('hidden');
         }
     </script>
 </body>
