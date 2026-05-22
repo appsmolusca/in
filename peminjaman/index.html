@@ -6,7 +6,6 @@
     <title>Peminjaman Barang - Inventory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
@@ -20,18 +19,17 @@
 </head>
 <body class="bg-[#F4F6F8] pb-20" onload="initApp()">
 
-    <!-- SETUP FIREBASE & LOGIC -->
     <script>
-        // GANTI DENGAN CONFIG FIREBASE PROJECT ANDA
-       const firebaseConfig = {
-    apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
-    authDomain: "appmoluscadesign.firebaseapp.com",
-    databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "appmoluscadesign",
-    storageBucket: "appmoluscadesign.firebasestorage.app",
-    messagingSenderId: "800709666958",
-    appId: "1:800709666958:web:66f97b271f736e17c981df"
-};
+        // Konfigurasi Firebase Project Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
+            authDomain: "appmoluscadesign.firebaseapp.com",
+            databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "appmoluscadesign",
+            storageBucket: "appmoluscadesign.firebasestorage.app",
+            messagingSenderId: "800709666958",
+            appId: "1:800709666958:web:66f97b271f736e17c981df"
+        };
         
         // Inisialisasi Firebase
         if (!firebase.apps.length) {
@@ -118,16 +116,21 @@
                         if (item.status === 'dipinjam') {
                             jumlahAktif++;
                             aktifHTML += `
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div class="absolute top-0 right-0 bg-orange-100 text-orange-600 px-3 py-1 rounded-bl-xl text-[10px] font-black uppercase flex items-center gap-1">
                                     <i class="ph-fill ph-clock-countdown"></i> Belum Kembali
                                 </div>
                                 
-                                <div class="mt-2 mb-3">
-                                    <h3 class="text-lg font-black text-slate-800 leading-tight">${item.barang}</h3>
-                                    <div class="text-[10px] font-bold text-slate-400 mt-1 flex items-center gap-1">
-                                        <i class="ph-fill ph-calendar-check"></i> Dipinjam: ${item.waktuPinjam}
+                                <div class="mt-2 mb-3 flex justify-between items-start pr-24">
+                                    <div>
+                                        <h3 class="text-lg font-black text-slate-800 leading-tight">${item.barang}</h3>
+                                        <div class="text-[10px] font-bold text-slate-400 mt-1 flex items-center gap-1">
+                                            <i class="ph-fill ph-calendar-check"></i> Dipinjam: ${item.waktuPinjam}
+                                        </div>
                                     </div>
+                                    <button onclick="hapusRiwayat('${item.id}')" class="text-[10px] text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg font-bold flex items-center gap-1 transition shadow-sm border border-red-100">
+                                        <i class="ph-fill ph-trash"></i> Hapus
+                                    </button>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-50 p-2.5 rounded-xl text-xs">
@@ -180,7 +183,6 @@
         }
     </script>
 
-    <!-- HEADER -->
     <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 py-4 px-5 border-b border-slate-200 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-2">
             <div class="bg-blue-600 p-1.5 rounded-lg">
@@ -191,11 +193,13 @@
                 <div id="realtimeClock" class="text-[9px] font-bold text-slate-400 mt-0.5">Memuat waktu...</div>
             </div>
         </div>
+        <a href="../index.html" class="text-[10px] font-black text-slate-500 bg-slate-100 px-3 py-2 rounded-xl uppercase flex items-center gap-1 hover:bg-slate-200 transition">
+            <i class="ph-bold ph-arrow-left"></i> KEMBALI
+        </a>
     </header>
 
     <main class="p-4 max-w-xl mx-auto space-y-6 mt-2">
         
-        <!-- SUMMARY CARD -->
         <section class="bg-gradient-to-br from-blue-600 to-indigo-800 p-6 rounded-[32px] shadow-lg text-white relative overflow-hidden">
             <i class="ph-fill ph-boxes absolute -right-6 -bottom-6 text-9xl opacity-20 pointer-events-none"></i>
             <div class="relative z-10 flex justify-between items-center">
@@ -209,7 +213,6 @@
             </div>
         </section>
 
-        <!-- FORM INPUT PEMINJAMAN -->
         <section class="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100">
             <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="ph-fill ph-plus-circle text-blue-500 text-lg"></i> Form Pinjam Barang</h2>
             <form id="formPeminjaman" onsubmit="pinjamBarang(event)" class="space-y-3">
@@ -241,7 +244,6 @@
             </form>
         </section>
 
-        <!-- DAFTAR BARANG SEDANG DIPINJAM -->
         <section>
             <div class="flex justify-between items-end mb-4 ml-1">
                 <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -249,18 +251,15 @@
                 </h2>
             </div>
             <div id="listAktif" class="space-y-3">
-                <!-- Data aktif akan muncul di sini via JS -->
-            </div>
+                </div>
         </section>
 
-        <!-- RIWAYAT PENGEMBALIAN -->
         <section class="pt-6 border-t border-slate-200">
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 flex items-center gap-2">
                 <i class="ph-fill ph-check-square-offset text-lg"></i> Riwayat Dikembalikan
             </h2>
             <div id="listRiwayat" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- Data riwayat akan muncul di sini via JS -->
-            </div>
+                </div>
         </section>
 
     </main>
