@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventory Barang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAFCFF; color: #0F172A; } 
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.6); }
+        .glass-overlay { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .smooth-shadow { box-shadow: 0 10px 40px -10px rgba(0,0,0,0.03); }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); }
+        .fluid-bg { position: relative; overflow: hidden; z-index: 1; }
+        .fluid-blob-1 { position: absolute; width: 200px; height: 200px; background: #3B82F6; border-radius: 50%; filter: blur(50px); opacity: 0.4; top: -50px; right: -50px; z-index: -1; }
+        .fluid-blob-2 { position: absolute; width: 150px; height: 150px; background: #8B5CF6; border-radius: 50%; filter: blur(40px); opacity: 0.3; bottom: -30px; left: 20px; z-index: -1; }
+    </style>
+</head>
+<body onload="initApp()" class="pb-24">
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoX3MZ0hxtL2j3ol3N_1w8ohYCdXPsUtI",
+            authDomain: "appmoluscadesign.firebaseapp.com",
+            databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "appmoluscadesign",
+            storageBucket: "appmoluscadesign.firebasestorage.app",
+            messagingSenderId: "800709666958",
+            appId: "1:800709666958:web:66f97b271f736e17c981df"
+        };
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+        let allData = [];
+        let currentEditId = null; // Menyimpan ID barang yang sedang di-edit
+
+        function initApp() { loadInventory(); }
+
+        // ================= TAB NAVIGATION =================
+        function switchTab(tabName) {
+            const btnUser = document.getElementById('btnUser');
+            const btnAdmin = document.getElementById('btnAdmin');
+            const viewUser = document.getElementById('viewUser');
+            const viewAdmin = document.getElementById('viewAdmin');
+            const indicator = document.getElementById('tabIndicator');
+
+            if (tabName === 'user') {
+                indicator.style.transform = 'translateX(0%)';
+                btnUser.classList.replace('text-slate-500', 'text-slate-900');
+                btnAdmin.classList.replace('text-slate-900', 'text-slate-500');
+                viewUser.classList.remove('hidden');
+                viewAdmin.classList.add('hidden');
+            } else {
+                indicator.style.transform = 'translateX(100%)';
+                btnAdmin.classList.replace('text-slate-500', 'text-slate-900');
+                btnUser.classList.replace('text-slate-900', 'text-slate-500');
+                viewAdmin.classList.remove('hidden');
+                viewUser.classList.add('hidden');
+            }
+        }
+
+        // ================= CRUD LOGIC =================
+        function tambahBarang(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Menyimpan...';
+            
+            const dataBarang = {
+                nama: document.getElementById('inpNama').value,
+                kategori: document.getElementById('inpKategori').value,
+                warna: document.getElementById('inpWarna').value || "-", 
+                jumlah: parseInt(document.getElementById('inpJumlah').value),
+                satuan: document.getElementById('inpSatuan').value,
+                timestamp: Date.now()
+            };
+
+            db.ref('inventory_barang').push(dataBarang).then(() => {
+                document.getElementById('formInventory').reset();
+                setTimeout(() => {
+                    btnSubmit.innerHTML = '<i class="ph-bold ph-check text-lg"></i> Tersimpan!';
+                    btnSubmit.classList.replace('bg-slate-900', 'bg-green-600');
+                    setTimeout(() => {
+                        btnSubmit.innerHTML = '<i class="ph-bold ph-plus text-lg"></i> Tambah ke Inventory';
+                        btnSubmit.classList.replace('bg-green-600', 'bg-slate-900');
+                    }, 2000);
+                }, 500);
+            });
+        }
+
+        function updateStok(id, jumlahSaatIni, perubahan) {
+            let stokBaru = jumlahSaatIni + perubahan;
+            if(stokBaru < 0) stokBaru = 0; 
+            db.ref(`inventory_barang/${id}`).update({ jumlah: stokBaru });
+        }
+
+        function hapusBarang(id, namaBarang) {
+            if(confirm(`Hapus ${namaBarang} secara permanen?`)) {
+                db.ref(`inventory_barang/${id}`).remove();
+            }
+        }
+
+        // ================= EDIT MODAL LOGIC =================
+        function openEditModal(id) {
+            const item = allData.find(i => i.id === id);
+            if(!item) return;
+
+            currentEditId = id;
+            document.getElementById('editNama').value = item.nama;
+            document.getElementById('editKategori').value = item.kategori;
+            document.getElementById('editWarna').value = item.warna === "-" ? "" : item.warna;
+            document.getElementById('editSatuan').value = item.satuan;
+            document.getElementById('editJumlah').value = item.jumlah;
+
+            const modal = document.getElementById('modalEdit');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => { document.getElementById('modalCard').classList.replace('scale-95', 'scale-100'); }, 10);
+        }
+
+        function closeEditModal() {
+            document.getElementById('modalCard').classList.replace('scale-100', 'scale-95');
+            setTimeout(() => {
+                const modal = document.getElementById('modalEdit');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                currentEditId = null;
+            }, 200);
+        }
+
+        function simpanEditData(e) {
+            e.preventDefault();
+            if(!currentEditId) return;
+
+            const updatedData = {
+                nama: document.getElementById('editNama').value,
+                kategori: document.getElementById('editKategori').value,
+                warna: document.getElementById('editWarna').value || "-",
+                satuan: document.getElementById('editSatuan').value,
+                jumlah: parseInt(document.getElementById('editJumlah').value)
+            };
+
+            db.ref(`inventory_barang/${currentEditId}`).update(updatedData).then(() => {
+                closeEditModal();
+            }).catch(err => alert("Gagal update data: " + err.message));
+        }
+
+        // ================= LOAD & RENDER DATA =================
+        function loadInventory() {
+            db.ref('inventory_barang').orderByChild('timestamp').on('value', snap => {
+                const data = snap.val();
+                let totalJenisBarang = 0;
+                let rekapKategori = {};
+                allData = [];
+
+                if (data) {
+                    allData = Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse();
+                    totalJenisBarang = allData.length;
+                    allData.forEach(item => {
+                        let kat = item.kategori.toUpperCase();
+                        if(!rekapKategori[kat]) rekapKategori[kat] = 0;
+                        rekapKategori[kat] += item.jumlah;
+                    });
+                }
+
+                document.getElementById('dashTotalJenis').innerText = totalJenisBarang;
+                
+                let htmlRekap = '';
+                for (const [kat, jumlah] of Object.entries(rekapKategori)) {
+                    htmlRekap += `
+                    <div class="flex justify-between items-center py-2.5 border-b border-slate-100 last:border-0">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                            <span class="text-sm font-semibold text-slate-600 capitalize">${kat.toLowerCase()}</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md">${jumlah}</span>
+                    </div>`;
+                }
+                document.getElementById('dashRekapKategori').innerHTML = htmlRekap || `<div class="text-sm text-slate-400 py-4 text-center">Belum ada data</div>`;
+
+                renderList(allData);
+            });
+        }
+
+        function renderList(dataToRender) {
+            if (dataToRender.length === 0) {
+                const emptyState = `
+                <div class="col-span-full text-center py-12 bg-white rounded-[2rem] border border-slate-200 border-dashed smooth-shadow">
+                    <i class="ph-fill ph-package text-4xl text-slate-300 mb-2"></i>
+                    <div class="text-slate-500 font-semibold text-sm">Tidak ada barang.</div>
+                </div>`;
+                document.getElementById('katalogUser').innerHTML = emptyState;
+                document.getElementById('listAdmin').innerHTML = emptyState;
+                return;
+            }
+
+            const groupedData = dataToRender.reduce((acc, item) => {
+                let kat = item.kategori.toUpperCase();
+                if(!acc[kat]) acc[kat] = [];
+                acc[kat].push(item);
+                return acc;
+            }, {});
+
+            let userHTML = '';
+            let adminHTML = '';
+
+            for (const [kategori, items] of Object.entries(groupedData)) {
+                userHTML += `<div class="mb-8"><div class="flex items-center gap-3 mb-4 pl-2"><div class="bg-blue-100 text-blue-600 p-1.5 rounded-lg"><i class="ph-bold ph-folder-open text-lg"></i></div><h3 class="text-sm font-bold text-slate-800 tracking-wide">${kategori}</h3><div class="h-px bg-slate-200 flex-1 ml-2"></div></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">`;
+                
+                items.forEach(item => {
+                    let isSafe = item.jumlah > 5;
+                    let isWarning = item.jumlah > 0 && item.jumlah <= 5;
+                    let statusDot = isSafe ? 'bg-green-400' : (isWarning ? 'bg-orange-400' : 'bg-red-500');
+                    let statusBg = isSafe ? 'bg-green-50 text-green-700' : (isWarning ? 'bg-orange-50 text-orange-700' : 'bg-red-50 text-red-700');
+
+                    userHTML += `
+                    <div class="bg-white p-5 rounded-[1.5rem] border border-slate-100 smooth-shadow card-hover group relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full ${statusDot}"></div>
+                        <div class="flex justify-between items-start mb-3 pl-2">
+                            <span class="text-[11px] font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md flex items-center gap-1 border border-slate-100"><i class="ph-bold ph-palette text-slate-400"></i> ${item.warna || '-'}</span>
+                            <span class="${statusBg} px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${statusDot} animate-pulse"></span> ${item.jumlah} Sisa</span>
+                        </div>
+                        <h4 class="text-[17px] font-bold text-slate-900 leading-snug mb-3 pl-2">${item.nama}</h4>
+                        <div class="flex items-end gap-1.5 mt-4 pl-2"><span class="text-3xl font-black text-slate-900 tracking-tighter leading-none">${item.jumlah}</span><span class="text-xs font-semibold text-slate-400 mb-0.5">${item.satuan}</span></div>
+                    </div>`;
+                });
+                userHTML += `</div></div>`;
+            }
+
+            dataToRender.forEach(item => {
+                adminHTML += `
+                <div class="bg-white p-4 rounded-[1.25rem] border border-slate-100 smooth-shadow flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition hover:border-slate-200">
+                    <div class="flex items-start gap-3">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-slate-400"><i class="ph-bold ph-cube text-xl"></i></div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-base">${item.nama}</h4>
+                            <div class="text-[11px] font-semibold text-slate-500 mt-1 flex gap-2"><span>${item.kategori}</span> &bull; <span>Warna: ${item.warna || '-'}</span></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-4 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                        <!-- Quick Update Stok -->
+                        <div class="flex items-center">
+                            <button onclick="updateStok('${item.id}', ${item.jumlah}, -1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"><i class="ph-bold ph-minus"></i></button>
+                            <div class="w-10 sm:w-12 text-center">
+                                <span class="font-black text-base text-slate-900 block leading-none">${item.jumlah}</span>
+                                <span class="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase">${item.satuan}</span>
+                            </div>
+                            <button onclick="updateStok('${item.id}', ${item.jumlah}, 1)" class="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"><i class="ph-bold ph-plus"></i></button>
+                        </div>
+                        <div class="w-px h-6 bg-slate-200 mx-0.5 sm:mx-1"></div>
+                        <!-- Action Buttons -->
+                        <div class="flex gap-1">
+                            <button onclick="openEditModal('${item.id}')" class="w-8 h-8 flex items-center justify-center text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition" title="Edit Data">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </button>
+                            <button onclick="hapusBarang('${item.id}', '${item.nama}')" class="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus Data">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('katalogUser').innerHTML = userHTML;
+            document.getElementById('listAdmin').innerHTML = adminHTML;
+        }
+
+        // ================= SEARCH & EXPORT =================
+        function searchBarang() {
+            const keyword = document.getElementById('inputSearch').value.toLowerCase();
+            const filteredData = allData.filter(item => item.nama.toLowerCase().includes(keyword) || item.kategori.toLowerCase().includes(keyword) || (item.warna && item.warna.toLowerCase().includes(keyword)));
+            renderList(filteredData);
+        }
+
+        function exportToExcel() {
+            if(allData.length === 0) return alert("Belum ada data!");
+            const dataForExcel = allData.map((i, idx) => ({ "No": idx + 1, "Nama Barang": i.nama, "Kategori": i.kategori, "Warna": i.warna || "-", "Total Stok": i.jumlah, "Satuan": i.satuan }));
+            const ws = XLSX.utils.json_to_sheet(dataForExcel);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+            XLSX.writeFile(wb, `Inventory_Molusca_${new Date().toLocaleDateString('id-ID')}.xlsx`);
+        }
+    </script>
+
+    <!-- Header -->
+    <header class="glass-header sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-900 p-2 rounded-[0.8rem] shadow-md shadow-slate-900/20"><i class="ph-bold ph-stack text-xl text-white"></i></div>
+                <div><h1 class="text-lg font-extrabold tracking-tight text-slate-900 leading-none">Molusca<span class="font-medium text-slate-400">Inventory</span></h1></div>
+            </div>
+            <button onclick="exportToExcel()" class="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-3.5 py-2 rounded-xl uppercase flex items-center gap-1.5 hover:bg-slate-50 transition smooth-shadow">
+                <i class="ph-bold ph-download-simple text-base"></i> <span class="hidden sm:inline">Export XLS</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-200/60 p-1.5 rounded-2xl flex relative w-full max-w-xs shadow-inner">
+                <div id="tabIndicator" class="absolute w-[calc(50%-6px)] h-[calc(100%-12px)] bg-white rounded-xl shadow-sm transition-transform duration-300 ease-in-out left-[6px] top-[6px]"></div>
+                <button id="btnUser" onclick="switchTab('user')" class="flex-1 py-2.5 text-sm font-bold text-slate-900 relative z-10 transition-colors flex justify-center items-center gap-2"><i class="ph-bold ph-squares-four"></i> Dashboard</button>
+                <button id="btnAdmin" onclick="switchTab('admin')" class="flex-1 py-2.5 text-sm font-bold text-slate-500 relative z-10 transition-colors flex justify-center items-center gap-2"><i class="ph-bold ph-faders"></i> Kelola Data</button>
+            </div>
+        </div>
+
+        <!-- ================= VIEW USER ================= -->
+        <div id="viewUser" class="space-y-8 block transition-opacity duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
+                <div class="md:col-span-3 bg-slate-900 p-8 rounded-[2rem] text-white smooth-shadow fluid-bg flex flex-col justify-center min-h-[180px]">
+                    <div class="fluid-blob-1"></div><div class="fluid-blob-2"></div>
+                    <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 mb-2">Total Seluruh Item</h3>
+                    <div class="flex items-end gap-3"><div class="text-6xl font-black tracking-tighter" id="dashTotalJenis">0</div><div class="text-sm font-medium text-slate-300 mb-2">Jenis Varian</div></div>
+                </div>
+                <div class="md:col-span-2 bg-white border border-slate-100 p-6 rounded-[2rem] smooth-shadow">
+                    <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2"><i class="ph-bold ph-chart-donut"></i> Distribusi Kategori</h3>
+                    <div id="dashRekapKategori" class="space-y-1"></div>
+                </div>
+            </div>
+            <div class="relative max-w-xl mx-auto">
+                <i class="ph-bold ph-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                <input type="text" id="inputSearch" onkeyup="searchBarang()" placeholder="Cari nama, kategori, atau warna..." class="w-full bg-white border border-slate-100 rounded-[1.5rem] py-4 pl-12 pr-5 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-300 transition smooth-shadow placeholder-slate-400">
+            </div>
+            <div id="katalogUser"></div>
+        </div>
+
+        <!-- ================= VIEW ADMIN ================= -->
+        <div id="viewAdmin" class="space-y-8 hidden transition-opacity duration-300">
+            <div class="bg-white p-7 rounded-[2rem] border border-slate-100 smooth-shadow">
+                <div class="mb-6"><h2 class="text-lg font-black text-slate-900">Tambah Barang Baru</h2><p class="text-xs font-medium text-slate-500 mt-1">Masukkan detail inventory ke database.</p></div>
+                <form id="formInventory" onsubmit="tambahBarang(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Nama Barang</label>
+                            <input type="text" id="inpNama" required placeholder="Cth: Lanyard Custom" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Kategori</label>
+                            <input type="text" id="inpKategori" required placeholder="Cth: ID Card" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Warna <span class="font-normal lowercase">(Opsional)</span></label>
+                            <input type="text" id="inpWarna" placeholder="Cth: Navy" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Stok Awal</label>
+                            <input type="number" id="inpJumlah" required placeholder="0" min="0" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm font-black outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Satuan</label>
+                            <input type="text" id="inpSatuan" required placeholder="Cth: pcs" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition">
+                        </div>
+                    </div>
+                    <div class="pt-2"><button type="submit" id="btnSubmit" class="w-full sm:w-auto px-8 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl text-sm font-bold transition flex items-center justify-center gap-2 smooth-shadow"><i class="ph-bold ph-plus text-lg"></i> Tambah ke Inventory</button></div>
+                </form>
+            </div>
+            <div>
+                <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2">Manajemen Stok & Data</h2>
+                <div id="listAdmin" class="space-y-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL EDIT BARANG -->
+    <div id="modalEdit" class="fixed inset-0 z-[100] hidden items-center justify-center glass-overlay px-4">
+        <div id="modalCard" class="bg-white p-7 rounded-[2rem] w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black text-slate-900 flex items-center gap-2"><i class="ph-bold ph-pencil-simple text-blue-500"></i> Edit Data Barang</h2>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 p-2 rounded-xl transition"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="simpanEditData(event)" class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Nama Barang</label>
+                    <input type="text" id="editNama" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Kategori</label>
+                        <input type="text" id="editKategori" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Warna</label>
+                        <input type="text" id="editWarna" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Satuan</label>
+                        <input type="text" id="editSatuan" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 ml-1">Ubah Stok</label>
+                        <input type="number" id="editJumlah" required min="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-black outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    </div>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeEditModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-xl text-sm font-bold transition">Batal</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-sm font-bold transition shadow-md shadow-blue-500/30">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
