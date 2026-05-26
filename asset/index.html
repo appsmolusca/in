@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molusca | Asset Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; }
+        .hidden-admin { display: none; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 py-4 px-6">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="font-extrabold text-slate-900 text-lg">Asset Library</h1>
+            <button onclick="toggleAdmin()" id="btnToggle" class="text-[10px] font-bold bg-slate-900 text-white px-3 py-1.5 rounded-full hover:bg-slate-700 transition">
+                Admin Mode
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-5 space-y-8">
+        
+        <!-- Admin Panel (Hidden by Default) -->
+        <div id="adminSection" class="hidden-admin bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2"><i class="ph-bold ph-shield-check text-blue-600"></i> Admin Panel</h2>
+            
+            <!-- Category Form -->
+            <div class="flex gap-2">
+                <input type="text" id="newCat" placeholder="Nama Kategori (ex: Katalog Tumbler)" class="flex-1 p-3 bg-slate-50 rounded-xl text-sm border focus:outline-none">
+                <button onclick="addCategory()" class="bg-blue-600 text-white px-5 rounded-xl font-bold text-sm hover:bg-blue-700">Tambah Kategori</button>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Asset Form -->
+            <form id="formAsset" class="space-y-3">
+                <select id="catSelect" class="w-full p-3 bg-slate-50 rounded-xl text-sm border focus:outline-none"></select>
+                <input type="text" id="assetName" placeholder="Nama Item" required class="w-full p-3 bg-slate-50 rounded-xl text-sm border focus:outline-none">
+                
+                <div id="linkContainer" class="space-y-2">
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="Label (ex: PDF)" class="w-1/3 p-2 bg-slate-50 rounded-lg text-sm border link-label">
+                        <input type="url" placeholder="Link URL" class="flex-1 p-2 bg-slate-50 rounded-lg text-sm border link-url">
+                    </div>
+                </div>
+                <button type="button" onclick="addLinkField()" class="text-xs font-bold text-blue-600 underline">+ Tambah Link Lain</button>
+                <button type="submit" class="w-full bg-slate-900 text-white p-3 rounded-xl font-bold text-sm hover:bg-slate-800">Simpan ke Database</button>
+            </form>
+        </div>
+
+        <!-- Render View -->
+        <div id="appContainer" class="space-y-8"></div>
+    </main>
+
+    <script>
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            databaseURL: "https://appmoluscadesign-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        let isAdmin = false;
+
+        // Toggle UI
+        function toggleAdmin() {
+            isAdmin = !isAdmin;
+            document.getElementById('adminSection').classList.toggle('hidden-admin');
+            document.getElementById('btnToggle').innerText = isAdmin ? 'Keluar Admin' : 'Admin Mode';
+            renderView(window.cachedData);
+        }
+
+        // Add Input Row
+        function addLinkField() {
+            const div = document.createElement('div');
+            div.className = "flex gap-2";
+            div.innerHTML = `<input type="text" placeholder="Label" class="w-1/3 p-2 bg-slate-50 rounded-lg text-sm border link-label"><input type="url" placeholder="Link URL" class="flex-1 p-2 bg-slate-50 rounded-lg text-sm border link-url">`;
+            document.getElementById('linkContainer').appendChild(div);
+        }
+
+        // Add Category
+        function addCategory() {
+            const cat = document.getElementById('newCat').value;
+            if(cat) {
+                db.ref('categories/' + cat).set({exists: true});
+                document.getElementById('newCat').value = '';
+            }
+        }
+
+        // Submit Asset
+        document.getElementById('formAsset').onsubmit = (e) => {
+            e.preventDefault();
+            const cat = document.getElementById('catSelect').value;
+            const name = document.getElementById('assetName').value;
+            const labels = document.querySelectorAll('.link-label');
+            const urls = document.querySelectorAll('.link-url');
+            let links = [];
+            
+            labels.forEach((l, i) => {
+                if(l.value && urls[i].value) links.push({label: l.value, url: urls[i].value});
+            });
+
+            db.ref('categories/' + cat + '/assets').push({name, links});
+            document.getElementById('formAsset').reset();
+            alert('Berhasil disimpan!');
+        };
+
+        // Realtime Fetch
+        db.ref('categories').on('value', snap => {
+            const data = snap.val() || {};
+            window.cachedData = data;
+            
+            // Update Select Dropdown
+            const catSelect = document.getElementById('catSelect');
+            catSelect.innerHTML = '';
+            Object.keys(data).forEach(cat => catSelect.innerHTML += `<option value="${cat}">${cat}</option>`);
+            
+            renderView(data);
+        });
+
+        // Render UI
+        function renderView(data) {
+            const container = document.getElementById('appContainer');
+            container.innerHTML = '';
+            if(!data) return;
+
+            Object.keys(data).forEach(cat => {
+                let section = `
+                <section>
+                    <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-1">${cat}</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+                
+                const assets = data[cat].assets || {};
+                Object.keys(assets).forEach(key => {
+                    const item = assets[key];
+                    section += `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="font-bold text-slate-900">${item.name}</h3>
+                                ${isAdmin ? `<button onclick="delAsset('${cat}', '${key}')" class="text-red-500 text-xs font-bold hover:underline">Hapus</button>` : ''}
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                ${item.links.map(l => `<a href="${l.url}" target="_blank" class="text-[10px] font-bold bg-slate-100 px-3 py-1.5 rounded-full hover:bg-blue-600 hover:text-white transition">${l.label}</a>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                section += `</div></section>`;
+                container.innerHTML += section;
+            });
+        }
+
+        function delAsset(cat, key) { if(confirm('Hapus item ini?')) db.ref('categories/'+cat+'/assets/'+key).remove(); }
+    </script>
+</body>
+</html>
