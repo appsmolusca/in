@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="id"><head>
+<html lang="id">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apps Work Designer Molusca</title>
@@ -110,7 +111,7 @@
         .ws-widgets { width: 360px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-right: 4px;}
 
         /* Notes List */
-        .notes-list { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+        .notes-list { display: flex; flex-direction: column; gap: 8px; padding: 16px; overflow-y: auto; flex: 1;}
         .note-item { 
             padding: 14px 16px; border-radius: var(--radius-lg); cursor: pointer; border: 1px solid transparent; 
             background: var(--bg-panel); transition: 0.2s; position: relative;
@@ -118,14 +119,14 @@
         .note-item:hover { border-color: var(--border-light); }
         .note-item.active { background: var(--accent-subtle); border-color: var(--accent); }
         .note-item-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .note-item-date { font-size: 11px; color: var(--text-secondary); }
+        .note-item-date { font-size: 10px; color: var(--text-secondary); font-weight: 600; display: inline-block; background: var(--border-light); padding: 2px 6px; border-radius: 4px;}
         .btn-del-note { position: absolute; right: 12px; top: 14px; background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0; font-weight: bold;}
         .note-item:hover .btn-del-note { opacity: 1; }
 
         /* Editor */
         .editor-area { flex: 1; padding: 32px; border: none; resize: none; font-size: 15px; line-height: 1.7; color: var(--text-primary); background: transparent; outline: none; }
         .editor-area::placeholder { color: var(--border-focus); }
-        .editor-footer { padding: 12px 24px; font-size: 11px; color: var(--text-secondary); text-align: right; border-top: 1px solid var(--border-light); }
+        .editor-footer { padding: 12px 24px; font-size: 11px; font-weight: 700; color: var(--success); text-align: right; border-top: 1px solid var(--border-light); background: var(--bg-panel);}
 
         /* Widgets */
         .prayer-clock { font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg-panel); padding: 4px 10px; border-radius: 100px; }
@@ -227,7 +228,7 @@
         .modal-body h1, .modal-body h2, .modal-body h3 { margin-bottom: 12px; color: var(--text-primary); font-weight: 800; }
     </style>
 </head>
-<body>
+<body onload="initAll()">
 
     <!-- ============================================== -->
     <!-- HEADER -->
@@ -288,22 +289,24 @@
         <!-- Sidebar Kiri -->
         <div class="card ws-sidebar">
             <div class="card-header">
-                <div class="card-title">📝 Catatan</div>
-                <button class="icon-btn" style="width:28px; height:28px;" onclick="createNewNote()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                <div class="card-title">🌐 Live Notes Tim</div>
+                <button class="icon-btn" style="width:28px; height:28px;" onclick="createNewNote()" title="Tambah Catatan Baru"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
             </div>
-            <div class="notes-list" id="notesListUI"><div class="note-item active"><div class="note-item-title">Selamat datang di Apps Work Designer Molusca!</div><div class="note-item-date">5 Sep • 10.47</div><button class="btn-del-note" onclick="delNote(event, 1788411658763)">×</button></div></div>
+            <div class="notes-list" id="notesListUI">
+                <div style="color:var(--text-secondary); text-align:center; padding: 20px 0; font-size:12px;">Memuat dari Cloud...</div>
+            </div>
         </div>
 
         <!-- Editor Tengah -->
         <div class="card ws-main">
             <div class="card-header" style="border:none; padding-bottom:0; display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 500;" id="editorDateHeader">Terakhir diedit: 5 Sep • 10.47</div>
+                <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;" id="editorDateHeader">Menghubungkan ke Cloud...</div>
                 <button class="icon-btn" style="width:28px; height:28px; border:none; background:transparent;" onclick="openReminder('noteEditor', '📝 Preview Catatan')" title="Perbesar Catatan">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
                 </button>
             </div>
-            <textarea class="editor-area" id="noteEditor" placeholder="Ketik draf atau idemu di sini..."></textarea>
-            <div class="editor-footer">Autosaved lokal</div>
+            <textarea class="editor-area" id="noteEditor" placeholder="Ketik draf atau idemu di sini..." disabled></textarea>
+            <div class="editor-footer">☁️ Live Cloud Sync (Semua tim bisa lihat)</div>
         </div>
 
         <!-- Widgets Kanan -->
@@ -311,14 +314,14 @@
             <div class="card">
                 <div class="card-header" style="border:none; padding-bottom:0;">
                     <div class="card-title">🕰️ Shalat Bandung</div>
-                    <div class="prayer-clock" id="liveClock">09.45.12</div>
+                    <div class="prayer-clock" id="liveClock">00.00.00</div>
                 </div>
-                <div id="prayerTimesContainer"><div class="prayer-grid"><div class="prayer-item"><div class="prayer-name">Shubuh</div><div class="prayer-time">04:29</div></div><div class="prayer-item"><div class="prayer-name">Dzuhur</div><div class="prayer-time">11:47</div></div><div class="prayer-item"><div class="prayer-name">Ashar</div><div class="prayer-time">15:03</div></div><div class="prayer-item"><div class="prayer-name">Maghrib</div><div class="prayer-time">17:48</div></div><div class="prayer-item"><div class="prayer-name">Isya</div><div class="prayer-time">18:57</div></div></div></div>
+                <div id="prayerTimesContainer">Loading...</div>
             </div>
             
             <div class="card quick-note">
                 <div class="card-header" style="border:none; padding-bottom:8px; display: flex; justify-content: space-between; align-items: center;">
-                    <div class="card-title" style="color:var(--warning-text);">⚡ Catatan Kilat</div>
+                    <div class="card-title" style="color:var(--warning-text);">⚡ Catatan Lokal (Pribadi)</div>
                     <button class="icon-btn" style="width:28px; height:28px; color:var(--warning-text); border-color:var(--warning-text); background:transparent;" onclick="openReminder('quickNoteArea', '⚡ Catatan Kilat')" title="Perbesar Catatan">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
                     </button>
@@ -330,7 +333,7 @@
 
             <div class="card" style="flex:1;">
                 <div class="card-header" style="border:none; padding-bottom:12px;">
-                    <div class="card-title">✅ To-Do List</div>
+                    <div class="card-title">✅ To-Do List Pribadi</div>
                 </div>
                 <div class="card-body" style="padding-top:0;">
                     <div class="task-input-bar">
@@ -338,7 +341,7 @@
                         <select id="taskPriority"><option value="biasa">Biasa</option><option value="tinggi">Penting</option></select>
                         <button class="icon-btn" style="background:var(--accent); color:white; border:none;" onclick="addTask()">+</button>
                     </div>
-                    <ul class="task-list" id="tasksListUI"><li class="task-item "><div style="flex:1; font-size:13px; font-weight:600; color:var(--text-primary);">mandiri</div><button class="icon-btn" style="width:24px;height:24px;border:none;color:var(--danger);" onclick="event.stopPropagation(); tasksDB = tasksDB.filter(x =&gt; x.id !== t.id); localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); rTasks();">×</button></li><li class="task-item "><div style="flex:1; font-size:13px; font-weight:600; color:var(--text-primary);">meratus</div><button class="icon-btn" style="width:24px;height:24px;border:none;color:var(--danger);" onclick="event.stopPropagation(); tasksDB = tasksDB.filter(x =&gt; x.id !== t.id); localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); rTasks();">×</button></li><li class="task-item "><div style="flex:1; font-size:13px; font-weight:600; color:var(--text-primary);">lego</div><button class="icon-btn" style="width:24px;height:24px;border:none;color:var(--danger);" onclick="event.stopPropagation(); tasksDB = tasksDB.filter(x =&gt; x.id !== t.id); localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); rTasks();">×</button></li></ul>
+                    <ul class="task-list" id="tasksListUI"></ul>
                 </div>
             </div>
         </div>
@@ -349,7 +352,7 @@
     <!-- ============================================== -->
     <div id="viewContentBank" class="view-section">
         <div class="studio-sidebar">
-            <div class="info-box info-alert">💡 Simpan ide konten, referensi, atau draft skrip di sini.</div>
+            <div class="info-box info-alert">💡 Simpan ide konten, referensi, atau draft skrip di sini. (Tersimpan di Lokal/Browser Anda)</div>
             
             <div class="control-box">
                 <div class="control-group">
@@ -374,8 +377,8 @@
         </div>
         <div class="studio-canvas" style="background: transparent; border: none; align-items: flex-start; justify-content: flex-start; padding: 0;">
             <div class="card" style="width: 100%; height: 100%;">
-                <div class="card-header"><div class="card-title">🗂️ Daftar Bank Konten</div></div>
-                <div class="card-body" id="cbList" style="display: flex; flex-direction: column; gap: 12px; padding: 24px;"><div style="color:var(--text-secondary); text-align:center; padding: 40px 0;">Belum ada ide konten. Yuk mulai nabung ide!</div></div>
+                <div class="card-header"><div class="card-title">🗂️ Daftar Bank Konten Lokal</div></div>
+                <div class="card-body" id="cbList" style="display: flex; flex-direction: column; gap: 12px; padding: 24px;"></div>
             </div>
         </div>
     </div>
@@ -407,11 +410,11 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- VIEW 4: PDF MAKER (WITH WATERMARK PREVIEW & DRAG-DROP) -->
+    <!-- VIEW 4: PDF MAKER -->
     <!-- ============================================== -->
     <div id="viewPDF" class="view-section">
         <div class="studio-sidebar">
-            <div class="info-box info-alert">💡 Paste/Upload gambar konten, lalu susun urutan dengan Drag &amp; Drop! (A4)</div>
+            <div class="info-box info-alert">💡 Paste/Upload gambar konten, lalu susun urutan dengan Drag & Drop! (A4)</div>
             
             <div class="control-box">
                 <label class="btn-upload"><input type="file" accept="image/*" multiple="" style="display: none;" onchange="handleMultiUpload(this)"> 📁 1. Upload Gambar Konten</label>
@@ -438,7 +441,7 @@
     <!-- ============================================== -->
     <div id="viewWatermark" class="view-section">
         <div class="studio-sidebar">
-            <div class="info-box info-alert">💡 Paste berurutan: 1x (Background) -&gt; 2x (Logo PNG).</div>
+            <div class="info-box info-alert">💡 Paste berurutan: 1x (Background) -> 2x (Logo PNG).</div>
             
             <div class="control-box">
                 <label class="btn-upload"><input type="file" accept="image/*" style="display: none;" onchange="handleImgUpload(this, 'wmBase')"> 1. Upload Background</label>
@@ -507,6 +510,26 @@
     <!-- JAVASCRIPT LOGIC -->
     <!-- ============================================== -->
     <script>
+        // === KONFIGURASI API GOOGLE SHEETS ===
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec";
+        
+        async function dbCall(payload) {
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                return await res.json();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                return { status: 'error' };
+            }
+        }
+
+        // --- INIT ALL FUNCTION ---
+        function initAll() {
+            rTasks();
+            renderContentBank();
+            loadNotesFromDB(); // Fetch dari cloud saat baru dibuka
+        }
+
         // --- NAVIGASI TAB ---
         function switchTab(viewId, btn) {
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -547,7 +570,6 @@
             reader.readAsDataURL(imgBlob);
         });
 
-        // --- STATE & TOOLS ---
         const state = { mImg1: null, mImg2: null, wBase: null, wLogo: null, pdfWatermark: null, pdfWmScale: 50 };
         function loadImgObj(src, cb) { const img = new Image(); img.onload = () => cb(img); img.src = src; }
 
@@ -584,7 +606,6 @@
         // DOWNLOAD APP HTML LOGIC
         // ==========================================
         function downloadAppAsHTML() {
-            // Mengambil seluruh struktur HTML saat ini dan membuangnya jadi file .html
             const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
             const blob = new Blob([htmlContent], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
@@ -598,7 +619,7 @@
         }
 
         // ==========================================
-        // BANK KONTEN LOGIC
+        // BANK KONTEN LOGIC (TETAP DI LOKAL / JSON)
         // ==========================================
         let contentBankDB = JSON.parse(localStorage.getItem('dd_contentBank_v1')) || [];
 
@@ -643,19 +664,10 @@
             
             if(!title) return alert('Judul ide konten tidak boleh kosong!');
             
-            contentBankDB.push({
-                id: Date.now(),
-                title: title,
-                link: link,
-                platform: platform,
-                status: 'Ide' // Default saat baru dibuat
-            });
-            
+            contentBankDB.push({ id: Date.now(), title: title, link: link, platform: platform, status: 'Ide' });
             localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
             
-            document.getElementById('cbTitle').value = '';
-            document.getElementById('cbLink').value = '';
-            
+            document.getElementById('cbTitle').value = ''; document.getElementById('cbLink').value = '';
             renderContentBank();
         }
 
@@ -702,7 +714,7 @@
             ctx.drawImage(img, x + (w-dw)/2, y + (h-dh)/2, dw, dh); ctx.shadowColor = 'transparent';
         }
 
-        // --- PDF LOGIC (A4 NATIVE) DENGAN DRAG AND DROP & PREVIEW WATERMARK ---
+        // --- PDF LOGIC ---
         function handleMultiUpload(input) {
             Array.from(input.files).forEach(f => {
                 const reader = new FileReader(); reader.onload = e => addPdfImage(e.target.result); reader.readAsDataURL(f);
@@ -839,7 +851,7 @@
         }
 
         // ==========================================
-        // WORKSPACE DASHBOARD (Notes, Task, Shalat)
+        // FITUR DASHBOARD (Kalkulator, Shalat, Dll)
         // ==========================================
         let calcVal = '0', calcFirst = null, calcOp = null, calcWait = false;
         function toggleCalc() { document.getElementById('calcWidget').classList.toggle('show'); }
@@ -863,36 +875,10 @@
             } catch (e) { document.getElementById('prayerTimesContainer').innerHTML = "<div style='font-size:11px;text-align:center;'>Gagal memuat jadwal.</div>"; }
         } fetchPrayer();
 
-        let notesDB = JSON.parse(localStorage.getItem('dd_notes_v3')) || [{ id: Date.now(), content: "Catatan pertamaku.", updatedAt: Date.now() }];
+        // --- To-Do List Pribadi & Quick Note ---
         let tasksDB = JSON.parse(localStorage.getItem('dd_tasks_v3')) || [];
-        let activeId = localStorage.getItem('dd_activeNote_v3') || notesDB[0].id;
-        
         document.getElementById('quickNoteArea').value = localStorage.getItem('dd_quicknote_v3') || '';
         document.getElementById('quickNoteArea').addEventListener('input', e => localStorage.setItem('dd_quicknote_v3', e.target.value));
-        
-        function formatTime(ts) { return new Date(ts).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' }).replace(',', ' •'); }
-        
-        function rNotes() {
-            const list = document.getElementById('notesListUI'); list.innerHTML = '';
-            notesDB.sort((a,b) => b.updatedAt - a.updatedAt).forEach(n => {
-                const d = document.createElement('div'); d.className = `note-item ${n.id == activeId ? 'active' : ''}`; d.onclick = () => setNote(n.id);
-                d.innerHTML = `<div class="note-item-title">${n.content.trim().split('\n')[0] || "Catatan Baru"}</div><div class="note-item-date">${formatTime(n.updatedAt)}</div><button class="btn-del-note" onclick="delNote(event, ${n.id})">&times;</button>`;
-                list.appendChild(d);
-            });
-        }
-        function createNewNote() { const id = Date.now(); notesDB.push({ id, content: "", updatedAt: id }); setNote(id); }
-        function setNote(id) {
-            activeId = id; localStorage.setItem('dd_activeNote_v3', id); const n = notesDB.find(x => x.id == id);
-            if(n) { document.getElementById('noteEditor').value = n.content; document.getElementById('noteEditor').disabled = false; document.getElementById('editorDateHeader').innerText = `Terakhir diedit: ${formatTime(n.updatedAt)}`;} 
-            else { document.getElementById('noteEditor').value = ""; document.getElementById('noteEditor').disabled = true; document.getElementById('editorDateHeader').innerText = ""; }
-            rNotes();
-        }
-        function delNote(e, id) { e.stopPropagation(); notesDB = notesDB.filter(n => n.id !== id); if(activeId == id) activeId = notesDB.length ? notesDB[0].id : null; if(notesDB.length===0) createNewNote(); localStorage.setItem('dd_notes_v3', JSON.stringify(notesDB)); setNote(activeId); }
-        
-        document.getElementById('noteEditor').addEventListener('input', e => { 
-            const n = notesDB.find(x => x.id == activeId); 
-            if(n) { n.content = e.target.value; n.updatedAt = Date.now(); localStorage.setItem('dd_notes_v3', JSON.stringify(notesDB)); rNotes(); document.getElementById('editorDateHeader').innerText = "Menyimpan..."; clearTimeout(window.sTimeout); window.sTimeout = setTimeout(() => document.getElementById('editorDateHeader').innerText = `Terakhir diedit: ${formatTime(n.updatedAt)}`, 500); }
-        });
 
         function rTasks() {
             const list = document.getElementById('tasksListUI'); list.innerHTML = '';
@@ -904,9 +890,13 @@
         }
         function addTask() { const v = document.getElementById('taskInput').value.trim(); if(v) { tasksDB.push({ id: Date.now(), text: v, completed: false }); localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); document.getElementById('taskInput').value = ''; rTasks(); } }
 
+        // ==========================================
+        // FUNGSI BACKUP / RESTORE JSON (Catatan Cloud Dikecualikan)
+        // ==========================================
         function exportData() {
             const qNote = document.getElementById('quickNoteArea');
-            const data = { notes: notesDB, tasks: tasksDB, quick: qNote.value, contentBank: contentBankDB };
+            // Hanya backup tasks, quick note, dan contentBank (TIDAK TERMASUK NOTES CLOUD)
+            const data = { tasks: tasksDB, quick: qNote.value, contentBank: contentBankDB };
             const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "Molusca_Backup.json"; a.click();
         }
         function importData(e) {
@@ -915,22 +905,135 @@
             const r = new FileReader(); r.onload = ev => {
                 try { 
                     const d = JSON.parse(ev.target.result); 
-                    if(d.notes && d.tasks) { 
-                        notesDB=d.notes; tasksDB=d.tasks; 
+                    if(d.tasks) { 
+                        tasksDB=d.tasks; 
                         if(d.quick) qNote.value=d.quick; 
                         if(d.contentBank) contentBankDB = d.contentBank;
                         
-                        localStorage.setItem('dd_notes_v3', JSON.stringify(notesDB)); 
                         localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); 
                         localStorage.setItem('dd_quicknote_v3', d.quick); 
                         localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
                         
-                        activeId=notesDB[0]?.id; setNote(activeId); rTasks(); renderContentBank();
-                        alert('Sukses Restore Data!'); 
+                        rTasks(); renderContentBank();
+                        alert('Sukses Restore Data Lokal!'); 
                     } 
                 } catch(err) { alert('File Invalid!'); }
             }; r.readAsText(f); e.target.value='';
         }
+
+        // ==========================================
+        // SYSTEM LIVE CLOUD NOTES (API GOOGLE SHEETS)
+        // ==========================================
+        let notesDB = [];
+        let activeId = null;
+
+        // Ambil Data Pertama Kali
+        async function loadNotesFromDB() {
+            document.getElementById('editorDateHeader').innerText = "Memuat catatan dari Cloud...";
+            try {
+                // Sheet "planning"
+                const res = await dbCall({ action: 'read', sheetName: 'planning' });
+                
+                if (res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
+                    notesDB = res.data.map(n => ({
+                        id: n.id.toString(),
+                        catatan: n.catatan || ""
+                    }));
+                } else {
+                    // Kalau sheet kosong, buat 1 catatan default
+                    const defaultId = Date.now().toString();
+                    notesDB = [{ id: defaultId, catatan: "Catatan kolaborasi pertama tim..." }];
+                    await dbCall({ action: 'insert', sheetName: 'planning', data: { id: defaultId, catatan: "Catatan kolaborasi pertama tim..." } });
+                }
+                
+                activeId = notesDB[0].id;
+                setNote(activeId);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('editorDateHeader').innerText = "Gagal terhubung ke Cloud.";
+            }
+        }
+
+        function rNotes() {
+            const list = document.getElementById('notesListUI'); list.innerHTML = '';
+            // Tampilkan daftar urut ID terbaru
+            [...notesDB].sort((a,b) => b.id - a.id).forEach(n => {
+                const d = document.createElement('div'); d.className = `note-item ${n.id == activeId ? 'active' : ''}`; 
+                d.onclick = () => setNote(n.id);
+                let title = n.catatan.trim().split('\n')[0] || "Catatan Kosong";
+                d.innerHTML = `<div class="note-item-title">${title}</div><div class="note-item-date">👥 Cloud Note</div><button class="btn-del-note" onclick="delNote(event, '${n.id}')" title="Hapus Permanen">&times;</button>`;
+                list.appendChild(d);
+            });
+        }
+
+        async function createNewNote() { 
+            const id = Date.now().toString();
+            const newNote = { id: id, catatan: "" };
+            notesDB.unshift(newNote); // Tambah ke atas daftar
+            setNote(id);
+
+            // Simpan ke Cloud
+            document.getElementById('editorDateHeader').innerText = "Membuat ruang catatan baru...";
+            await dbCall({ action: 'insert', sheetName: 'planning', data: { id: id, catatan: "" } });
+            document.getElementById('editorDateHeader').innerText = "Ruang Catatan Dibuat ✅";
+        }
+
+        function setNote(id) {
+            activeId = id.toString();
+            const n = notesDB.find(x => x.id === activeId);
+            const editor = document.getElementById('noteEditor');
+            
+            if(n) { 
+                editor.value = n.catatan; 
+                editor.disabled = false; 
+                document.getElementById('editorDateHeader').innerText = "Tersinkron dengan Cloud";
+            } else { 
+                editor.value = ""; 
+                editor.disabled = true; 
+                document.getElementById('editorDateHeader').innerText = ""; 
+            }
+            rNotes();
+        }
+
+        async function delNote(e, id) { 
+            e.stopPropagation(); 
+            if(!confirm("Yakin hapus catatan ini? Catatan akan TERHAPUS UNTUK SEMUA ORANG.")) return;
+
+            document.getElementById('editorDateHeader').innerText = "Menghapus dari Cloud...";
+            notesDB = notesDB.filter(n => n.id !== id); 
+            
+            if(activeId == id) activeId = notesDB.length ? notesDB[0].id : null; 
+            if(notesDB.length === 0) {
+                await createNewNote();
+            } else {
+                setNote(activeId);
+            }
+
+            // Hapus dari Google Sheets
+            await dbCall({ action: 'delete', sheetName: 'planning', idValue: id });
+            document.getElementById('editorDateHeader').innerText = "Terhapus ✅";
+        }
+        
+        // DEBOUNCE AUTO-SAVE (Mencegah Spam Limit Google Sheets)
+        let saveTimeout;
+        document.getElementById('noteEditor').addEventListener('input', e => { 
+            const n = notesDB.find(x => x.id === activeId); 
+            if(n) { 
+                n.catatan = e.target.value; 
+                rNotes(); // Update judul di sidebar
+                document.getElementById('editorDateHeader').innerText = "Mengetik... ⏳"; 
+
+                // Batalkan perintah save sebelumnya kalau masih ngetik
+                clearTimeout(saveTimeout); 
+                
+                // Set perintah save baru yang akan tereksekusi jika 1.5 detik user berhenti mengetik
+                saveTimeout = setTimeout(async () => { 
+                    document.getElementById('editorDateHeader').innerText = "Menyimpan ke Cloud...";
+                    await dbCall({ action: 'update', sheetName: 'planning', idValue: activeId, updateData: { catatan: n.catatan } });
+                    document.getElementById('editorDateHeader').innerText = "Tersimpan di Cloud ✅"; 
+                }, 1500); 
+            }
+        });
 
         // --- MARKDOWN PARSER & POP-UP PENGINGAT ---
         function parseMarkdown(text) {
@@ -957,11 +1060,6 @@
                 document.getElementById('reminderModal').classList.remove('show');
             }
         }
-
-        // Init
-        setNote(activeId); 
-        rTasks();
-        renderContentBank();
     </script>
 
 </body></html>
