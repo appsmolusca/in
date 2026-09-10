@@ -86,6 +86,13 @@
             transition: 0.2s; border: none; box-shadow: 0 4px 12px var(--accent-subtle); cursor: pointer;
         }
         .btn-link-web:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        
+        .btn-ai {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        .btn-ai:hover { opacity: 0.9; transform: translateY(-1px); }
+
         .btn-download-app {
             background: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
@@ -168,6 +175,7 @@
         .btn-block { width: 100%; padding: 14px; border-radius: var(--radius-lg); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; border: none; transition: 0.2s; }
         .btn-action { background: var(--accent); color: white; box-shadow: 0 4px 12px var(--accent-subtle); }
         .btn-action:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.15); }
 
@@ -270,11 +278,17 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 <input type="file" accept=".json" style="display: none;" onchange="importData(event)">
             </label>
+            
+            <!-- TOMBOL PROMPT AI BARU -->
+            <a href="https://appsmolusca.github.io/in/prompt.html" target="_blank" class="btn-link-web btn-ai">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+                Prompt AI
+            </a>
+
             <a href="https://appsmolusca.github.io/on/app/" target="_blank" class="btn-link-web">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 Buka Web
             </a>
-            <!-- TOMBOL DOWNLOAD APP (SIMPAN HTML KE DESKTOP) -->
             <button class="btn-link-web btn-download-app" onclick="downloadAppAsHTML()" title="Simpan ke Desktop">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Download App
@@ -317,7 +331,7 @@
                 <div id="prayerTimesContainer">Loading...</div>
             </div>
             
-            <!-- PENGUMUMAN TIM (100% CLOUD KE GOOGLE SHEETS) -->
+            <!-- PENGUMUMAN TIM (100% CLOUD KE GOOGLE SHEETS TAB 'planning') -->
             <div class="card cloud-note">
                 <div class="card-header" style="border:none; padding-bottom:8px; display: flex; justify-content: space-between; align-items: center;">
                     <div class="card-title" style="color:var(--accent);">📢 Pengumuman Tim</div>
@@ -351,11 +365,11 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- VIEW 2: BANK KONTEN -->
+    <!-- VIEW 2: BANK KONTEN (CLOUD) -->
     <!-- ============================================== -->
     <div id="viewContentBank" class="view-section">
         <div class="studio-sidebar">
-            <div class="info-box info-alert">💡 Simpan ide konten, referensi, atau draft skrip di sini.</div>
+            <div class="info-box info-alert">💡 Simpan ide konten, referensi, atau draft skrip di sini. Tersimpan aman di Cloud Tim!</div>
             
             <div class="control-box">
                 <div class="control-group">
@@ -375,13 +389,15 @@
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
-                <button class="btn-block btn-action" onclick="addContentIdea()" style="margin-top: 8px;">+ Simpan Ide</button>
+                <button id="btnSimpanIde" class="btn-block btn-action" onclick="addContentIdea()" style="margin-top: 8px;">+ Simpan Ide ke Cloud</button>
             </div>
         </div>
         <div class="studio-canvas" style="background: transparent; border: none; align-items: flex-start; justify-content: flex-start; padding: 0;">
             <div class="card" style="width: 100%; height: 100%;">
-                <div class="card-header"><div class="card-title">🗂️ Daftar Bank Konten (Lokal)</div></div>
-                <div class="card-body" id="cbList" style="display: flex; flex-direction: column; gap: 12px; padding: 24px;"></div>
+                <div class="card-header"><div class="card-title">🗂️ Daftar Bank Konten (Cloud)</div></div>
+                <div class="card-body" id="cbList" style="display: flex; flex-direction: column; gap: 12px; padding: 24px;">
+                    <div style="color:var(--text-secondary); text-align:center; padding: 40px 0;">☁️ Memuat data dari Cloud...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -530,8 +546,8 @@
         function initAll() {
             setNote(activeId); 
             rTasks();
-            renderContentBank();
             loadCloudNote(); // Tarik pengumuman tim dari database
+            loadContentBank(); // Tarik Bank Konten dari Cloud
         }
 
         // --- NAVIGASI TAB ---
@@ -623,9 +639,22 @@
         }
 
         // ==========================================
-        // BANK KONTEN LOGIC (100% LOKAL / JSON)
+        // BANK KONTEN LOGIC (100% CLOUD)
         // ==========================================
-        let contentBankDB = JSON.parse(localStorage.getItem('dd_contentBank_v1')) || [];
+        let contentBankDB = [];
+
+        async function loadContentBank() {
+            const list = document.getElementById('cbList');
+            try {
+                const res = await dbCall({ action: 'read', sheetName: 'bank konten' });
+                if(res.status === 'success' && res.data) {
+                    contentBankDB = res.data;
+                }
+                renderContentBank();
+            } catch(e) {
+                list.innerHTML = '<div style="color:var(--danger); text-align:center; padding: 40px 0;">❌ Gagal memuat data dari Cloud. Periksa koneksi internet Anda.</div>';
+            }
+        }
 
         function renderContentBank() {
             const list = document.getElementById('cbList');
@@ -650,46 +679,88 @@
                     <div style="flex: 1; overflow: hidden; padding-right: 12px;">
                         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
                             <span style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: var(--bg-surface); border: 1px solid var(--border-light); color: var(--text-primary); box-shadow: var(--shadow-sm);">${c.platform}</span>
-                            <span style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: ${statusBg}; color: ${statusColor}; border: 1px solid var(--border-light); cursor: pointer; user-select: none; transition: 0.2s;" onclick="toggleContentStatus(${c.id})" title="Klik untuk ubah status">${statusIcon} ${c.status}</span>
+                            <span style="font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: ${statusBg}; color: ${statusColor}; border: 1px solid var(--border-light); cursor: pointer; user-select: none; transition: 0.2s;" onclick="toggleContentStatus('${c.id}')" title="Klik untuk ubah status">${statusIcon} ${c.status}</span>
                         </div>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${c.title}</div>
                         ${linkHtml}
                     </div>
-                    <button class="icon-btn" style="color: var(--danger); border: none; background: transparent; flex-shrink: 0;" onclick="deleteContentIdea(${c.id})" title="Hapus Ide">&times;</button>
+                    <button class="icon-btn" style="color: var(--danger); border: none; background: transparent; flex-shrink: 0;" onclick="deleteContentIdea('${c.id}')" title="Hapus Ide">&times;</button>
                 `;
                 list.appendChild(item);
             });
         }
 
-        function addContentIdea() {
-            const title = document.getElementById('cbTitle').value.trim();
-            const link = document.getElementById('cbLink').value.trim();
-            const platform = document.getElementById('cbPlatform').value;
+        async function addContentIdea() {
+            const titleInput = document.getElementById('cbTitle');
+            const linkInput = document.getElementById('cbLink');
+            const platformInput = document.getElementById('cbPlatform');
+            const btn = document.getElementById('btnSimpanIde');
+            
+            const title = titleInput.value.trim();
+            const link = linkInput.value.trim();
+            const platform = platformInput.value;
             
             if(!title) return alert('Judul ide konten tidak boleh kosong!');
             
-            contentBankDB.push({ id: Date.now(), title: title, link: link, platform: platform, status: 'Ide' });
-            localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
+            btn.disabled = true;
+            btn.innerHTML = 'Menyimpan... ⏳';
+
+            const newId = Date.now().toString();
+            const newItem = { id: newId, title: title, link: link, platform: platform, status: 'Ide' };
             
-            document.getElementById('cbTitle').value = ''; document.getElementById('cbLink').value = '';
-            renderContentBank();
+            try {
+                // Simpan ke Google Sheets tab 'bank konten'
+                await dbCall({ action: 'insert', sheetName: 'bank konten', data: newItem });
+                contentBankDB.push(newItem);
+                
+                titleInput.value = ''; linkInput.value = '';
+                renderContentBank();
+            } catch(e) {
+                alert('Gagal menyimpan ide ke Cloud!');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '+ Simpan Ide ke Cloud';
+            }
         }
 
-        function deleteContentIdea(id) {
-            if(confirm('Yakin ingin menghapus ide konten ini?')) {
-                contentBankDB = contentBankDB.filter(c => c.id !== id);
-                localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
+        async function deleteContentIdea(id) {
+            if(!confirm('Yakin ingin menghapus ide konten ini dari seluruh tim?')) return;
+            
+            // Backup untuk jaga-jaga kalau gagal hapus di cloud
+            const backupDB = [...contentBankDB];
+            
+            // Optimistic UI (Hapus dari layar seketika)
+            contentBankDB = contentBankDB.filter(c => c.id != id);
+            renderContentBank();
+
+            try {
+                await dbCall({ action: 'delete', sheetName: 'bank konten', idValue: id });
+            } catch(e) {
+                alert('Gagal menghapus dari Cloud!');
+                contentBankDB = backupDB; // Kembalikan data kalau gagal
                 renderContentBank();
             }
         }
 
-        function toggleContentStatus(id) {
-            const item = contentBankDB.find(c => c.id === id);
-            if(item) {
-                if(item.status === 'Ide') item.status = 'Proses';
-                else if(item.status === 'Proses') item.status = 'Selesai';
-                else item.status = 'Ide';
-                localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
+        async function toggleContentStatus(id) {
+            const item = contentBankDB.find(c => c.id == id);
+            if(!item) return;
+
+            let newStatus = 'Ide';
+            if(item.status === 'Ide') newStatus = 'Proses';
+            else if(item.status === 'Proses') newStatus = 'Selesai';
+            
+            const oldStatus = item.status;
+            
+            // Optimistic UI (Ganti status di layar seketika)
+            item.status = newStatus;
+            renderContentBank();
+
+            try {
+                await dbCall({ action: 'update', sheetName: 'bank konten', idValue: id, updateData: { status: newStatus } });
+            } catch(e) {
+                alert('Gagal mengupdate status ke Cloud!');
+                item.status = oldStatus; // Kembalikan status kalau gagal
                 renderContentBank();
             }
         }
@@ -963,15 +1034,15 @@
                 } catch(error) {
                     document.getElementById('cloudNoteStatus').innerText = "❌ Gagal Simpan";
                 }
-            }, 1500); // Sistem baru menyimpan ke Cloud setelah 1.5 detik diam
+            }, 1500);
         });
 
         // ==========================================
-        // FUNGSI BACKUP / RESTORE JSON (SEMUA DATA LOKAL TERMASUK NOTES)
+        // FUNGSI BACKUP / RESTORE JSON (HANYA DATA LOKAL - TANPA BANK KONTEN)
         // ==========================================
         function exportData() {
-            // Semua database lokal masuk ke JSON
-            const data = { notes: notesDB, tasks: tasksDB, contentBank: contentBankDB };
+            // Karena Bank Konten sekarang 100% Cloud, kita kecualikan dari backup JSON
+            const data = { notes: notesDB, tasks: tasksDB };
             const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "Molusca_Backup.json"; a.click();
         }
         function importData(e) {
@@ -981,13 +1052,11 @@
                     const d = JSON.parse(ev.target.result); 
                     if(d.notes && d.tasks) { 
                         notesDB=d.notes; tasksDB=d.tasks; 
-                        if(d.contentBank) contentBankDB = d.contentBank;
                         
                         localStorage.setItem('dd_notes_v3', JSON.stringify(notesDB)); 
                         localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB)); 
-                        localStorage.setItem('dd_contentBank_v1', JSON.stringify(contentBankDB));
                         
-                        activeId=notesDB[0]?.id; setNote(activeId); rTasks(); renderContentBank();
+                        activeId=notesDB[0]?.id; setNote(activeId); rTasks(); 
                         alert('Sukses Restore Data Lokal!'); 
                     } 
                 } catch(err) { alert('File Invalid!'); }
