@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molusca AI - Prompt Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --bg-color: #F8FAFC;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --primary: #4F46E5; /* Molusca Indigo */
+            --primary-hover: #4338CA;
+            --card-radius: 20px;
+            --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* --- GLOBAL LOADING --- */
+        #loadingOverlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        #loadingOverlay.active { opacity: 1; visibility: visible; }
+        .spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- HEADER & PENCARIAN --- */
+        header { padding: 40px 20px 20px; text-align: center; max-width: 900px; margin: 0 auto; width: 100%; position: relative; }
+        .logo { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; color: var(--primary); }
+        .logo span { color: var(--text-main); font-weight: 800; }
+        .subtitle { color: var(--text-muted); font-size: 16px; font-weight: 500; margin-bottom: 28px; }
+
+        .btn-add-prompt {
+            position: absolute; top: 40px; right: 20px; background: var(--primary); color: white;
+            padding: 10px 20px; border-radius: 100px; font-weight: 700; font-size: 14px; border: none;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); transition: 0.2s;
+        }
+        .btn-add-prompt:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
+        .search-bar { position: relative; width: 100%; max-width: 550px; margin: 0 auto 28px; }
+        .search-bar i { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 22px; }
+        .search-bar input {
+            width: 100%; padding: 18px 24px 18px 56px; border-radius: 50px;
+            border: 1px solid #E2E8F0; font-family: inherit; font-size: 16px; font-weight: 500;
+            outline: none; box-shadow: 0 10px 25px rgba(0,0,0,0.03); transition: var(--transition-slow);
+        }
+        .search-bar input:focus { box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: var(--primary); }
+
+        /* --- KATEGORI FILTER --- */
+        .categories { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 32px; justify-content: center; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .chip {
+            background: #fff; padding: 10px 20px; border-radius: 50px; font-size: 14px;
+            font-weight: 600; white-space: nowrap; cursor: pointer; border: 1px solid #E2E8F0;
+            transition: var(--transition-slow); box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            display: flex; align-items: center; gap: 8px; color: var(--text-muted);
+        }
+        .chip:hover { border-color: var(--primary); color: var(--text-main); transform: translateY(-2px); }
+        .chip.active { background: var(--text-main); color: #fff; border-color: var(--text-main); }
+
+        /* --- GRID GALLERY --- */
+        .gallery-container {
+            padding: 0 20px 40px; max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; width: 100%; flex-grow: 1;
+        }
+        @media (max-width: 1024px) { .gallery-container { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .gallery-container { grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 0 16px 40px; } header { padding-top: 80px; } .btn-add-prompt { top: 20px; right: 50%; transform: translateX(50%); } }
+        @media (max-width: 480px) { .gallery-container { grid-template-columns: 1fr; } }
+
+        /* --- DESAIN KARTU --- */
+        .card {
+            position: relative; border-radius: var(--card-radius); overflow: hidden; cursor: pointer;
+            background: #E2E8F0; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.3s ease; height: 380px;
+        }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+        .card img { width: 100%; height: 100%; display: block; border-radius: var(--card-radius); object-fit: cover; transition: transform 0.5s ease; }
+        .card:hover img { transform: scale(1.05); }
+
+        .card-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
+            display: flex; flex-direction: column; justify-content: space-between; padding: 16px; pointer-events: none;
+        }
+        .top-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ai-badge { background: rgba(255,255,255,0.95); padding: 6px 12px; backdrop-filter: blur(4px); border-radius: 30px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-main); }
+        
+        @keyframes pulse-viral { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .viral-badge { background: #ef4444; color: #fff; padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; animation: pulse-viral 1.5s infinite; }
+        
+        .bottom-action { display: flex; justify-content: flex-end; pointer-events: auto; }
+        .copy-btn { background: rgba(255,255,255,0.95); color: var(--text-main); border: none; padding: 10px 18px; border-radius: 50px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .copy-btn:hover { background: #fff; transform: scale(1.05); }
+
+        /* --- MODAL GLOBAL --- */
+        .modal {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 1000;
+            display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s ease; padding: 20px;
+        }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { background: #fff; width: 100%; max-width: 900px; border-radius: 24px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); transform: scale(0.95); transition: 0.3s ease; max-height: 90vh; }
+        .modal.active .modal-content { transform: scale(1); }
+        .close-modal { position: absolute; top: 20px; right: 24px; background: #F1F5F9; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; color: var(--text-muted); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .close-modal:hover { background: #E2E8F0; color: #ef4444; }
+
+        /* --- DETAIL MODAL --- */
+        .modal-image { width: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; }
+        .modal-image img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-info { width: 50%; padding: 40px; display: flex; flex-direction: column; position: relative; overflow-y: auto; }
+        .modal-info h2 { font-size: 28px; margin-bottom: 12px; line-height: 1.3; font-weight: 800; }
+        .modal-info .ai-source { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; font-weight: 500; }
+        .prompt-box { background: #F8FAFC; padding: 20px; border-radius: 16px; font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 24px; border: 1px solid #E2E8F0; flex-grow: 1; white-space: pre-wrap; }
+        .copy-btn-large { background: var(--text-main); color: #fff; border: none; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; }
+        .copy-btn-large:hover { background: #334155; transform: translateY(-2px); }
+
+        /* --- ADMIN FORM MODAL --- */
+        #adminModal .modal-content { max-width: 600px; flex-direction: column; padding: 32px; overflow-y: auto;}
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #E2E8F0; font-family: inherit; font-size: 14px; outline: none; background: #F8FAFC; transition: 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; }
+        .form-group textarea { height: 120px; resize: vertical; }
+        
+        .paste-zone {
+            border: 2px dashed #CBD5E1; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer;
+            background: #F8FAFC; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .paste-zone:hover { border-color: var(--primary); background: #EEF2FF; }
+        .paste-zone img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; display: none; z-index: 5; }
+        .paste-zone-text { color: var(--text-muted); font-size: 14px; font-weight: 500; position: relative; z-index: 1; }
+        .paste-zone.has-image .paste-zone-text { display: none; }
+        
+        .flex-row { display: flex; gap: 16px; align-items: center; }
+        .btn-submit { background: var(--primary); color: white; padding: 16px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; margin-top: 10px; }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            #detailModal .modal-content { flex-direction: column; }
+            .modal-image, .modal-info { width: 100%; }
+            .modal-image img { height: 300px; }
+            .modal-info { padding: 24px; }
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3 id="loadingText">Menghubungkan ke Molusca...</h3>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <button class="btn-add-prompt" onclick="openAdminModal()">
+            <i class="ph-bold ph-plus"></i> Tambah Prompt
+        </button>
+        <div class="logo">Molusca<span>AI</span></div>
+        <p class="subtitle">Bank Prompt & Inspirasi Desain</p>
+        <div class="search-bar">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Cari prompt, gaya, atau keyword...">
+        </div>
+    </header>
+
+    <!-- Kategori -->
+    <nav class="categories" id="categoryNav">
+        <div class="chip active" data-filter="all"><i class="ph ph-sparkle"></i> Semua Inspirasi</div>
+        <div class="chip" data-filter="viral"><i class="ph ph-fire"></i> Viral</div>
+        <div class="chip" data-filter="3d">3D Realistik</div>
+        <div class="chip" data-filter="fotografi">Fotografi</div>
+        <div class="chip" data-filter="illustrasi">Illustrasi</div>
+        <div class="chip" data-filter="desain">UI/UX & Desain</div>
+    </nav>
+
+    <!-- Gallery Grid -->
+    <main class="gallery-container" id="galleryContainer">
+        <!-- Card akan di-render di sini via JS -->
+    </main>
+
+    <footer style="text-align: center; padding: 32px 20px; color: var(--text-muted); font-size: 14px; border-top: 1px solid #E2E8F0; margin-top: auto;">
+        &copy; 2026 Molusca Workspace. Spesialis Eksplorasi Prompt.
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- MODAL DETAIL PROMPT (VIEWER) -->
+    <!-- ========================================== -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-modal" onclick="closeModal('detailModal')"><i class="ph ph-x"></i></button>
+            <div class="modal-image">
+                <img id="modalImg" src="" alt="Detail">
+            </div>
+            <div class="modal-info">
+                <h2 id="modalTitle">Judul</h2>
+                <div class="ai-source" id="modalAiSource">
+                    <i class="ph ph-robot"></i> Dibuat dengan <b>Tool</b>
+                </div>
+                <div class="prompt-box" id="promptText">Prompt text...</div>
+                <button class="copy-btn-large" id="modalCopyBtn" onclick="copyFromModal(this)">
+                    <i class="ph-bold ph-copy"></i> Salin Prompt Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL TAMBAH PROMPT (ADMIN) -->
+    <!-- ========================================== -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-modal" onclick="closeModal('adminModal')"><i class="ph ph-x"></i></button>
+            <h2 style="margin-bottom: 24px; font-weight: 800;">✨ Tambah Inspirasi Prompt</h2>
+            
+            <form id="addPromptForm" onsubmit="saveNewPrompt(event)">
+                <div class="form-group">
+                    <label>Upload / Paste Gambar (*Wajib)</label>
+                    <input type="file" id="imgUpload" accept="image/*" style="display: none;" onchange="handleFileSelect(this.files[0])">
+                    <div class="paste-zone" id="pasteZone" onclick="document.getElementById('imgUpload').click()">
+                        <div class="paste-zone-text">
+                            <i class="ph ph-image" style="font-size: 32px; color: var(--primary); margin-bottom: 8px; display: block;"></i>
+                            Klik untuk Upload / Tekan <b>CTRL+V</b> untuk Paste Gambar
+                        </div>
+                        <img id="previewImg" src="">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Judul Inspirasi</label>
+                    <input type="text" id="pTitle" required placeholder="Contoh: 3D Karakter Hyper-Expressive">
+                </div>
+                
+                <div class="flex-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Kategori</label>
+                        <select id="pCategory">
+                            <option value="3d">3D Realistik</option>
+                            <option value="fotografi">Fotografi</option>
+                            <option value="illustrasi">Illustrasi</option>
+                            <option value="desain">UI/UX & Desain</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Platform AI</label>
+                        <select id="pAiName">
+                            <option value="ChatGPT, Gemini">ChatGPT & Gemini</option>
+                            <option value="Midjourney">Midjourney</option>
+                            <option value="Leonardo AI">Leonardo AI</option>
+                            <option value="DALL-E 3">DALL-E 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group flex-row" style="background: #FEE2E2; padding: 12px; border-radius: 12px; border: 1px dashed #EF4444;">
+                    <input type="checkbox" id="pViral" style="width: 20px; height: 20px; cursor: pointer;">
+                    <label for="pViral" style="margin: 0; cursor: pointer; color: #DC2626;">Tandai sebagai konten VIRAL 🔥</label>
+                </div>
+
+                <div class="form-group">
+                    <label>Teks Prompt (Bahasa Inggris / Indonesia)</label>
+                    <textarea id="pPrompt" required placeholder="Ketik atau paste prompt lengkap di sini..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btnSaveData">Simpan ke Database</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ========================================== -->
+    <script>
+        // --- KONFIGURASI GOOGLE SHEETS & CLOUDINARY ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec";
+        let CLOUD_NAME = localStorage.getItem('molusca_cloud_name') || "";
+        const CLOUDINARY_UPLOAD_PRESET = "molusca_izin";
+        
+        let promptDB = [];
+        let uploadedImageFile = null;
+
+        // Cek Cloudinary Name
+        function checkCloudinary() {
+            if (!CLOUD_NAME) {
+                CLOUD_NAME = prompt("Masukkan Cloudinary Cloud Name Anda untuk fitur upload gambar:");
+                if (CLOUD_NAME) localStorage.setItem('molusca_cloud_name', CLOUD_NAME);
+            }
+        }
+
+        // --- FETCH DATABASE ---
+        async function dbCall(payload) {
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                return await res.json();
+            } catch (error) {
+                console.error("API Error:", error);
+                return { status: 'error' };
+            }
+        }
+
+        function showLoading(msg) {
+            document.getElementById('loadingText').innerText = msg;
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+
+        async function initApp() {
+            checkCloudinary();
+            showLoading("Memuat Prompt dari Cloud...");
+            try {
+                const res = await dbCall({ action: 'read', sheetName: 'bank_prompt' });
+                if (res.status === 'success' && res.data) {
+                    promptDB = res.data;
+                }
+                renderGallery();
+            } catch (e) {
+                alert("Gagal memuat database. Periksa koneksi internet.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- RENDER GALLERY ---
+        function renderGallery(filterKw = '', filterCat = 'all') {
+            const container = document.getElementById('galleryContainer');
+            container.innerHTML = '';
+            
+            if(promptDB.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 50px;">Belum ada prompt. Jadilah yang pertama menambahkannya!</div>`;
+                return;
+            }
+
+            const kw = filterKw.toLowerCase();
+
+            // Reverse agar yang terbaru di atas
+            [...promptDB].reverse().forEach(item => {
+                if(!item.id || !item.title) return; // Skip baris kosong
+
+                const t = item.title.toLowerCase();
+                const p = item.prompt.toLowerCase();
+                const cat = (item.category || "").toLowerCase();
+                const isViral = String(item.viral).toLowerCase() === 'true';
+
+                // Logika Filter
+                const matchKw = t.includes(kw) || p.includes(kw);
+                const matchCat = filterCat === 'all' || (filterCat === 'viral' && isViral) || cat.includes(filterCat);
+
+                if (matchKw && matchCat) {
+                    const viralBadge = isViral ? `<span class="viral-badge"><i class="ph-bold ph-fire"></i> Viral</span>` : '';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openDetailModal(item);
+                    card.innerHTML = `
+                        <img src="${item.img_url}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x500?text=No+Image'">
+                        <div class="card-overlay">
+                            <div class="top-badges">
+                                <span class="ai-badge"><i class="ph-fill ph-robot"></i> ${item.ai_name}</span>
+                                ${viralBadge}
+                            </div>
+                            <div class="bottom-action">
+                                <button class="copy-btn" onclick="copyCardPrompt(event, '${encodeURIComponent(item.prompt)}', this)">
+                                    <i class="ph-bold ph-copy"></i> Salin Prompt
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+        }
+
+        // --- FILTER & SEARCH ---
+        const searchInput = document.getElementById('searchInput');
+        let activeFilter = 'all';
+
+        searchInput.addEventListener('keyup', () => renderGallery(searchInput.value, activeFilter));
+
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                activeFilter = chip.getAttribute('data-filter');
+                renderGallery(searchInput.value, activeFilter);
+            });
+        });
+
+        // --- COPY LOGIC ---
+        function copyText(text, btnElement, successHtml) {
+            navigator.clipboard.writeText(text);
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = successHtml;
+            btnElement.style.background = "#10B981";
+            btnElement.style.color = "#fff";
+            setTimeout(() => {
+                btnElement.innerHTML = originalHTML;
+                btnElement.style.background = "";
+                btnElement.style.color = "";
+            }, 2000);
+        }
+
+        function copyCardPrompt(event, encodedPrompt, btn) {
+            event.stopPropagation();
+            copyText(decodeURIComponent(encodedPrompt), btn, `<i class="ph-bold ph-check"></i> Tersalin!`);
+        }
+
+        function copyFromModal(btn) {
+            const textToCopy = document.getElementById('promptText').innerText;
+            copyText(textToCopy, btn, `<i class="ph-bold ph-check"></i> Prompt Berhasil Disalin!`);
+        }
+
+        // --- MODAL VIEWER ---
+        function openDetailModal(item) {
+            document.getElementById('modalImg').src = item.img_url;
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalAiSource').innerHTML = `<i class="ph-fill ph-robot"></i> Dibuat dengan <b>${item.ai_name}</b>`;
+            document.getElementById('promptText').innerText = item.prompt;
+            
+            const m = document.getElementById('detailModal');
+            m.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Menutup modal jika klik area luar
+        document.querySelectorAll('.modal').forEach(m => {
+            m.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); });
+        });
+
+        // --- ADMIN / INPUT LOGIC ---
+        function openAdminModal() {
+            if(!CLOUD_NAME) checkCloudinary();
+            document.getElementById('addPromptForm').reset();
+            uploadedImageFile = null;
+            document.getElementById('previewImg').src = "";
+            document.getElementById('pasteZone').classList.remove('has-image');
+            
+            document.getElementById('adminModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Image Paste & File Select
+        function handleFileSelect(file) {
+            if(!file || !file.type.startsWith('image/')) return;
+            uploadedImageFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('pasteZone').classList.add('has-image');
+                document.getElementById('previewImg').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('adminModal').addEventListener('paste', function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf("image") !== -1) {
+                    handleFileSelect(item.getAsFile());
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+            if(!res.ok) throw new Error('Gagal upload gambar');
+            const data = await res.json();
+            return data.secure_url;
+        }
+
+        async function saveNewPrompt(e) {
+            e.preventDefault();
+            if (!uploadedImageFile) return alert("Upload atau Paste gambar terlebih dahulu!");
+            
+            const btn = document.getElementById('btnSaveData');
+            btn.innerHTML = 'Mengunggah & Menyimpan... ⏳';
+            btn.disabled = true;
+
+            try {
+                // 1. Upload ke Cloudinary
+                showLoading("Mengunggah Gambar...");
+                const imgUrl = await uploadToCloudinary(uploadedImageFile);
+
+                // 2. Siapkan Data
+                const newItem = {
+                    id: Date.now().toString(),
+                    title: document.getElementById('pTitle').value,
+                    category: document.getElementById('pCategory').value,
+                    prompt: document.getElementById('pPrompt').value,
+                    ai_name: document.getElementById('pAiName').value,
+                    img_url: imgUrl,
+                    viral: document.getElementById('pViral').checked ? "TRUE" : "FALSE"
+                };
+
+                // 3. Simpan ke Google Sheets
+                showLoading("Menyimpan ke Database...");
+                await dbCall({ action: 'insert', sheetName: 'bank_prompt', data: newItem });
+
+                // 4. Update UI Lokal
+                promptDB.push(newItem);
+                renderGallery(searchInput.value, activeFilter);
+                
+                closeModal('adminModal');
+                alert("Prompt berhasil ditambahkan ke Database!");
+
+            } catch (error) {
+                alert("Terjadi kesalahan: " + error.message);
+            } finally {
+                btn.innerHTML = 'Simpan ke Database';
+                btn.disabled = false;
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+</html>
