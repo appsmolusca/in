@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dakreativ Resource Database | Dakreativ Tools</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- RESET & VARIABLES --- */
+        :root {
+            --bg-body: #F9FAFB;
+            --bg-card: #FFFFFF;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --primary-color: #2563EB;
+            --hover-bg: #F3F4F6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 4rem;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* --- HEADER --- */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .logo-text { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; display: flex; align-items: center; gap: 8px;}
+        .pro-badge {
+            background: #FEF3C7; color: #D97706;
+            font-size: 0.7rem; font-weight: 700;
+            padding: 2px 6px; border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-wrapper {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-body);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            background: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .search-icon, .close-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        .search-icon { left: 14px; width: 18px; height: 18px; pointer-events: none; }
+        .close-icon { right: 14px; width: 18px; height: 18px; cursor: pointer; display: none; }
+        .close-icon.active { display: block; }
+        .close-icon:hover { color: var(--text-primary); }
+
+        /* --- HERO --- */
+        .hero {
+            text-align: center;
+            padding: 3.5rem 1rem 2.5rem;
+        }
+        .hero h2 { font-weight: 700; font-size: 1.75rem; color: var(--text-primary); margin-bottom: 0.5rem; letter-spacing: -0.025em; }
+        .hero p { color: var(--text-secondary); font-size: 1rem; }
+
+        /* --- GRID LAYOUT --- */
+        .masonry {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding-bottom: 2rem;
+            align-items: start; /* PERBAIKAN: Mencegah card melar secara vertikal */
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: #D1D5DB;
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .card-badge {
+            display: inline-block;
+            background: #EFF6FF;
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* --- APP GRID (The Links) --- */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* PERBAIKAN: Lebih dinamis dibanding fix 4 kolom */
+            gap: 0.75rem;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            padding: 8px 4px;
+            border-radius: 12px;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .app-item:hover {
+            background-color: var(--hover-bg);
+            transform: scale(1.03);
+        }
+
+        .app-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px; 
+            object-fit: contain;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+            padding: 2px; 
+            transition: box-shadow 0.2s ease;
+        }
+        
+        .app-item:hover .app-icon {
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .app-name {
+            display: block; /* PERBAIKAN: Memastikan ellipsis berjalan baik */
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .masonry { grid-template-columns: 1fr; }
+            .header-content { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            .search-wrapper { max-width: 100%; width: 100%; } /* PERBAIKAN: Memastikan search bar tidak terpotong di HP */
+            .logo-area { justify-content: center; }
+            .hero h2 { font-size: 1.5rem; }
+        }
+        
+        /* Utility for JS */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo-area">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color:var(--primary-color)"><path d="M4 4h16v16H4V4z"/></svg>
+                <div class="logo-text">
+                    Dakreativ Resources <span class="pro-badge">PRO</span>
+                </div>
+            </div>
+            
+            <div class="search-wrapper">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" id="searchInput" class="search-input" placeholder="Ketik / untuk mencari..." autocomplete="off">
+                <svg id="closeIcon" class="close-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <div class="container hero">
+        <h2>Curated Resources for Creative Minds</h2>
+        <p>100+ Link rahasia andalan desainer profesional. Klik untuk membuka.</p>
+    </div>
+
+    <div class="container">
+        <div id="contentGrid" class="masonry">
+            
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Daily & Social</span></div>
+                <div class="app-grid">
+                    <a href="https://www.tiktok.com/" target="_blank" class="app-item" data-title="TikTok"><img src="https://www.google.com/s2/favicons?domain=tiktok.com&sz=64" class="app-icon" alt="TikTok"><span class="app-name">TikTok</span></a>
+                    <a href="https://www.instagram.com/" target="_blank" class="app-item" data-title="Instagram"><img src="https://www.google.com/s2/favicons?domain=instagram.com&sz=64" class="app-icon" alt="Instagram"><span class="app-name">Instagram</span></a>
+                    <a href="https://www.facebook.com/" target="_blank" class="app-item" data-title="Facebook"><img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=64" class="app-icon" alt="Facebook"><span class="app-name">Facebook</span></a>
+                    <a href="https://www.twitter.com/" target="_blank" class="app-item" data-title="Twitter"><img src="https://www.google.com/s2/favicons?domain=twitter.com&sz=64" class="app-icon" alt="Twitter"><span class="app-name">Twitter</span></a>
+                    <a href="https://www.linkedin.com/" target="_blank" class="app-item" data-title="LinkedIn"><img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" class="app-icon" alt="LinkedIn"><span class="app-name">LinkedIn</span></a>
+                    <a href="https://web.whatsapp.com/" target="_blank" class="app-item" data-title="WhatsApp"><img src="https://www.google.com/s2/favicons?domain=whatsapp.com&sz=64" class="app-icon" alt="WhatsApp"><span class="app-name">WhatsApp</span></a>
+                    <a href="https://web.telegram.org/" target="_blank" class="app-item" data-title="Telegram"><img src="https://www.google.com/s2/favicons?domain=telegram.org&sz=64" class="app-icon" alt="Telegram"><span class="app-name">Telegram</span></a>
+                    <a href="https://slack.com/" target="_blank" class="app-item" data-title="Slack"><img src="https://www.google.com/s2/favicons?domain=slack.com&sz=64" class="app-icon" alt="Slack"><span class="app-name">Slack</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Google Suite</span></div>
+                <div class="app-grid">
+                    <a href="https://mail.google.com/" target="_blank" class="app-item" data-title="Gmail"><img src="https://www.google.com/s2/favicons?domain=mail.google.com&sz=64" class="app-icon" alt="Gmail"><span class="app-name">Gmail</span></a>
+                    <a href="https://drive.google.com/" target="_blank" class="app-item" data-title="Drive"><img src="https://www.google.com/s2/favicons?domain=drive.google.com&sz=64" class="app-icon" alt="Drive"><span class="app-name">Drive</span></a>
+                    <a href="https://calendar.google.com/" target="_blank" class="app-item" data-title="Calendar"><img src="https://www.google.com/s2/favicons?domain=calendar.google.com&sz=64" class="app-icon" alt="Calendar"><span class="app-name">Calendar</span></a>
+                    <a href="https://translate.google.com/" target="_blank" class="app-item" data-title="Translate"><img src="https://www.google.com/s2/favicons?domain=translate.google.com&sz=64" class="app-icon" alt="Translate"><span class="app-name">Translate</span></a>
+                    <a href="https://photos.google.com/" target="_blank" class="app-item" data-title="Photos"><img src="https://www.google.com/s2/favicons?domain=photos.google.com&sz=64" class="app-icon" alt="Photos"><span class="app-name">Photos</span></a>
+                    <a href="https://meet.google.com/" target="_blank" class="app-item" data-title="Meet"><img src="https://www.google.com/s2/favicons?domain=meet.google.com&sz=64" class="app-icon" alt="Meet"><span class="app-name">Meet</span></a>
+                    <a href="https://docs.google.com/" target="_blank" class="app-item" data-title="Docs"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" class="app-icon" alt="Docs"><span class="app-name">Docs</span></a>
+                    <a href="https://keep.google.com/" target="_blank" class="app-item" data-title="Keep"><img src="https://www.google.com/s2/favicons?domain=keep.google.com&sz=64" class="app-icon" alt="Keep"><span class="app-name">Keep</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Quick Create</span></div>
+                <div class="app-grid">
+                    <a href="https://doc.new/" target="_blank" class="app-item" data-title="New Doc"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" class="app-icon" alt="New Doc"><span class="app-name">New Doc</span></a>
+                    <a href="https://slide.new/" target="_blank" class="app-item" data-title="New Slide"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" class="app-icon" alt="New Slide"><span class="app-name">New Slide</span></a>
+                    <a href="https://sheet.new/" target="_blank" class="app-item" data-title="New Sheet"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" class="app-icon" alt="New Sheet"><span class="app-name">New Sheet</span></a>
+                    <a href="https://form.new" target="_blank" class="app-item" data-title="New Form"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&sz=64" class="app-icon" alt="New Form"><span class="app-name">New Form</span></a>
+                    <a href="https://meet.new/" target="_blank" class="app-item" data-title="New Meet"><img src="https://www.google.com/s2/favicons?domain=meet.google.com&sz=64" class="app-icon" alt="New Meet"><span class="app-name">New Meet</span></a>
+                    <a href="https://cal.new/" target="_blank" class="app-item" data-title="New Cal"><img src="https://www.google.com/s2/favicons?domain=calendar.google.com&sz=64" class="app-icon" alt="New Cal"><span class="app-name">New Cal</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Portfolio & Inspo</span></div>
+                <div class="app-grid">
+                    <a href="https://id.pinterest.com/" target="_blank" class="app-item" data-title="Pinterest"><img src="https://www.google.com/s2/favicons?domain=pinterest.com&sz=64" class="app-icon" alt="Pinterest"><span class="app-name">Pinterest</span></a>
+                    <a href="https://dribbble.com/" target="_blank" class="app-item" data-title="Dribbble"><img src="https://www.google.com/s2/favicons?domain=dribbble.com&sz=64" class="app-icon" alt="Dribbble"><span class="app-name">Dribbble</span></a>
+                    <a href="https://www.behance.net/" target="_blank" class="app-item" data-title="Behance"><img src="https://www.google.com/s2/favicons?domain=behance.net&sz=64" class="app-icon" alt="Behance"><span class="app-name">Behance</span></a>
+                    <a href="https://www.deviantart.com/" target="_blank" class="app-item" data-title="DeviantArt"><img src="https://www.google.com/s2/favicons?domain=deviantart.com&sz=64" class="app-icon" alt="DeviantArt"><span class="app-name">DeviantArt</span></a>
+                    <a href="https://www.artstation.com" target="_blank" class="app-item" data-title="ArtStation"><img src="https://www.google.com/s2/favicons?domain=artstation.com&sz=64" class="app-icon" alt="ArtStation"><span class="app-name">ArtStation</span></a>
+                    <a href="https://www.awwwards.com/" target="_blank" class="app-item" data-title="Awwwards"><img src="https://www.google.com/s2/favicons?domain=awwwards.com&sz=64" class="app-icon" alt="Awwwards"><span class="app-name">Awwwards</span></a>
+                    <a href="https://mobbin.com/" target="_blank" class="app-item" data-title="Mobbin"><img src="https://www.google.com/s2/favicons?domain=mobbin.com&sz=64" class="app-icon" alt="Mobbin"><span class="app-name">Mobbin</span></a>
+                    <a href="https://godly.website/" target="_blank" class="app-item" data-title="Godly"><img src="https://www.google.com/s2/favicons?domain=godly.website&sz=64" class="app-icon" alt="Godly"><span class="app-name">Godly</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Cloud Storage</span></div>
+                <div class="app-grid">
+                    <a href="https://onedrive.live.com/" target="_blank" class="app-item" data-title="OneDrive"><img src="https://www.google.com/s2/favicons?domain=onedrive.live.com&sz=64" class="app-icon" alt="OneDrive"><span class="app-name">OneDrive</span></a>
+                    <a href="https://app.mediafire.com/" target="_blank" class="app-item" data-title="MediaFire"><img src="https://www.google.com/s2/favicons?domain=mediafire.com&sz=64" class="app-icon" alt="MediaFire"><span class="app-name">MediaFire</span></a>
+                    <a href="https://www.dropbox.com/" target="_blank" class="app-item" data-title="Dropbox"><img src="https://www.google.com/s2/favicons?domain=dropbox.com&sz=64" class="app-icon" alt="Dropbox"><span class="app-name">Dropbox</span></a>
+                    <a href="https://www.pcloud.com/" target="_blank" class="app-item" data-title="pCloud"><img src="https://www.google.com/s2/favicons?domain=pcloud.com&sz=64" class="app-icon" alt="pCloud"><span class="app-name">pCloud</span></a>
+                    <a href="https://mega.io/" target="_blank" class="app-item" data-title="MEGA"><img src="https://www.google.com/s2/favicons?domain=mega.io&sz=64" class="app-icon" alt="MEGA"><span class="app-name">MEGA</span></a>
+                    <a href="https://wetransfer.com/" target="_blank" class="app-item" data-title="WeTransfer"><img src="https://www.google.com/s2/favicons?domain=wetransfer.com&sz=64" class="app-icon" alt="WeTransfer"><span class="app-name">WeTransfer</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">UI Resources</span></div>
+                <div class="app-grid">
+                    <a href="https://developer.apple.com/design/resources/" target="_blank" class="app-item" data-title="Apple"><img src="https://www.google.com/s2/favicons?domain=apple.com&sz=64" class="app-icon" alt="Apple"><span class="app-name">Apple</span></a>
+                    <a href="https://design.facebook.com/" target="_blank" class="app-item" data-title="Facebook"><img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=64" class="app-icon" alt="Facebook"><span class="app-name">Facebook</span></a>
+                    <a href="https://tabbied.com/" target="_blank" class="app-item" data-title="Tabbied"><img src="https://www.google.com/s2/favicons?domain=tabbied.com&sz=64" class="app-icon" alt="Tabbied"><span class="app-name">Tabbied</span></a>
+                    <a href="https://openui.design/" target="_blank" class="app-item" data-title="OpenUI"><img src="https://www.google.com/s2/favicons?domain=openui.design&sz=64" class="app-icon" alt="OpenUI"><span class="app-name">OpenUI</span></a>
+                    <a href="https://www.drawkit.com/" target="_blank" class="app-item" data-title="DrawKit"><img src="https://www.google.com/s2/favicons?domain=drawkit.com&sz=64" class="app-icon" alt="DrawKit"><span class="app-name">DrawKit</span></a>
+                    <a href="https://eva.design/" target="_blank" class="app-item" data-title="Eva Design"><img src="https://www.google.com/s2/favicons?domain=eva.design&sz=64" class="app-icon" alt="Eva Design"><span class="app-name">Eva</span></a>
+                    <a href="https://untitledui.com/" target="_blank" class="app-item" data-title="Untitled UI"><img src="https://www.google.com/s2/favicons?domain=untitledui.com&sz=64" class="app-icon" alt="Untitled UI"><span class="app-name">Untitled UI</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Prototyping & UI</span></div>
+                <div class="app-grid">
+                    <a href="https://www.figma.com/" target="_blank" class="app-item" data-title="Figma"><img src="https://www.google.com/s2/favicons?domain=figma.com&sz=64" class="app-icon" alt="Figma"><span class="app-name">Figma</span></a>
+                    <a href="https://www.framer.com/" target="_blank" class="app-item" data-title="Framer"><img src="https://www.google.com/s2/favicons?domain=framer.com&sz=64" class="app-icon" alt="Framer"><span class="app-name">Framer</span></a>
+                    <a href="https://www.protopie.io/" target="_blank" class="app-item" data-title="ProtoPie"><img src="https://www.google.com/s2/favicons?domain=protopie.io&sz=64" class="app-icon" alt="ProtoPie"><span class="app-name">ProtoPie</span></a>
+                    <a href="https://spline.design/" target="_blank" class="app-item" data-title="Spline 3D"><img src="https://www.google.com/s2/favicons?domain=spline.design&sz=64" class="app-icon" alt="Spline 3D"><span class="app-name">Spline 3D</span></a>
+                    <a href="https://www.canva.com/" target="_blank" class="app-item" data-title="Canva"><img src="https://www.google.com/s2/favicons?domain=canva.com&sz=64" class="app-icon" alt="Canva"><span class="app-name">Canva</span></a>
+                    <a href="https://www.photopea.com/" target="_blank" class="app-item" data-title="Photopea"><img src="https://www.google.com/s2/favicons?domain=photopea.com&sz=64" class="app-icon" alt="Photopea"><span class="app-name">Photopea</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Design Assets</span></div>
+                <div class="app-grid">
+                    <a href="https://www.freepik.com/" target="_blank" class="app-item" data-title="Freepik"><img src="https://www.google.com/s2/favicons?domain=freepik.com&sz=64" class="app-icon" alt="Freepik"><span class="app-name">Freepik</span></a>
+                    <a href="https://elements.envato.com/" target="_blank" class="app-item" data-title="Envato"><img src="https://www.google.com/s2/favicons?domain=envato.com&sz=64" class="app-icon" alt="Envato"><span class="app-name">Envato</span></a>
+                    <a href="https://creativemarket.com/" target="_blank" class="app-item" data-title="CreativeMarket"><img src="https://www.google.com/s2/favicons?domain=creativemarket.com&sz=64" class="app-icon" alt="CreativeMarket"><span class="app-name">CreativeMkt</span></a>
+                    <a href="https://www.flaticon.com/" target="_blank" class="app-item" data-title="Flaticon"><img src="https://www.google.com/s2/favicons?domain=flaticon.com&sz=64" class="app-icon" alt="Flaticon"><span class="app-name">Flaticon</span></a>
+                    <a href="https://icons8.com/" target="_blank" class="app-item" data-title="Icons8"><img src="https://www.google.com/s2/favicons?domain=icons8.com&sz=64" class="app-icon" alt="Icons8"><span class="app-name">Icons8</span></a>
+                    <a href="https://undraw.co/illustrations" target="_blank" class="app-item" data-title="UnDraw"><img src="https://www.google.com/s2/favicons?domain=undraw.co&sz=64" class="app-icon" alt="UnDraw"><span class="app-name">UnDraw</span></a>
+                    <a href="https://blush.design/" target="_blank" class="app-item" data-title="Blush"><img src="https://www.google.com/s2/favicons?domain=blush.design&sz=64" class="app-icon" alt="Blush"><span class="app-name">Blush</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Stock Photos & Video</span></div>
+                <div class="app-grid">
+                    <a href="https://www.pexels.com/" target="_blank" class="app-item" data-title="Pexels"><img src="https://www.google.com/s2/favicons?domain=pexels.com&sz=64" class="app-icon" alt="Pexels"><span class="app-name">Pexels</span></a>
+                    <a href="https://pixabay.com/" target="_blank" class="app-item" data-title="Pixabay"><img src="https://www.google.com/s2/favicons?domain=pixabay.com&sz=64" class="app-icon" alt="Pixabay"><span class="app-name">Pixabay</span></a>
+                    <a href="https://unsplash.com/" target="_blank" class="app-item" data-title="Unsplash"><img src="https://www.google.com/s2/favicons?domain=unsplash.com&sz=64" class="app-icon" alt="Unsplash"><span class="app-name">Unsplash</span></a>
+                    <a href="https://coverr.co/" target="_blank" class="app-item" data-title="Coverr"><img src="https://www.google.com/s2/favicons?domain=coverr.co&sz=64" class="app-icon" alt="Coverr"><span class="app-name">Coverr</span></a>
+                    <a href="https://mixkit.co/" target="_blank" class="app-item" data-title="Mixkit"><img src="https://www.google.com/s2/favicons?domain=mixkit.co&sz=64" class="app-icon" alt="Mixkit"><span class="app-name">Mixkit</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Mockups</span></div>
+                <div class="app-grid">
+                    <a href="https://mockups-design.com/" target="_blank" class="app-item" data-title="MockupsDesign"><img src="https://www.google.com/s2/favicons?domain=mockups-design.com&sz=64" class="app-icon" alt="MockupsDesign"><span class="app-name">MockupsDesign</span></a>
+                    <a href="https://unblast.com/mockups/" target="_blank" class="app-item" data-title="Unblast"><img src="https://www.google.com/s2/favicons?domain=unblast.com&sz=64" class="app-icon" alt="Unblast"><span class="app-name">Unblast</span></a>
+                    <a href="https://www.free-mockup.com/" target="_blank" class="app-item" data-title="FreeMockup"><img src="https://www.google.com/s2/favicons?domain=free-mockup.com&sz=64" class="app-icon" alt="FreeMockup"><span class="app-name">FreeMockup</span></a>
+                    <a href="https://smartmockups.com" target="_blank" class="app-item" data-title="SmartMockups"><img src="https://www.google.com/s2/favicons?domain=smartmockups.com&sz=64" class="app-icon" alt="SmartMockups"><span class="app-name">SmartMockups</span></a>
+                    <a href="https://shotsnapp.com/" target="_blank" class="app-item" data-title="Shotsnapp"><img src="https://www.google.com/s2/favicons?domain=shotsnapp.com&sz=64" class="app-icon" alt="Shotsnapp"><span class="app-name">Shotsnapp</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Color & Fonts</span></div>
+                <div class="app-grid">
+                    <a href="https://coolors.co/" target="_blank" class="app-item" data-title="Coolors"><img src="https://www.google.com/s2/favicons?domain=coolors.co&sz=64" class="app-icon" alt="Coolors"><span class="app-name">Coolors</span></a>
+                    <a href="https://paletton.com/" target="_blank" class="app-item" data-title="Paletton"><img src="https://www.google.com/s2/favicons?domain=paletton.com&sz=64" class="app-icon" alt="Paletton"><span class="app-name">Paletton</span></a>
+                    <a href="https://www.gradientmagic.com/" target="_blank" class="app-item" data-title="GradientMagic"><img src="https://www.google.com/s2/favicons?domain=gradientmagic.com&sz=64" class="app-icon" alt="GradientMagic"><span class="app-name">GradientMagic</span></a>
+                    <a href="https://fonts.google.com/" target="_blank" class="app-item" data-title="Google Fonts"><img src="https://www.google.com/s2/favicons?domain=fonts.google.com&sz=64" class="app-icon" alt="Google Fonts"><span class="app-name">Google Fonts</span></a>
+                    <a href="https://www.fontshare.com/" target="_blank" class="app-item" data-title="FontShare"><img src="https://www.google.com/s2/favicons?domain=fontshare.com&sz=64" class="app-icon" alt="FontShare"><span class="app-name">FontShare</span></a>
+                    <a href="https://www.dafont.com/" target="_blank" class="app-item" data-title="DaFont"><img src="https://www.google.com/s2/favicons?domain=dafont.com&sz=64" class="app-icon" alt="DaFont"><span class="app-name">DaFont</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Freelance & PM</span></div>
+                <div class="app-grid">
+                    <a href="https://www.fiverr.com/" target="_blank" class="app-item" data-title="Fiverr"><img src="https://www.google.com/s2/favicons?domain=fiverr.com&sz=64" class="app-icon" alt="Fiverr"><span class="app-name">Fiverr</span></a>
+                    <a href="https://www.upwork.com/" target="_blank" class="app-item" data-title="Upwork"><img src="https://www.google.com/s2/favicons?domain=upwork.com&sz=64" class="app-icon" alt="Upwork"><span class="app-name">Upwork</span></a>
+                    <a href="https://fastwork.id/" target="_blank" class="app-item" data-title="Fastwork"><img src="https://www.google.com/s2/favicons?domain=fastwork.id&sz=64" class="app-icon" alt="Fastwork"><span class="app-name">Fastwork</span></a>
+                    <a href="https://www.notion.so/" target="_blank" class="app-item" data-title="Notion"><img src="https://www.google.com/s2/favicons?domain=notion.so&sz=64" class="app-icon" alt="Notion"><span class="app-name">Notion</span></a>
+                    <a href="https://trello.com/" target="_blank" class="app-item" data-title="Trello"><img src="https://www.google.com/s2/favicons?domain=trello.com&sz=64" class="app-icon" alt="Trello"><span class="app-name">Trello</span></a>
+                    <a href="https://clickup.com/" target="_blank" class="app-item" data-title="ClickUp"><img src="https://www.google.com/s2/favicons?domain=clickup.com&sz=64" class="app-icon" alt="ClickUp"><span class="app-name">ClickUp</span></a>
+                </div>
+            </div>
+
+            <div class="card category-card">
+                <div class="card-header"><span class="card-badge">Utilities & SEO</span></div>
+                <div class="app-grid">
+                    <a href="https://tinywow.com/" target="_blank" class="app-item" data-title="TinyWow"><img src="https://www.google.com/s2/favicons?domain=tinywow.com&sz=64" class="app-icon" alt="TinyWow"><span class="app-name">TinyWow</span></a>
+                    <a href="https://cloudconvert.com/" target="_blank" class="app-item" data-title="CloudConvert"><img src="https://www.google.com/s2/favicons?domain=cloudconvert.com&sz=64" class="app-icon" alt="CloudConvert"><span class="app-name">CloudConvert</span></a>
+                    <a href="https://smallpdf.com/" target="_blank" class="app-item" data-title="SmallPDF"><img src="https://www.google.com/s2/favicons?domain=smallpdf.com&sz=64" class="app-icon" alt="SmallPDF"><span class="app-name">SmallPDF</span></a>
+                    <a href="https://www.loom.com/" target="_blank" class="app-item" data-title="Loom"><img src="https://www.google.com/s2/favicons?domain=loom.com&sz=64" class="app-icon" alt="Loom"><span class="app-name">Loom</span></a>
+                    <a href="https://trends.google.com/" target="_blank" class="app-item" data-title="Trends"><img src="https://www.google.com/s2/favicons?domain=trends.google.com&sz=64" class="app-icon" alt="Trends"><span class="app-name">Trends</span></a>
+                    <a href="https://ahrefs.com/" target="_blank" class="app-item" data-title="Ahrefs"><img src="https://www.google.com/s2/favicons?domain=ahrefs.com&sz=64" class="app-icon" alt="Ahrefs"><span class="app-name">Ahrefs</span></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const closeIcon = document.getElementById('closeIcon');
+        const appItems = document.querySelectorAll('.app-item');
+        const categories = document.querySelectorAll('.category-card');
+
+        // Search Function
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            
+            if (term.length > 0) {
+                closeIcon.classList.add('active');
+            } else {
+                closeIcon.classList.remove('active');
+            }
+
+            appItems.forEach(item => {
+                const title = item.getAttribute('data-title').toLowerCase();
+                if (title.includes(term)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            categories.forEach(cat => {
+                const visibleItems = cat.querySelectorAll('.app-item:not(.hidden)');
+                if (visibleItems.length === 0) {
+                    cat.classList.add('hidden');
+                } else {
+                    cat.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Clear Search
+        closeIcon.addEventListener('click', () => {
+            searchInput.value = '';
+            closeIcon.classList.remove('active');
+            appItems.forEach(item => item.classList.remove('hidden'));
+            categories.forEach(cat => cat.classList.remove('hidden'));
+            searchInput.focus(); // Kembalikan kursor ke input setelah clear
+        });
+
+        // Shortcut '/'
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+            } else if (e.key === 'Escape' && document.activeElement === searchInput) {
+                searchInput.blur();
+                closeIcon.click();
+            }
+        });
+    </script>
+</body>
+</html>
