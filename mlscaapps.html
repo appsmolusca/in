@@ -66,7 +66,7 @@
         .nav-btn { 
             background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; 
             border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; /* Cegah Gepeng */
+            display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0;
         }
         .nav-btn:hover { color: var(--text-primary); }
         .nav-btn.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-sm); }
@@ -84,7 +84,7 @@
             background: var(--accent); color: white; padding: 0 14px; height: 36px; border-radius: 100px;
             font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;
             transition: 0.2s; border: none; box-shadow: 0 4px 12px var(--accent-subtle); cursor: pointer; 
-            white-space: nowrap; flex-shrink: 0; /* Cegah Gepeng */
+            white-space: nowrap; flex-shrink: 0;
         }
         .btn-link-web:hover { background: var(--accent-hover); transform: translateY(-1px); }
         
@@ -241,7 +241,7 @@
         @media (max-width: 1024px) {
             body { overflow-y: auto; }
             
-            /* HEADER MENJADI BISA DI-SWIPE (ANTI GEPENG) */
+            /* HEADER BISA DI-SWIPE (ANTI GEPENG) */
             header { 
                 height: auto; 
                 flex-wrap: wrap; 
@@ -249,23 +249,20 @@
                 gap: 16px; 
                 justify-content: center;
             }
-            .brand { 
-                width: 100%; 
-                justify-content: center; 
-            }
+            .brand { width: 100%; justify-content: center; }
             .nav-pill { 
                 width: 100%; 
                 display: flex;
-                flex-wrap: nowrap; /* Mencegah turun ke bawah */
+                flex-wrap: nowrap;
                 overflow-x: auto; 
                 justify-content: flex-start; 
-                -webkit-overflow-scrolling: touch; /* Halus di iOS */
-                padding-bottom: 8px; /* Ruang scrollbar */
+                -webkit-overflow-scrolling: touch; 
+                padding-bottom: 8px;
             }
             .header-actions { 
                 width: 100%; 
                 display: flex;
-                flex-wrap: nowrap; /* Mencegah turun ke bawah */
+                flex-wrap: nowrap;
                 overflow-x: auto; 
                 justify-content: flex-start; 
                 padding-bottom: 8px;
@@ -274,13 +271,13 @@
             /* Sembunyikan scrollbar bawaan supaya rapi */
             .header-actions::-webkit-scrollbar, .nav-pill::-webkit-scrollbar { display: none; }
             
-            /* LAYOUT KERJA MENJADI ATAS-BAWAH */
+            /* LAYOUT KERJA ATAS-BAWAH */
             .view-section { 
                 height: auto; 
                 min-height: calc(100vh - 160px); 
                 flex-direction: column; 
                 padding: 16px; 
-                overflow-y: visible; /* Biarkan body yang scroll */
+                overflow-y: visible;
             }
             
             .ws-sidebar, .ws-main, .ws-widgets, .studio-sidebar, .studio-canvas { 
@@ -288,20 +285,18 @@
                 flex: none; 
             }
             
-            /* Atur tinggi panel agar nyaman di HP */
             .ws-sidebar { height: 350px; }
             .ws-main { height: 500px; }
             .ws-widgets { height: auto; }
             
             .studio-canvas { min-height: 400px; padding-top: 16px; border: none; background: transparent;}
             
-            /* SOLUSI BUG DATABASE COLLAPSE DI HP */
+            /* FIX BUG DATABASE COLLAPSE: Biarkan kotak menyesuaikan isinya (height: auto) */
             .studio-canvas .card {
-                height: 500px !important; /* Paksa muncul dengan ukuran ini di HP */
-                min-height: 500px;
+                height: auto !important; 
+                min-height: 400px;
             }
             
-            /* Posisi Kalkulator HP di Tengah Bawah */
             .calc-popup {
                 left: 50%;
                 transform: translate(-50%, 150%);
@@ -633,13 +628,25 @@
         // === KONFIGURASI API GOOGLE SHEETS ===
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec";
         
+        // FUNGSI FETCH YANG SUDAH DI-FIX (ANTI BLOKIR CORS)
         async function dbCall(payload) {
             try {
-                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-                return await res.json();
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX UTAMA CORS
+                    body: JSON.stringify(payload) 
+                });
+                
+                const rawText = await res.text();
+                try {
+                    return JSON.parse(rawText);
+                } catch(e) {
+                    console.error("Server Error/Bukan JSON:", rawText);
+                    return { status: 'error', message: 'Script Google bermasalah. Cek tab Excel.' };
+                }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                return { status: 'error' };
+                return { status: 'error', message: error.message };
             }
         }
 
@@ -675,10 +682,12 @@
                 const res = await dbCall({ action: 'read', sheetName: 'jobdesk' });
                 if(res.status === 'success' && res.data) {
                     jobdeskDB = res.data;
+                } else if(res.status === 'error') {
+                    throw new Error(res.message || 'Gagal membaca sheet jobdesk.');
                 }
                 renderJobdesk();
             } catch(e) {
-                list.innerHTML = '<div style="color:var(--danger); text-align:center; padding: 40px 0;">❌ Gagal memuat data Jobdesk dari Cloud Excel.</div>';
+                list.innerHTML = `<div style="color:var(--danger); text-align:center; padding: 40px 0;">❌ Gagal memuat data dari Cloud.<br><small>${e.message}</small></div>`;
             }
         }
 
@@ -729,7 +738,7 @@
             if(!title) return alert('Nama tugas tidak boleh kosong!');
             
             btn.disabled = true;
-            btn.innerHTML = 'Menyimpan ke Excel... ⏳';
+            btn.innerHTML = 'Menyimpan... ⏳';
 
             const newId = Date.now().toString();
             const newItem = { id: newId, title: title, pic: pic, desc: desc, status: 'To-Do' };
@@ -795,8 +804,11 @@
             try {
                 const res = await dbCall({ action: 'read', sheetName: 'bank konten' });
                 if(res.status === 'success' && res.data) contentBankDB = res.data;
+                else if(res.status === 'error') throw new Error(res.message);
                 renderContentBank();
-            } catch(e) { list.innerHTML = '<div style="color:var(--danger); text-align:center; padding: 40px 0;">❌ Gagal memuat data dari Cloud.</div>'; }
+            } catch(e) { 
+                list.innerHTML = `<div style="color:var(--danger); text-align:center; padding: 40px 0;">❌ Gagal memuat data Bank Konten dari Cloud.<br><small>${e.message}</small></div>`; 
+            }
         }
 
         function renderContentBank() {
