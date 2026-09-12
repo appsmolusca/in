@@ -64,14 +64,14 @@
             border: 1px solid var(--border-light);
         }
         .nav-btn { 
-            background: transparent; border: none; color: var(--text-secondary); padding: 8px 20px; 
+            background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; 
             border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; gap: 8px;
         }
         .nav-btn:hover { color: var(--text-primary); }
         .nav-btn.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-sm); }
 
-        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
         .icon-btn { 
             width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-light); 
             background: var(--bg-surface); color: var(--text-secondary); display: flex; align-items: center; 
@@ -81,7 +81,7 @@
         
         /* TOMBOL WEB & DOWNLOAD */
         .btn-link-web {
-            background: var(--accent); color: white; padding: 0 16px; height: 36px; border-radius: 100px;
+            background: var(--accent); color: white; padding: 0 14px; height: 36px; border-radius: 100px;
             font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;
             transition: 0.2s; border: none; box-shadow: 0 4px 12px var(--accent-subtle); cursor: pointer;
         }
@@ -92,6 +92,9 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .btn-db:hover { background: var(--text-secondary); }
+
+        .btn-trend { background: #F59E0B; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
+        .btn-trend:hover { background: #D97706; }
 
         .btn-ai {
             background: linear-gradient(135deg, #a855f7, #6366f1);
@@ -260,6 +263,13 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
                 Bank Konten
             </button>
+            
+            <!-- DATABASE JOBDESK (PINDAH KE SINI) -->
+            <button class="nav-btn" onclick="switchTab('viewJobdesk', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Jobdesk
+            </button>
+            
             <button class="nav-btn" onclick="switchTab('viewMockup', this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                 Mockup Studio
@@ -283,25 +293,34 @@
                 <input type="file" accept=".json" style="display: none;" onchange="importData(event)">
             </label>
             
-            <!-- TOMBOL DATABASE JOBDESK (BARU) -->
-            <button class="btn-link-web btn-db" onclick="switchTab('viewJobdesk', null)" title="Database Desainer & Jobdesk">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Database Jobdesk
-            </button>
+            <!-- TOMBOL SHORTCUT DESIGN (BARU) -->
+            <a href="https://appsmolusca.github.io/in/designshotvut" target="_blank" class="btn-link-web btn-db" title="Buka Shortcut Design">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                Shortcut Design
+            </a>
 
-            <!-- TOMBOL PROMPT AI BARU -->
+            <!-- TOMBOL GOOGLE TREND (BARU) -->
+            <a href="https://trends.google.co.id/trends/" target="_blank" class="btn-link-web btn-trend" title="Buka Google Trend">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                Google Trend
+            </a>
+
+            <!-- TOMBOL PROMPT AI -->
             <a href="https://appsmolusca.github.io/in/prompt.html" target="_blank" class="btn-link-web btn-ai">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
                 Prompt AI
             </a>
 
+            <!-- TOMBOL BUKA WEB -->
             <a href="https://appsmolusca.github.io/on/app/" target="_blank" class="btn-link-web">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 Buka Web
             </a>
+
+            <!-- TOMBOL DOWNLOAD -->
             <button class="btn-link-web btn-download-app" onclick="downloadAppAsHTML()" title="Simpan ke Desktop">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download App
+                Download
             </button>
         </div>
     </header>
@@ -444,7 +463,6 @@
     </div>
 
     <!-- VIEW MOCKUP, PDF, WATERMARK DISINI SAMA SEPERTI SEBELUMNYA -->
-    <!-- SAYA RINGKAS KODE HTML INI AGAR TIDAK TERLALU PANJANG, STRUKTUR TETAP UTUH -->
     <div id="viewMockup" class="view-section">
         <div class="studio-sidebar">
             <div class="info-box info-alert">💡 Tekan <b>Ctrl + V</b> di keyboard untuk paste gambar otomatis.</div>
@@ -555,7 +573,7 @@
             rTasks();
             loadCloudNote(); // Pengumuman tim
             loadContentBank(); // Bank Konten
-            loadJobdesk(); // Database Jobdesk Tim (Baru)
+            loadJobdesk(); // Database Jobdesk Tim
         }
 
         // --- NAVIGASI TAB (UPDATED) ---
@@ -563,7 +581,7 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             
-            if(btn) btn.classList.add('active'); // Tambah pengecekan jika di klik dari menu atas
+            if(btn) btn.classList.add('active'); 
             document.getElementById(viewId).classList.add('active');
             
             if(viewId === 'viewMockup') renderMockup();
@@ -571,14 +589,14 @@
         }
 
         // ==========================================
-        // FITUR BARU: DATABASE JOBDESK TIM (CLOUD EXCEL)
+        // FITUR DATABASE JOBDESK TIM (CLOUD EXCEL)
         // ==========================================
         let jobdeskDB = [];
 
         async function loadJobdesk() {
             const list = document.getElementById('jdList');
             try {
-                const res = await dbCall({ action: 'read', sheetName: 'jobdesk' }); // Simpan di sheet baru bernama 'jobdesk'
+                const res = await dbCall({ action: 'read', sheetName: 'jobdesk' });
                 if(res.status === 'success' && res.data) {
                     jobdeskDB = res.data;
                 }
@@ -605,7 +623,6 @@
                 let statusColor = j.status === 'Selesai' ? 'white' : j.status === 'Proses' ? 'var(--warning-text)' : 'var(--text-secondary)';
                 let statusIcon = j.status === 'Selesai' ? '✅' : j.status === 'Proses' ? '⏳' : '📝';
                 
-                // Warna khusus tiap orang
                 let picColor = j.pic === 'Esa' ? '#3B82F6' : j.pic === 'El' ? '#8B5CF6' : '#EC4899'; 
 
                 item.innerHTML = `
@@ -642,7 +659,6 @@
             const newItem = { id: newId, title: title, pic: pic, desc: desc, status: 'To-Do' };
             
             try {
-                // Simpan ke Google Sheets tab 'jobdesk'
                 await dbCall({ action: 'insert', sheetName: 'jobdesk', data: newItem });
                 jobdeskDB.push(newItem);
                 
