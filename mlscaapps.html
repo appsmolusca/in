@@ -66,14 +66,14 @@
         .nav-btn { 
             background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; 
             border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
         }
         .nav-btn:hover { color: var(--text-primary); }
         .nav-btn.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-sm); }
 
         .header-actions { display: flex; gap: 10px; align-items: center; }
         .icon-btn { 
-            width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-light); 
+            width: 36px; height: 36px; min-width: 36px; border-radius: 50%; border: 1px solid var(--border-light); 
             background: var(--bg-surface); color: var(--text-secondary); display: flex; align-items: center; 
             justify-content: center; cursor: pointer; transition: 0.2s;
         }
@@ -83,28 +83,20 @@
         .btn-link-web {
             background: var(--accent); color: white; padding: 0 14px; height: 36px; border-radius: 100px;
             font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px;
-            transition: 0.2s; border: none; box-shadow: 0 4px 12px var(--accent-subtle); cursor: pointer;
+            transition: 0.2s; border: none; box-shadow: 0 4px 12px var(--accent-subtle); cursor: pointer; white-space: nowrap;
         }
         .btn-link-web:hover { background: var(--accent-hover); transform: translateY(-1px); }
         
-        .btn-db {
-            background: var(--text-primary); color: var(--bg-surface);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
+        .btn-db { background: var(--text-primary); color: var(--bg-surface); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
         .btn-db:hover { background: var(--text-secondary); }
 
         .btn-trend { background: #F59E0B; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); }
         .btn-trend:hover { background: #D97706; }
 
-        .btn-ai {
-            background: linear-gradient(135deg, #a855f7, #6366f1);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
+        .btn-ai { background: linear-gradient(135deg, #a855f7, #6366f1); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
         .btn-ai:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .btn-download-app {
-            background: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-        }
+        .btn-download-app { background: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
         .btn-download-app:hover { background: #059669; }
 
         /* === VIEW CONTAINERS === */
@@ -241,6 +233,76 @@
         .modal-body strong { font-weight: 800; color: var(--accent); }
         .modal-body em { font-style: italic; opacity: 0.9; }
         .modal-body h1, .modal-body h2, .modal-body h3 { margin-bottom: 12px; color: var(--text-primary); font-weight: 800; }
+
+        /* =========================================================
+           === RESPONSIVE LAYOUT UNTUK HP / MOBILE FRIENDLY ===
+           ========================================================= */
+        @media (max-width: 1024px) {
+            body { overflow-y: auto; }
+            
+            /* HEADER MENJADI BISA DI-SWIPE */
+            header { 
+                height: auto; 
+                flex-wrap: wrap; 
+                padding: 16px; 
+                gap: 16px; 
+                justify-content: center;
+            }
+            .brand { 
+                width: 100%; 
+                justify-content: center; 
+            }
+            .header-actions { 
+                width: 100%; 
+                overflow-x: auto; 
+                justify-content: flex-start; 
+                padding-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-pill { 
+                width: 100%; 
+                overflow-x: auto; 
+                justify-content: flex-start; 
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Sembunyikan scrollbar bawaan supaya terlihat seperti App native */
+            .header-actions::-webkit-scrollbar, .nav-pill::-webkit-scrollbar { display: none; }
+            
+            /* LAYOUT KERJA MENJADI ATAS-BAWAH (STACKED) */
+            .view-section { 
+                height: auto; 
+                min-height: calc(100vh - 160px); 
+                flex-direction: column; 
+                padding: 16px; 
+                overflow-y: visible; /* Biarkan body yang scroll */
+            }
+            
+            .ws-sidebar, .ws-main, .ws-widgets, .studio-sidebar, .studio-canvas { 
+                width: 100%; 
+                flex: none; 
+            }
+            
+            /* Atur tinggi panel agar nyaman di HP */
+            .ws-sidebar { height: 350px; }
+            .ws-main { height: 500px; }
+            .ws-widgets { height: auto; }
+            
+            .studio-canvas { min-height: 400px; padding-top: 16px; border: none; background: transparent;}
+            
+            /* Posisi Kalkulator HP di Tengah Bawah */
+            .calc-popup {
+                left: 50%;
+                transform: translate(-50%, 150%);
+                width: 90%;
+                max-width: 340px;
+                bottom: 24px;
+            }
+            .calc-popup.show { transform: translate(-50%, 0); }
+            
+            .modal-content { width: 95%; }
+            .modal-body { padding: 20px; font-size: 15px; }
+        }
     </style>
 </head>
 <body onload="initAll()">
@@ -300,7 +362,7 @@
             </a>
 
             <!-- TOMBOL GOOGLE TREND (BARU) -->
-            <a href="https://trends.google.co.id/trends/" target="_blank" class="btn-link-web btn-trend" title="Buka Google Trend">
+            <a href="https://trends.google.com/trending?geo=ID" target="_blank" class="btn-link-web btn-trend" title="Buka Google Trend">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
                 Google Trend
             </a>
@@ -394,7 +456,7 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- VIEW DATABASE JOBDESK (BARU - CLOUD) -->
+    <!-- VIEW DATABASE JOBDESK (CLOUD EXCEL) -->
     <!-- ============================================== -->
     <div id="viewJobdesk" class="view-section">
         <div class="studio-sidebar">
@@ -413,6 +475,7 @@
                         <option value="Esa">Esa</option>
                         <option value="El">El</option>
                         <option value="Nazma">Nazma</option>
+                        <option value="Opik">Opik/option>
                     </select>
                 </div>
                 <div class="control-group">
@@ -462,7 +525,9 @@
         </div>
     </div>
 
-    <!-- VIEW MOCKUP, PDF, WATERMARK DISINI SAMA SEPERTI SEBELUMNYA -->
+    <!-- ============================================== -->
+    <!-- VIEW MOCKUP, PDF, WATERMARK -->
+    <!-- ============================================== -->
     <div id="viewMockup" class="view-section">
         <div class="studio-sidebar">
             <div class="info-box info-alert">💡 Tekan <b>Ctrl + V</b> di keyboard untuk paste gambar otomatis.</div>
@@ -576,7 +641,7 @@
             loadJobdesk(); // Database Jobdesk Tim
         }
 
-        // --- NAVIGASI TAB (UPDATED) ---
+        // --- NAVIGASI TAB ---
         function switchTab(viewId, btn) {
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
