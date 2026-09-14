@@ -128,8 +128,8 @@
             <h2 class="text-xl font-extrabold flex items-center gap-2 text-primary">
                 <i class="ph-fill ph-users-three text-purple-600"></i> Beban Kerja Tim Desain
             </h2>
-            <div class="text-xs text-purple-700 bg-purple-50 font-bold border border-purple-200 px-3 py-1.5 rounded-lg shadow-sm">
-                Task Belum Selesai
+            <div class="text-xs text-purple-700 bg-purple-50 font-bold border border-purple-200 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                <span class="flex h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span> Filter: Belum Selesai
             </div>
         </div>
         
@@ -168,7 +168,7 @@
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
 
     // ==========================================
-    // 1. DATA (Sama seperti sebelumnya)
+    // 1. DATA MASTER
     // ==========================================
     const data = {
         jobdesk: [
@@ -176,7 +176,7 @@
             {"id": 2, "title": "Menanyakan jadwal prodak apa saja", "pic": "Nazma", "desc": "Menanyakan jadwal prodak hari ini ke admin"}, 
             {"id": 3, "title": "Memastikan barang sudah ada", "pic": "El", "desc": "Memastikan prodak sudah siap untuk di-content"}
         ],
-        // Task Desain: Belum selesai
+        // Task Tya yang sebelumnya nyangkut di "Nunggu Revisi" sudah DIBUANG dari list ini.
         uncompleted_tasks: [
             {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi", "priority": "urgent"},
             {"joCode": "EXTRA", "title": "DADAN TUGU INSURANCE", "assignee": "Nayla", "dateStr": "2026-09-10", "status": "Nunggu Revisi", "priority": "normal"}, 
@@ -194,11 +194,7 @@
             {"joCode": "JO KAK TANIA", "title": "injourney", "assignee": "Nayla", "dateStr": "2026-08-10", "status": "Nunggu Revisi", "priority": "normal"},
             {"joCode": "EXTRA", "title": "HANI NOVO NORDISK", "assignee": "Indah", "dateStr": "2026-07-29", "status": "Nunggu Revisi", "priority": "normal"},
             {"joCode": "EXTRA", "title": "A DADAN PLN JABARDI", "assignee": "Indah", "dateStr": "2026-07-24", "status": "Nunggu Revisi", "priority": "normal"},
-            {"joCode": "EXTRA", "title": "DADAN FLUFFY LAB", "assignee": "Nayla", "dateStr": "2026-07-22", "status": "Nunggu Revisi", "priority": "normal"},
-            {"joCode": "EXTRA", "title": "DADAN BERTLING", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Nunggu Revisi", "priority": "normal"},
-            {"joCode": "JO KAK TANIA", "title": "DESAIN TAS LAPTOP", "assignee": "Tya", "dateStr": "2026-05-04", "status": "Nunggu Revisi", "priority": "urgent"},
-            {"joCode": "EXTRA", "title": "SALWA BRAXTON", "assignee": "Tya", "dateStr": "2026-05-06", "status": "Nunggu Revisi", "priority": "normal"},
-            {"joCode": "EXTRA", "title": "boneka in journey", "assignee": "Tya", "dateStr": "2026-05-26", "status": "Nunggu Revisi", "priority": "normal"},
+            {"joCode": "EXTRA", "title": "DADAN FLUFFY LAB", "assignee": "Nayla", "dateStr": "2026-07-22", "status": "Nunggu Revisi", "priority": "normal"}
         ],
         creator_tasks: [
             {"title": "Projek Internal Content", "client": "Internal", "targetDate": "2026-06-20"}, 
@@ -248,26 +244,35 @@
     // ==========================================
     // 3. GROUPING TASK PER DESAINER & RENDER
     // ==========================================
-    // Proses pengelompokan data berdasarkan Assignee
-    const groupedTasks = data.uncompleted_tasks.reduce((acc, task) => {
+    // Menyiapkan 4 desainer utama agar kotaknya selalu muncul meski tasknya 0
+    const teamMembers = ["Indah", "Nayla", "Tya", "Dadan"];
+    const groupedTasks = {};
+    
+    // Inisialisasi awal (semua = 0 task)
+    teamMembers.forEach(m => groupedTasks[m] = []);
+
+    // Masukkan data task ke masing-masing nama
+    data.uncompleted_tasks.forEach(task => {
         const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
-        if(!acc[name]) acc[name] = [];
-        acc[name].push(task);
-        return acc;
-    }, {});
+        if(groupedTasks[name] !== undefined) {
+            groupedTasks[name].push(task);
+        } else {
+            groupedTasks[name] = [task];
+        }
+    });
 
     const teamContainer = document.getElementById('teamTasksContainer');
     let teamHtml = '';
 
-    // Warna acak untuk avatar tiap user
-    const colors = ['bg-blue-100 text-blue-600', 'bg-emerald-100 text-emerald-600', 'bg-purple-100 text-purple-600', 'bg-orange-100 text-orange-600', 'bg-rose-100 text-rose-600'];
+    // Warna acak pastel untuk avatar
+    const colors = ['bg-blue-100 text-blue-600', 'bg-emerald-100 text-emerald-600', 'bg-purple-100 text-purple-600', 'bg-orange-100 text-orange-600'];
     let colorIndex = 0;
 
     for(const [assignee, tasks] of Object.entries(groupedTasks)) {
         const avatarColor = colors[colorIndex % colors.length];
         colorIndex++;
 
-        // Render card per desainer
+        // Render card per orang
         teamHtml += `
         <div class="card flex flex-col h-[400px]">
             <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
@@ -277,23 +282,30 @@
                     </div>
                     <h3 class="font-extrabold text-primary text-lg">${assignee}</h3>
                 </div>
-                <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-md border border-slate-200">${tasks.length} Task</span>
+                <span class="${tasks.length > 0 ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} text-xs font-bold px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
             </div>
             
-            <div class="overflow-y-auto pr-2 space-y-3 flex-1">
-                ${tasks.map(t => `
+            <div class="overflow-y-auto pr-1 flex-1">
+                ${tasks.length > 0 ? `<div class="space-y-3">` + tasks.map(t => `
                     <div class="p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-all ${t.priority?.toLowerCase() === 'urgent' ? 'bg-red-50/40 border-red-200' : 'bg-slate-50'}">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">${t.joCode}</span>
+                            <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">${t.joCode}</span>
                             ${getStatusBadge(t.status)}
                         </div>
                         <p class="text-sm font-bold text-primary leading-tight mb-2">${t.title}</p>
                         <div class="flex justify-between items-center mt-2">
-                            <span class="text-[10px] text-slate-400 font-bold font-mono"><i class="ph-bold ph-calendar-blank"></i> ${t.dateStr}</span>
+                            <span class="text-[10px] text-slate-400 font-bold font-mono bg-white px-1.5 py-0.5 rounded border border-slate-100"><i class="ph-bold ph-calendar-blank"></i> ${t.dateStr}</span>
                             ${getPriorityBadge(t.priority)}
                         </div>
                     </div>
-                `).join('')}
+                `).join('') + `</div>` : `
+                    <!-- EMPTY STATE JIKA TASK 0 (Contoh: Tya) -->
+                    <div class="flex flex-col items-center justify-center h-full text-center pb-8 opacity-80">
+                        <i class="ph-fill ph-check-circle text-6xl text-emerald-400 mb-3 drop-shadow-sm"></i>
+                        <p class="text-sm font-extrabold text-slate-600">Semua Clear!</p>
+                        <p class="text-xs font-medium text-slate-400 mt-1">Kerjaan sudah beres semua.</p>
+                    </div>
+                `}
             </div>
         </div>
         `;
@@ -304,7 +316,7 @@
     // 4. RENDER KREATOR TASK & REPORT
     // ==========================================
     const cTaskHtml = data.creator_tasks.map(c => `
-        <div class="p-3.5 bg-white shadow-sm border-l-4 border-l-rose-400 border border-slate-200 rounded-lg">
+        <div class="p-3.5 bg-white shadow-sm border-l-4 border-l-rose-400 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
             <p class="text-sm font-bold text-primary line-clamp-2">${c.title}</p>
             <div class="flex items-center justify-between mt-3 text-xs">
                 <span class="text-muted font-bold bg-slate-100 px-2 py-1 rounded"><i class="ph-bold ph-user mr-1"></i>${c.client}</span>
@@ -349,7 +361,7 @@
                     label: 'Project Desain',
                     data: designTrend,
                     borderColor: '#3b82f6', 
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: true,
@@ -362,7 +374,7 @@
                     label: 'Project Konten',
                     data: contentTrend,
                     borderColor: '#10b981',  
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: true,
