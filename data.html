@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Molusca | Clean Light</title>
+    <title>Dashboard Molusca | Team Workspace</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -16,11 +16,11 @@
             theme: {
                 extend: {
                     colors: {
-                        background: '#f8fafc', // Putih keabu-abuan (slate-50) sangat adem di mata
-                        surface: '#ffffff',    // Putih bersih untuk card
-                        border: '#e2e8f0',     // Border tipis abu-abu muda
-                        primary: '#0f172a',    // Teks hitam kebiruan gelap
-                        muted: '#64748b'       // Teks abu-abu
+                        background: '#f8fafc', 
+                        surface: '#ffffff',    
+                        border: '#e2e8f0',     
+                        primary: '#0f172a',    
+                        muted: '#64748b'       
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -30,11 +30,11 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
         
         /* Custom Scrollbar Minimalis */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -49,11 +49,12 @@
         
         /* Badge Status */
         .badge {
-            padding: 2px 10px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
             text-transform: capitalize;
+            letter-spacing: 0.02em;
         }
         .badge-final { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
         .badge-pending { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
@@ -62,41 +63,38 @@
         /* Animasi Kedip untuk Task Urgent */
         @keyframes urgent-pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 0.6; transform: scale(0.98); }
         }
         .urgent-blink {
             animation: urgent-pulse 1.2s ease-in-out infinite;
-            background-color: #fee2e2; /* Latar merah muda */
-            color: #dc2626; /* Teks merah terang */
+            background-color: #fee2e2; 
+            color: #dc2626; 
             border: 1px solid #fca5a5;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            display: inline-block;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
         }
-
-        th { color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 0.875rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: #f8fafc; }
     </style>
 </head>
-<body class="antialiased selection:bg-blue-100">
+<body class="antialiased selection:bg-blue-100 pb-10">
 
 <div class="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
     
     <!-- Header -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
-                <i class="ph ph-command text-blue-600"></i> Molusca Workspace
+            <h1 class="text-3xl font-extrabold tracking-tight text-primary flex items-center gap-2">
+                <i class="ph-fill ph-rocket text-blue-600"></i> Molusca Workspace
             </h1>
-            <p class="text-sm text-muted mt-1">Dashboard overview operasional tim desain & kreator.</p>
+            <p class="text-sm text-muted mt-1 font-medium">Dashboard operasional tim desain & kreator.</p>
         </div>
-        <div class="flex items-center gap-3 bg-white border border-border px-4 py-2 rounded-full text-sm shadow-sm">
+        <div class="flex items-center gap-3 bg-white border border-border px-4 py-2.5 rounded-full text-sm shadow-sm font-semibold">
             <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
-            <span class="text-primary font-medium" id="currentDate">Memuat tanggal...</span>
+            <span class="text-primary" id="currentDate">Memuat tanggal...</span>
         </div>
     </header>
 
@@ -105,7 +103,7 @@
         <!-- Chart -->
         <div class="card lg:col-span-2 flex flex-col">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-semibold flex items-center gap-2 text-primary"><i class="ph ph-trend-up text-blue-500"></i> Produktivitas Project</h2>
+                <h2 class="text-lg font-bold flex items-center gap-2 text-primary"><i class="ph-bold ph-trend-up text-blue-500"></i> Produktivitas Project</h2>
             </div>
             <div class="relative flex-1 min-h-[250px] w-full">
                 <canvas id="productivityChart"></canvas>
@@ -114,76 +112,53 @@
 
         <!-- Jobdesk (To-Do) -->
         <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold flex items-center gap-2 text-primary"><i class="ph ph-check-square text-orange-500"></i> Jobdesk (To-Do)</h2>
-                <span class="text-xs bg-slate-100 text-slate-600 border border-slate-200 font-bold px-2.5 py-1 rounded-md" id="jobdeskCount">0</span>
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                <h2 class="text-lg font-bold flex items-center gap-2 text-primary"><i class="ph-bold ph-check-square text-orange-500"></i> Jobdesk (To-Do)</h2>
+                <span class="text-xs bg-orange-100 text-orange-700 font-bold px-2.5 py-1 rounded-md" id="jobdeskCount">0</span>
             </div>
-            <div class="space-y-3 overflow-y-auto max-h-[250px] pr-2" id="jobdeskContainer">
+            <div class="space-y-3 overflow-y-auto max-h-[230px] pr-2" id="jobdeskContainer">
                 <!-- Data di-inject JS -->
             </div>
         </div>
     </div>
 
-    <!-- Baris 2: Task Desain Belum Selesai -->
-    <div class="card">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold flex items-center gap-2 text-primary">
-                <i class="ph ph-paint-brush-broad text-purple-500"></i> Task Desain (Belum Selesai)
+    <!-- Baris 2: Task per Desainer -->
+    <div>
+        <div class="flex items-center justify-between mb-4 mt-6">
+            <h2 class="text-xl font-extrabold flex items-center gap-2 text-primary">
+                <i class="ph-fill ph-users-three text-purple-600"></i> Beban Kerja Tim Desain
             </h2>
-            <div class="text-xs text-muted border border-border bg-slate-50 px-3 py-1.5 rounded-lg">Diurutkan dari terbaru</div>
+            <div class="text-xs text-purple-700 bg-purple-50 font-bold border border-purple-200 px-3 py-1.5 rounded-lg shadow-sm">
+                Task Belum Selesai
+            </div>
         </div>
-        <div class="overflow-x-auto overflow-y-auto max-h-[400px] border border-border rounded-lg relative">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-                <thead class="bg-slate-50 sticky top-0 z-10">
-                    <tr>
-                        <th class="px-4 py-3 font-semibold">Priority</th>
-                        <th class="px-4 py-3 font-semibold">JO Code</th>
-                        <th class="px-4 py-3 font-semibold">Judul Project</th>
-                        <th class="px-4 py-3 font-semibold">Assignee</th>
-                        <th class="px-4 py-3 font-semibold">Tanggal</th>
-                        <th class="px-4 py-3 font-semibold text-right">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="allTasksContainer" class="px-4">
-                    <!-- Data di-inject JS -->
-                </tbody>
-            </table>
+        
+        <!-- Grid Wadah Tim (Kolom per orang) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="teamTasksContainer">
+            <!-- Data di-inject JS -->
         </div>
     </div>
 
-    <!-- Baris 3: Kreator Task & Bank Konten -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Kreator Task (Deadline & Laporan) -->
-        <div class="card lg:col-span-2 flex flex-col">
-            <div class="flex items-center justify-between mb-4 border-b border-border pb-4">
-                <h2 class="text-lg font-semibold flex items-center gap-2 text-primary"><i class="ph ph-video-camera text-rose-500"></i> Kreator Konten</h2>
+    <!-- Baris 3: Kreator Task -->
+    <div class="mt-8">
+        <div class="card flex flex-col">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                <h2 class="text-xl font-extrabold flex items-center gap-2 text-primary"><i class="ph-fill ph-video-camera text-rose-500"></i> Divisi Kreator Konten</h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full mt-2">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full mt-2">
                 <!-- Kolom Target Deadline -->
                 <div>
-                    <h3 class="text-sm font-semibold text-muted mb-3 flex items-center gap-1"><i class="ph ph-calendar-blank text-slate-400"></i> Target Deadline</h3>
+                    <h3 class="text-sm font-bold text-slate-500 mb-4 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-calendar-blank text-slate-400"></i> Target Deadline</h3>
                     <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorTasksContainer"></div>
                 </div>
                 <!-- Kolom Laporan Kerja -->
                 <div>
-                    <h3 class="text-sm font-semibold text-muted mb-3 flex items-center gap-1"><i class="ph ph-files text-slate-400"></i> Laporan (2 Hari Terakhir)</h3>
+                    <h3 class="text-sm font-bold text-slate-500 mb-4 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-files text-slate-400"></i> Laporan (2 Hari Terakhir)</h3>
                     <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorReportsContainer"></div>
                 </div>
             </div>
         </div>
-
-        <!-- Bank Konten -->
-        <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold flex items-center gap-2 text-primary"><i class="ph ph-folder-notch-open text-amber-500"></i> Bank Konten</h2>
-            </div>
-            <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-300 rounded-lg bg-slate-50" id="bankKontenContainer">
-                <!-- Data di-inject JS (Fallback kosong) -->
-            </div>
-        </div>
-
     </div>
 </div>
 
@@ -193,7 +168,7 @@
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
 
     // ==========================================
-    // 1. DATA (Difilter: Hanya yg Belum Selesai & Urut Terbaru)
+    // 1. DATA (Sama seperti sebelumnya)
     // ==========================================
     const data = {
         jobdesk: [
@@ -201,14 +176,14 @@
             {"id": 2, "title": "Menanyakan jadwal prodak apa saja", "pic": "Nazma", "desc": "Menanyakan jadwal prodak hari ini ke admin"}, 
             {"id": 3, "title": "Memastikan barang sudah ada", "pic": "El", "desc": "Memastikan prodak sudah siap untuk di-content"}
         ],
-        // Task Desain: Belum selesai, Descending, ditambah parameter priority
+        // Task Desain: Belum selesai
         uncompleted_tasks: [
-            {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi", "priority": "urgent"}, // <--- Urgent buatan untuk test animasi
+            {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi", "priority": "urgent"},
             {"joCode": "EXTRA", "title": "DADAN TUGU INSURANCE", "assignee": "Nayla", "dateStr": "2026-09-10", "status": "Nunggu Revisi", "priority": "normal"}, 
             {"joCode": "EXTRA", "title": "A DADAN NICHI NICHI", "assignee": "Indah", "dateStr": "2026-09-10", "status": "Nunggu Revisi", "priority": "normal"}, 
             {"joCode": "EXTRA", "title": "DADAN BLIND BOX PLN", "assignee": "Nayla", "dateStr": "2026-09-09", "status": "Nunggu Revisi", "priority": "normal"}, 
             {"joCode": "EXTRA", "title": "HANI TAS BATIK", "assignee": "Nayla", "dateStr": "2026-09-09", "status": "Tinggal Layout", "priority": "normal"}, 
-            {"joCode": "EXTRA", "title": "Hani Labschool", "assignee": "Indah", "dateStr": "2026-09-09", "status": "Lagi Dikerjain", "priority": "urgent"}, // <--- Urgent buatan untuk test animasi
+            {"joCode": "EXTRA", "title": "Hani Labschool", "assignee": "Indah", "dateStr": "2026-09-09", "status": "Lagi Dikerjain", "priority": "urgent"}, 
             {"joCode": "EXTRA", "title": "HANI AMAZON", "assignee": "Indah", "dateStr": "2026-09-07", "status": "Tinggal Layout", "priority": "normal"}, 
             {"joCode": "EXTRA", "title": "HANI POLLY POCKER", "assignee": "Indah", "dateStr": "2026-09-07", "status": "Nunggu Revisi", "priority": "normal"},
             {"joCode": "EXTRA", "title": "A DADAN PELITA", "assignee": "Indah", "dateStr": "2026-09-03", "status": "Tinggal Layout", "priority": "normal"}, 
@@ -219,22 +194,24 @@
             {"joCode": "JO KAK TANIA", "title": "injourney", "assignee": "Nayla", "dateStr": "2026-08-10", "status": "Nunggu Revisi", "priority": "normal"},
             {"joCode": "EXTRA", "title": "HANI NOVO NORDISK", "assignee": "Indah", "dateStr": "2026-07-29", "status": "Nunggu Revisi", "priority": "normal"},
             {"joCode": "EXTRA", "title": "A DADAN PLN JABARDI", "assignee": "Indah", "dateStr": "2026-07-24", "status": "Nunggu Revisi", "priority": "normal"},
-            {"joCode": "EXTRA", "title": "DADAN FLUFFY LAB", "assignee": "Nayla", "dateStr": "2026-07-22", "status": "Nunggu Revisi", "priority": "normal"}
+            {"joCode": "EXTRA", "title": "DADAN FLUFFY LAB", "assignee": "Nayla", "dateStr": "2026-07-22", "status": "Nunggu Revisi", "priority": "normal"},
+            {"joCode": "EXTRA", "title": "DADAN BERTLING", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Nunggu Revisi", "priority": "normal"},
+            {"joCode": "JO KAK TANIA", "title": "DESAIN TAS LAPTOP", "assignee": "Tya", "dateStr": "2026-05-04", "status": "Nunggu Revisi", "priority": "urgent"},
+            {"joCode": "EXTRA", "title": "SALWA BRAXTON", "assignee": "Tya", "dateStr": "2026-05-06", "status": "Nunggu Revisi", "priority": "normal"},
+            {"joCode": "EXTRA", "title": "boneka in journey", "assignee": "Tya", "dateStr": "2026-05-26", "status": "Nunggu Revisi", "priority": "normal"},
         ],
         creator_tasks: [
             {"title": "Projek Internal Content", "client": "Internal", "targetDate": "2026-06-20"}, 
             {"title": "1. Tugu Insurance - Miniatur 3d", "client": "sania", "targetDate": "2026-09-12"}, 
             {"title": "wa 892 - 190 pcs gantungan & 200 notebook", "client": "sania", "targetDate": "2026-09-12"}
         ],
-        // Hanya memunculkan report 2 hari terakhir (12-09-2026)
         recent_reports: [
             {"name": "Elfrida", "dateStr": "12-09-2026", "task": "- Edit konten & story hampers InJourney\n- Take konten TikTok\n- Take video hampers PLN"}, 
             {"name": "Esa", "dateStr": "12-09-2026", "task": "- Take tumbler pertamina\n- Take konten tiktok\n- Edit revisi bookmark hmns\n- Edit konten vo pertamina"}
-        ],
-        bank_konten: []
+        ]
     };
 
-    // Fungsi Format Status Desain
+    // Helper Functions
     function getStatusBadge(status) {
         const s = status.toLowerCase();
         if (s.includes('final')) return `<span class="badge badge-final">Final</span>`;
@@ -243,13 +220,11 @@
         return `<span class="badge badge-pending">${status}</span>`;
     }
 
-    // Fungsi Deteksi Priority untuk Animasi Blinking
     function getPriorityBadge(priority) {
-        const p = (priority || "").toLowerCase();
-        if (p === 'urgent') {
-            return `<span class="urgent-blink uppercase"><i class="ph-fill ph-warning-circle mr-1"></i> URGENT</span>`;
+        if ((priority || "").toLowerCase() === 'urgent') {
+            return `<span class="urgent-blink uppercase"><i class="ph-fill ph-warning-circle"></i> URGENT</span>`;
         }
-        return `<span class="text-xs text-slate-400 uppercase font-medium">Normal</span>`;
+        return ``;
     }
 
     // ==========================================
@@ -257,75 +232,103 @@
     // ==========================================
     document.getElementById('jobdeskCount').innerText = data.jobdesk.length;
     const jobdeskHtml = data.jobdesk.map(item => `
-        <div class="flex items-start gap-3 p-3 bg-slate-50 border border-border rounded-lg hover:border-slate-300 transition-colors">
+        <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
             <div class="mt-0.5 text-blue-500"><i class="ph-fill ph-check-circle"></i></div>
             <div class="flex-1">
-                <p class="text-sm text-primary font-semibold leading-tight">${item.title}</p>
-                <p class="text-xs text-muted mt-1">${item.desc}</p>
+                <p class="text-sm text-primary font-bold leading-tight">${item.title}</p>
+                <p class="text-xs text-muted mt-1 font-medium">${item.desc}</p>
             </div>
-            <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-md shadow-sm">
-                <i class="ph ph-user text-muted text-xs"></i>
-                <span class="text-xs font-medium text-primary">${item.pic}</span>
+            <div class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
+                <span class="text-xs font-bold text-slate-700">${item.pic}</span>
             </div>
         </div>
     `).join('');
     document.getElementById('jobdeskContainer').innerHTML = jobdeskHtml;
 
     // ==========================================
-    // 3. RENDER TASK DESAIN (YANG BELUM SELESAI + URGENT BLINKING)
+    // 3. GROUPING TASK PER DESAINER & RENDER
     // ==========================================
-    const tasksHtml = data.uncompleted_tasks.map(task => `
-        <tr class="${task.priority?.toLowerCase() === 'urgent' ? 'bg-red-50/30' : ''}">
-            <td class="px-4">${getPriorityBadge(task.priority)}</td>
-            <td class="px-4"><span class="text-xs bg-slate-100 border border-slate-200 text-slate-600 px-2 py-1 rounded font-mono font-medium">${task.joCode}</span></td>
-            <td class="px-4 text-primary font-medium truncate max-w-[250px]" title="${task.title}">${task.title}</td>
-            <td class="px-4 text-muted capitalize font-medium">${task.assignee}</td>
-            <td class="px-4 text-slate-500 text-sm font-mono">${task.dateStr}</td>
-            <td class="px-4 text-right">${getStatusBadge(task.status)}</td>
-        </tr>
-    `).join('');
-    document.getElementById('allTasksContainer').innerHTML = tasksHtml;
+    // Proses pengelompokan data berdasarkan Assignee
+    const groupedTasks = data.uncompleted_tasks.reduce((acc, task) => {
+        const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
+        if(!acc[name]) acc[name] = [];
+        acc[name].push(task);
+        return acc;
+    }, {});
+
+    const teamContainer = document.getElementById('teamTasksContainer');
+    let teamHtml = '';
+
+    // Warna acak untuk avatar tiap user
+    const colors = ['bg-blue-100 text-blue-600', 'bg-emerald-100 text-emerald-600', 'bg-purple-100 text-purple-600', 'bg-orange-100 text-orange-600', 'bg-rose-100 text-rose-600'];
+    let colorIndex = 0;
+
+    for(const [assignee, tasks] of Object.entries(groupedTasks)) {
+        const avatarColor = colors[colorIndex % colors.length];
+        colorIndex++;
+
+        // Render card per desainer
+        teamHtml += `
+        <div class="card flex flex-col h-[400px]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="h-9 w-9 rounded-full ${avatarColor} flex items-center justify-center font-black text-lg">
+                        ${assignee.charAt(0)}
+                    </div>
+                    <h3 class="font-extrabold text-primary text-lg">${assignee}</h3>
+                </div>
+                <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-md border border-slate-200">${tasks.length} Task</span>
+            </div>
+            
+            <div class="overflow-y-auto pr-2 space-y-3 flex-1">
+                ${tasks.map(t => `
+                    <div class="p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-all ${t.priority?.toLowerCase() === 'urgent' ? 'bg-red-50/40 border-red-200' : 'bg-slate-50'}">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">${t.joCode}</span>
+                            ${getStatusBadge(t.status)}
+                        </div>
+                        <p class="text-sm font-bold text-primary leading-tight mb-2">${t.title}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-[10px] text-slate-400 font-bold font-mono"><i class="ph-bold ph-calendar-blank"></i> ${t.dateStr}</span>
+                            ${getPriorityBadge(t.priority)}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    }
+    teamContainer.innerHTML = teamHtml;
 
     // ==========================================
     // 4. RENDER KREATOR TASK & REPORT
     // ==========================================
     const cTaskHtml = data.creator_tasks.map(c => `
-        <div class="p-3 bg-white shadow-sm border-l-4 border-l-rose-400 border border-slate-200 rounded-lg">
-            <p class="text-sm font-semibold text-primary line-clamp-2">${c.title}</p>
-            <div class="flex items-center justify-between mt-2 text-xs">
-                <span class="text-muted font-medium"><i class="ph ph-user mr-1"></i>${c.client}</span>
-                <span class="text-rose-500 font-mono font-semibold"><i class="ph ph-clock mr-1"></i>${c.targetDate}</span>
+        <div class="p-3.5 bg-white shadow-sm border-l-4 border-l-rose-400 border border-slate-200 rounded-lg">
+            <p class="text-sm font-bold text-primary line-clamp-2">${c.title}</p>
+            <div class="flex items-center justify-between mt-3 text-xs">
+                <span class="text-muted font-bold bg-slate-100 px-2 py-1 rounded"><i class="ph-bold ph-user mr-1"></i>${c.client}</span>
+                <span class="text-rose-600 font-mono font-bold"><i class="ph-bold ph-clock mr-1"></i>${c.targetDate}</span>
             </div>
         </div>
     `).join('');
     document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
 
     const cReportHtml = data.recent_reports.map(r => `
-        <div class="p-4 bg-slate-50 border border-border rounded-lg relative overflow-hidden">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg relative overflow-hidden">
             <div class="absolute top-0 right-0 p-2 opacity-5"><i class="ph-fill ph-quotes text-5xl text-slate-800"></i></div>
-            <div class="flex items-center gap-2 mb-3">
-                <div class="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">${r.name.charAt(0)}</div>
-                <span class="text-sm font-bold text-primary">${r.name}</span>
-                <span class="text-[10px] text-muted font-mono ml-auto bg-slate-200 px-2 py-0.5 rounded">${r.dateStr}</span>
+            <div class="flex items-center gap-3 mb-3 border-b border-slate-200 pb-2">
+                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black text-white shadow">${r.name.charAt(0)}</div>
+                <span class="text-sm font-extrabold text-primary">${r.name}</span>
+                <span class="text-[10px] text-muted font-mono ml-auto bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">${r.dateStr}</span>
             </div>
-            <div class="text-xs text-slate-600 whitespace-pre-line leading-relaxed pl-9 font-medium">${r.task}</div>
+            <div class="text-xs text-slate-600 whitespace-pre-line leading-relaxed font-semibold pl-1">${r.task}</div>
         </div>
     `).join('');
     document.getElementById('creatorReportsContainer').innerHTML = cReportHtml;
 
     // ==========================================
-    // 5. RENDER BANK KONTEN
-    // ==========================================
-    if (data.bank_konten.length === 0) {
-        document.getElementById('bankKontenContainer').innerHTML = `
-            <i class="ph ph-folder-dashed text-4xl text-slate-300 mb-3"></i>
-            <p class="text-sm text-slate-500 font-semibold">Bank Konten Kosong</p>
-            <p class="text-xs text-slate-400 mt-1">Belum ada link atau aset yang ditambahkan.</p>
-        `;
-    }
-
-    // ==========================================
-    // 6. INIT CHART.JS (Light Mode Theme)
+    // 5. INIT CHART.JS 
     // ==========================================
     const ctx = document.getElementById('productivityChart').getContext('2d');
     
@@ -333,8 +336,9 @@
     const designTrend = [1, 5, 2, 6, 2, 5, 5, 2, 3];
     const contentTrend = [0, 0, 0, 0, 0, 0, 0, 0, 4];
 
-    Chart.defaults.color = '#64748b'; // Teks abu-abu
+    Chart.defaults.color = '#64748b'; 
     Chart.defaults.font.family = 'Inter';
+    Chart.defaults.font.weight = '600';
 
     new Chart(ctx, {
         type: 'line',
@@ -344,26 +348,28 @@
                 {
                     label: 'Project Desain',
                     data: designTrend,
-                    borderColor: '#3b82f6', // Biru terang
+                    borderColor: '#3b82f6', 
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4,
                     fill: true,
                     pointBackgroundColor: '#ffffff',
                     pointBorderColor: '#3b82f6',
-                    pointBorderWidth: 2
+                    pointBorderWidth: 2,
+                    pointRadius: 4
                 },
                 {
                     label: 'Project Konten',
                     data: contentTrend,
-                    borderColor: '#10b981',  // Hijau terang
+                    borderColor: '#10b981',  
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4,
                     fill: true,
                     pointBackgroundColor: '#ffffff',
                     pointBorderColor: '#10b981',
-                    pointBorderWidth: 2
+                    pointBorderWidth: 2,
+                    pointRadius: 4
                 }
             ]
         },
@@ -372,8 +378,8 @@
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true, color: '#0f172a' } },
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1' }
+                legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true, color: '#0f172a', font: { weight: 'bold' } } },
+                tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 10, cornerRadius: 8 }
             },
             scales: {
                 y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
