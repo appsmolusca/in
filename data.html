@@ -1,177 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Molusca | Clean Modern</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Phosphor Icons (Ikon minimalis) -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#09090b', // Hitam pekat modern
-                        surface: '#18181b',    // Abu-abu gelap
-                        border: '#27272a',     // Border tipis
-                        primary: '#ededed',    // Putih text utama
-                        muted: '#a1a1aa'       // Abu-abu text sekunder
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { background-color: #09090b; color: #ededed; font-family: 'Inter', sans-serif; }
-        
-        /* Custom Scrollbar Minimalis */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
-
-        .card {
-            background-color: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .badge {
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            text-transform: capitalize;
-        }
-        .badge-final { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
-        .badge-process { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
-        
-        th { color: #a1a1aa; font-weight: 500; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding-bottom: 0.75rem; border-bottom: 1px solid #27272a; }
-        td { padding: 0.875rem 0; border-bottom: 1px solid #27272a; font-size: 0.875rem; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
-    </style>
-</head>
-<body class="antialiased selection:bg-zinc-800">
-
-<div class="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-    
-    <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-        <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-white flex items-center gap-2">
-                <i class="ph ph-command"></i> Molusca Workspace
-            </h1>
-            <p class="text-sm text-muted mt-1">Dashboard overview operasional tim desain & kreator.</p>
-        </div>
-        <div class="flex items-center gap-3 bg-surface border border-border px-4 py-2 rounded-full text-sm">
-            <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-            <span class="text-muted" id="currentDate">Memuat tanggal...</span>
-        </div>
-    </header>
-
-    <!-- Baris 1: Kurva & Jobdesk -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Chart -->
-        <div class="card lg:col-span-2 flex flex-col">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-trend-up text-muted"></i> Produktivitas Project</h2>
-            </div>
-            <div class="relative flex-1 min-h-[250px] w-full">
-                <canvas id="productivityChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Jobdesk (To-Do) -->
-        <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-check-square text-muted"></i> Jobdesk (To-Do)</h2>
-                <span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded-md" id="jobdeskCount">0</span>
-            </div>
-            <div class="space-y-3 overflow-y-auto max-h-[250px] pr-2" id="jobdeskContainer">
-                <!-- Data di-inject JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Baris 2: Semua Task Desain -->
-    <div class="card">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-paint-brush-broad text-muted"></i> Semua Task Desain</h2>
-            <div class="text-xs text-muted border border-border px-3 py-1.5 rounded-lg">Scroll untuk melihat semua</div>
-        </div>
-        <div class="overflow-x-auto overflow-y-auto max-h-[400px] border border-border rounded-lg relative">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-                <thead class="bg-zinc-900/90 backdrop-blur-sm sticky top-0 z-10">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">JO Code</th>
-                        <th class="px-4 py-3 font-medium">Judul Project</th>
-                        <th class="px-4 py-3 font-medium">Assignee</th>
-                        <th class="px-4 py-3 font-medium">Tanggal</th>
-                        <th class="px-4 py-3 font-medium text-right">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="allTasksContainer" class="px-4">
-                    <!-- Data di-inject JS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Baris 3: Kreator Task & Bank Konten -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Kreator Task (Deadline & Laporan) -->
-        <div class="card lg:col-span-2 flex flex-col">
-            <div class="flex items-center justify-between mb-4 border-b border-border pb-4">
-                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-video-camera text-muted"></i> Kreator Konten</h2>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-                <!-- Kolom Target Deadline -->
-                <div>
-                    <h3 class="text-sm font-medium text-muted mb-3 flex items-center gap-1"><i class="ph ph-calendar-blank"></i> Target / Deadline</h3>
-                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorTasksContainer"></div>
-                </div>
-                <!-- Kolom Laporan Kerja -->
-                <div>
-                    <h3 class="text-sm font-medium text-muted mb-3 flex items-center gap-1"><i class="ph ph-files"></i> Laporan Harian</h3>
-                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorReportsContainer"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bank Konten -->
-        <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-folder-notch-open text-muted"></i> Bank Konten</h2>
-            </div>
-            <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-lg bg-zinc-900/50" id="bankKontenContainer">
-                <!-- Data di-inject JS (Fallback kosong) -->
-            </div>
-        </div>
-
-    </div>
-</div>
-
 <script>
     // Set Tanggal Hari Ini
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
 
     // ==========================================
-    // 1. DATA (Hasil Ekstrak dari Excel)
+    // 1. DATA (Difilter: Hanya yg Belum Selesai & Urut Terbaru)
     // ==========================================
     const data = {
         jobdesk: [
@@ -179,39 +12,69 @@
             {"id": 2, "title": "menanyakan jadwal prodak apa saja", "pic": "Nazma", "desc": "menanyakan jadwal prodak hari ini ke admint", "status": "To-Do"}, 
             {"id": 3, "title": "memastikan barang sudah ada", "pic": "El", "desc": "memastikan ke nazma prodak prodaknya sudah ada semua untuk di content", "status": "To-Do"}
         ],
-        // Sample data Tasks (Diambil ~20 baris terbaru/representatif untuk performa UI, namun Anda bisa melooping ratusan data disini)
-        tasks: [
-            {"joCode": "JO SANIA", "title": "BRI", "assignee": "dadan", "dateStr": "2026-09-03", "status": "final"}, 
-            {"joCode": "EXTRA", "title": "HANI SAMPLE BONEKA", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Final"}, 
-            {"joCode": "EXTRA", "title": "A Dadan Hajatan Punggawa", "assignee": "Indah", "dateStr": "2026-04-24", "status": "Final"},
-            {"joCode": "EXTRA", "title": "DADAN BERTLING", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Nunggu Revisi"},
-            {"joCode": "EXTRA", "title": "Kak Tania model tas Liam", "assignee": "Indah", "dateStr": "2026-04-24", "status": "Final"},
-            {"joCode": "WA SANIA", "title": "Trimitra", "assignee": "Nayla", "dateStr": "2026-04-24", "status": "Final"},
-            {"joCode": "JO SANIA", "title": "desain tema lapangan bola", "assignee": "Nayla", "dateStr": "2026-04-25", "status": "Final"},
-            {"joCode": "JO KAK TANIA", "title": "KOMUNITAS MENGGAMBAR", "assignee": "Indah", "dateStr": "2026-05-04", "status": "Lagi Dikerjain"},
-            {"joCode": "JO SANIA", "title": "PELNI", "assignee": "Indah", "dateStr": "2026-05-06", "status": "Final"},
+        // Task Desain: Difilter yang BUKAN Final, diurutkan dari terbaru (September 2026 ke belakang)
+        uncompleted_tasks: [
+            {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "DADAN TUGU INSURANCE", "assignee": "Nayla", "dateStr": "2026-09-10", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "A DADAN NICHI NICHI", "assignee": "Indah", "dateStr": "2026-09-10", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "DADAN PLAKAT", "assignee": "Nayla", "dateStr": "2026-09-10", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "DADAN BLIND BOX PLN", "assignee": "Nayla", "dateStr": "2026-09-09", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "HANI TAS BATIK", "assignee": "Nayla", "dateStr": "2026-09-09", "status": "Tinggal Layout"}, 
+            {"joCode": "EXTRA", "title": "Hani Labschool", "assignee": "Indah", "dateStr": "2026-09-09", "status": "Lagi Dikerjain"}, 
+            {"joCode": "EXTRA", "title": "HANI AMAZON", "assignee": "Indah", "dateStr": "2026-09-07", "status": "Tinggal Layout"}, 
+            {"joCode": "EXTRA", "title": "HANI POLLY POCKER", "assignee": "Indah", "dateStr": "2026-09-07", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "DADAN MERATUS", "assignee": "Nayla", "dateStr": "2026-09-07", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "HANI TAS LITTLE STARLIGHT", "assignee": "Indah", "dateStr": "2026-09-07", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "A DADAN PELITA", "assignee": "Indah", "dateStr": "2026-09-03", "status": "Tinggal Layout"}, 
+            {"joCode": "EXTRA", "title": "A DADAN PLN LEGO", "assignee": "Indah", "dateStr": "2026-09-03", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "A DADAN STICKER NAMA", "assignee": "Indah", "dateStr": "2026-08-29", "status": "Nunggu Revisi"}, 
+            {"joCode": "EXTRA", "title": "A DADAN HULU MIGAS", "assignee": "Indah", "dateStr": "2026-08-27", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "A DADAN BTN", "assignee": "Indah", "dateStr": "2026-08-26", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "A DADAN SATYA JKN", "assignee": "Indah", "dateStr": "2026-08-24", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI WM", "assignee": "Nayla", "dateStr": "2026-08-18", "status": "Tinggal Layout"},
+            {"joCode": "EXTRA", "title": "HANI TAS LILIAN BORDIR", "assignee": "Indah", "dateStr": "2026-08-15", "status": "Nunggu Revisi"},
+            {"joCode": "JO KAK TANIA", "title": "injourney", "assignee": "Nayla", "dateStr": "2026-08-10", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI NOVO NORDISK", "assignee": "Indah", "dateStr": "2026-07-29", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN BALE BTN", "assignee": "Nayla", "dateStr": "2026-07-28", "status": "Tinggal Layout"},
+            {"joCode": "EXTRA", "title": "A DADAN PLN JABARDI", "assignee": "Indah", "dateStr": "2026-07-24", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN FLUFFY LAB", "assignee": "Nayla", "dateStr": "2026-07-22", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN INJOURNEY", "assignee": "Nayla", "dateStr": "2026-07-20", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN APM", "assignee": "Nayla", "dateStr": "2026-07-14", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI FAMILY DAY", "assignee": "Nayla", "dateStr": "2026-07-10", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "KAK TANIA TEPOKAN E-MONEY HOKBEN", "assignee": "Indah", "dateStr": "2026-07-07", "status": "Tinggal Layout"},
+            {"joCode": "EXTRA", "title": "DADAN BONEKA MY PERTAMINA", "assignee": "Nayla", "dateStr": "2026-07-06", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI BONEKA BATIC", "assignee": "Indah", "dateStr": "2026-06-25", "status": "Tinggal Layout"},
+            {"joCode": "EXTRA", "title": "A DADAN POUCH SERUT STP", "assignee": "Indah", "dateStr": "2026-06-18", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN PLN", "assignee": "Nayla", "dateStr": "2026-06-05", "status": "Nunggu Revisi"},
+            {"joCode": "JO KAK TANIA", "title": "dummy rinso", "assignee": "Tya", "dateStr": "2026-06-05", "status": "Lagi Dikerjain"},
+            {"joCode": "JO KAK TANIA", "title": "pertalife", "assignee": "Tya", "dateStr": "2026-06-03", "status": "Lagi Dikerjain"},
+            {"joCode": "EXTRA", "title": "DADAN PERTALIFE", "assignee": "Nayla", "dateStr": "2026-06-03", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "AKSESORIS BONEKA KARTIKA SARI", "assignee": "Indah", "dateStr": "2026-05-30", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "boneka in journey", "assignee": "Tya", "dateStr": "2026-05-26", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "tiket.com", "assignee": "Tya", "dateStr": "2026-05-25", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "KAK HANI BACKPACK", "assignee": "Tya", "dateStr": "2026-05-21", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI ACTIVITY BOOK", "assignee": "Tya", "dateStr": "2026-05-06", "status": "Nunggu Revisi"},
             {"joCode": "EXTRA", "title": "SALWA BRAXTON", "assignee": "Tya", "dateStr": "2026-05-06", "status": "Nunggu Revisi"},
-            {"joCode": "EXTRA", "title": "DADAN KEMENKES", "assignee": "Nayla", "dateStr": "2026-06-29", "status": "Final"},
-            {"joCode": "EXTRA", "title": "HANI PMP", "assignee": "Indah", "dateStr": "2026-07-24", "status": "Final"},
-            {"joCode": "JO KAK TANIA", "title": "btn", "assignee": "Indah", "dateStr": "2026-08-11", "status": "Final"},
-            {"joCode": "EXTRA", "title": "DADAN MERATUS", "assignee": "Nayla", "dateStr": "2026-09-07", "status": "Nunggu Revisi"},
-            {"joCode": "EXTRA", "title": "Hani Labschool", "assignee": "Indah", "dateStr": "2026-09-09", "status": "Lagi Dikerjain"},
-            {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi"},
-            {"joCode": "EXTRA", "title": "HANI TUMBLER WAS3", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Final"}
+            {"joCode": "JO KAK TANIA", "title": "DESAIN TAS LAPTOP KOMUNITAS MENGGAR DIGITAL", "assignee": "Tya", "dateStr": "2026-05-04", "status": "Nunggu Revisi"},
+            {"joCode": "KAK TANIA", "title": "Gendhis’ Picnic Club", "assignee": "Indah", "dateStr": "2026-05-04", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN KOMUNITAS DIGITAL", "assignee": "Nayla", "dateStr": "2026-05-04", "status": "Nunggu Revisi"},
+            {"joCode": "WA SANIA", "title": "keyboard custom", "assignee": "Indah", "dateStr": "2026-04-28", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN BERTLING", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Nunggu Revisi"}
         ],
         creator_tasks: [
             {"title": "Projek Internal Content", "client": "Internal", "targetDate": "2026-06-20"}, 
             {"title": "1. Tugu Insurance - Miniatur 3d", "client": "sania", "targetDate": "2026-09-12"}, 
             {"title": "wa 892 - 190 pcs gantungan & 200 notebook", "client": "sania", "targetDate": "2026-09-12"}
         ],
-        creator_reports: [
-            {"name": "Elfrida", "dateStr": "2026-09-12", "task": "- Edit konten & story hampers InJourney Green\n- Edit konten tas tumbler\n- Take konten TikTok\n- Take video hampers PLN\n- Take video keychain Pelita"}, 
-            {"name": "Esa", "dateStr": "2026-09-12", "task": "- take tumbler pertamina\n- take konten tiktok\n- take e-money PLN\n- edit konten mockup vs result"}
+        // Hanya memunculkan report 2 hari terakhir (12-09-2026 ditarik dari DB)
+        recent_reports: [
+            {"name": "Elfrida", "dateStr": "12-09-2026", "task": "- Edit konten dan story hampers set InJourney Green\n- Edit konten dan story tas tumbler crinkle\n- Take konten TikTok\n- Take video hampers set PLN\n- Take video keychain Pelita"}, 
+            {"name": "Esa", "dateStr": "12-09-2026", "task": "- Take tumbler pertamina\n- Take konten tiktok\n- Take e-money PLN\n- Edit revisi bookmark hmns\n- Edit konten vo pertamina"}
         ],
-        bank_konten: [] // Kosong sesuai data sheet
+        bank_konten: []
     };
 
-    // Fungsi Format Status
+    // Fungsi Format Status 
     function getStatusBadge(status) {
         const s = status.toLowerCase();
         if (s.includes('final')) return `<span class="badge badge-final">Final</span>`;
@@ -240,9 +103,9 @@
     document.getElementById('jobdeskContainer').innerHTML = jobdeskHtml;
 
     // ==========================================
-    // 3. RENDER SEMUA TASK DESAIN
+    // 3. RENDER TASK DESAIN (YANG BELUM SELESAI SAJA)
     // ==========================================
-    const tasksHtml = data.tasks.map(task => `
+    const tasksHtml = data.uncompleted_tasks.map(task => `
         <tr>
             <td class="px-4"><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded font-mono">${task.joCode}</span></td>
             <td class="px-4 text-primary font-medium truncate max-w-[250px]" title="${task.title}">${task.title}</td>
@@ -251,7 +114,11 @@
             <td class="px-4 text-right">${getStatusBadge(task.status)}</td>
         </tr>
     `).join('');
+    
+    // Pastikan di HTML kamu elemen <tbody id="allTasksContainer"> ID nya tidak berubah
     document.getElementById('allTasksContainer').innerHTML = tasksHtml;
+    // Ubah Judul Tabel di HTML-nya agar nyambung
+    document.querySelector('.ph-paint-brush-broad').nextSibling.nodeValue = " Task Desain (Belum Selesai)";
 
     // ==========================================
     // 4. RENDER KREATOR TASK & REPORT
@@ -267,7 +134,7 @@
     `).join('');
     document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
 
-    const cReportHtml = data.creator_reports.map(r => `
+    const cReportHtml = data.recent_reports.map(r => `
         <div class="p-3 bg-zinc-900 border border-border rounded-lg relative overflow-hidden">
             <div class="absolute top-0 right-0 p-2 opacity-10"><i class="ph ph-quotes text-4xl"></i></div>
             <div class="flex items-center gap-2 mb-2">
@@ -292,11 +159,10 @@
     }
 
     // ==========================================
-    // 6. INIT CHART.JS (Dark Mode Theme)
+    // 6. INIT CHART.JS 
     // ==========================================
     const ctx = document.getElementById('productivityChart').getContext('2d');
     
-    // Data Dummy Trend (Asumsikan hasil rekap data harian)
     const chartLabels = ["2 Sep", "3 Sep", "4 Sep", "7 Sep", "8 Sep", "9 Sep", "10 Sep", "11 Sep", "12 Sep"];
     const designTrend = [1, 5, 2, 6, 2, 5, 5, 2, 3];
     const contentTrend = [0, 0, 0, 0, 0, 0, 0, 0, 4];
@@ -324,7 +190,7 @@
                 {
                     label: 'Project Konten',
                     data: contentTrend,
-                    borderColor: '#10b981', // Emerald
+                    borderColor: '#10b981', 
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
@@ -350,5 +216,3 @@
         }
     });
 </script>
-</body>
-</html>
