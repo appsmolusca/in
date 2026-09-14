@@ -3,290 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Tim Kreatif Molusca</title>
-    <!-- Tailwind CSS untuk responsivitas -->
+    <title>Dashboard Molusca | Clean Modern</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js untuk kurva grafik -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome untuk ikon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Phosphor Icons (Ikon minimalis) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b', // Hitam pekat modern
+                        surface: '#18181b',    // Abu-abu gelap
+                        border: '#27272a',     // Border tipis
+                        primary: '#ededed',    // Putih text utama
+                        muted: '#a1a1aa'       // Abu-abu text sekunder
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #000000; /* Layar hitam */
-            color: #ffffff; 
-        }
-        .card { 
-            background: #111111; 
-            border-radius: 1rem; 
-            padding: 1.5rem; 
-            border: 1px solid #333; 
-        }
-        /* Desain kamera/avatar bulat */
-        .avatar { 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 50%; 
-            background: #3b82f6; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-            font-weight: bold; 
-            font-size: 14px; 
-        }
-        th { background-color: #1f2937 !important; color: #9ca3af !important; border-bottom: 1px solid #374151; }
-        td { border-bottom: 1px solid #1f2937; padding: 0.75rem 1rem; color: #d1d5db; }
-        tr:hover td { background-color: #1a1a1a; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { background-color: #09090b; color: #ededed; font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar Minimalis */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        .card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .badge {
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        .badge-final { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-process { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        
+        th { color: #a1a1aa; font-weight: 500; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding-bottom: 0.75rem; border-bottom: 1px solid #27272a; }
+        td { padding: 0.875rem 0; border-bottom: 1px solid #27272a; font-size: 0.875rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-zinc-800">
 
-<div class="container mx-auto p-4 max-w-7xl">
+<div class="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+    
     <!-- Header -->
-    <div class="mb-8 text-center md:text-left mt-4">
-        <h1 class="text-3xl md:text-4xl font-bold text-blue-500"><i class="fas fa-fire mr-2"></i>Dashboard Molusca</h1>
-        <p class="text-gray-400 mt-2">Overview Tim Kreatif, Project Desain & Konten</p>
-    </div>
-
-    <!-- Kurva Peningkatan -->
-    <div class="card mb-8">
-        <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-chart-line mr-2"></i>Kurva Peningkatan Project</h2>
-        <div class="relative h-72 w-full">
-            <canvas id="projectChart"></canvas>
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight text-white flex items-center gap-2">
+                <i class="ph ph-command"></i> Molusca Workspace
+            </h1>
+            <p class="text-sm text-muted mt-1">Dashboard overview operasional tim desain & kreator.</p>
         </div>
-    </div>
+        <div class="flex items-center gap-3 bg-surface border border-border px-4 py-2 rounded-full text-sm">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span class="text-muted" id="currentDate">Memuat tanggal...</span>
+        </div>
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- 1. Data Tim & Pekerjaan -->
-        <div class="card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-users mr-2"></i>Tim Kreatif & Role</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-left">
-                    <thead class="text-xs uppercase">
-                        <tr>
-                            <th class="px-4 py-3 rounded-tl-lg">Nama</th>
-                            <th class="px-4 py-3 rounded-tr-lg">Role / Pekerjaan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userTable">
-                        <!-- Disuntikkan lewat JS -->
-                    </tbody>
-                </table>
+    <!-- Baris 1: Kurva & Jobdesk -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Chart -->
+        <div class="card lg:col-span-2 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-trend-up text-muted"></i> Produktivitas Project</h2>
+            </div>
+            <div class="relative flex-1 min-h-[250px] w-full">
+                <canvas id="productivityChart"></canvas>
             </div>
         </div>
 
-        <!-- 2. Data Sakit/Izin -->
-        <div class="card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-file-medical mr-2"></i>Data Izin & Sakit</h2>
-            <div id="izinContainer" class="p-4 bg-green-900 bg-opacity-20 text-green-400 rounded-lg border border-green-800 flex items-center">
-                <i class="fas fa-check-circle text-3xl mr-4"></i>
-                <div>
-                    <p class="font-bold text-lg">Nihil</p>
-                    <p class="text-sm mt-1">Saat ini tidak ada anggota tim yang sakit atau izin. Semuanya sehat dan siap gaskeun!</p>
-                </div>
+        <!-- Jobdesk (To-Do) -->
+        <div class="card flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-check-square text-muted"></i> Jobdesk (To-Do)</h2>
+                <span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded-md" id="jobdeskCount">0</span>
+            </div>
+            <div class="space-y-3 overflow-y-auto max-h-[250px] pr-2" id="jobdeskContainer">
+                <!-- Data di-inject JS -->
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- 3. Kumpulan Project Desain -->
-        <div class="card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-paint-brush mr-2"></i>Kumpulan Project Desain</h2>
-            <div class="overflow-y-auto max-h-96 pr-2">
-                <table class="min-w-full text-sm text-left">
-                    <thead class="text-xs uppercase sticky top-0">
-                        <tr>
-                            <th class="px-4 py-3">Project</th>
-                            <th class="px-4 py-3">Assignee</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="designTable">
-                        <!-- Disuntikkan lewat JS -->
-                    </tbody>
-                </table>
-            </div>
+    <!-- Baris 2: Semua Task Desain -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-paint-brush-broad text-muted"></i> Semua Task Desain</h2>
+            <div class="text-xs text-muted border border-border px-3 py-1.5 rounded-lg">Scroll untuk melihat semua</div>
         </div>
+        <div class="overflow-x-auto overflow-y-auto max-h-[400px] border border-border rounded-lg relative">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead class="bg-zinc-900/90 backdrop-blur-sm sticky top-0 z-10">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">JO Code</th>
+                        <th class="px-4 py-3 font-medium">Judul Project</th>
+                        <th class="px-4 py-3 font-medium">Assignee</th>
+                        <th class="px-4 py-3 font-medium">Tanggal</th>
+                        <th class="px-4 py-3 font-medium text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="allTasksContainer" class="px-4">
+                    <!-- Data di-inject JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        <!-- 4. Deadline Konten Kreator & Task -->
-        <div class="flex flex-col gap-6">
-            <div class="card flex-1">
-                <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-calendar-alt mr-2"></i>Deadline Konten</h2>
-                <div class="overflow-y-auto max-h-48 pr-2 mb-4">
-                    <table class="min-w-full text-sm text-left">
-                        <thead class="text-xs uppercase sticky top-0">
-                            <tr>
-                                <th class="px-4 py-3">Tugas / Klien</th>
-                                <th class="px-4 py-3">Deadline</th>
-                            </tr>
-                        </thead>
-                        <tbody id="deadlineTable">
-                            <!-- Disuntikkan lewat JS -->
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Baris 3: Kreator Task & Bank Konten -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Kreator Task (Deadline & Laporan) -->
+        <div class="card lg:col-span-2 flex flex-col">
+            <div class="flex items-center justify-between mb-4 border-b border-border pb-4">
+                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-video-camera text-muted"></i> Kreator Konten</h2>
             </div>
             
-            <div class="card flex-1">
-                <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-tasks mr-2"></i>Log Pekerjaan Kreator</h2>
-                <div class="space-y-4 overflow-y-auto max-h-48 pr-2" id="reportContainer">
-                    <!-- Disuntikkan lewat JS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                <!-- Kolom Target Deadline -->
+                <div>
+                    <h3 class="text-sm font-medium text-muted mb-3 flex items-center gap-1"><i class="ph ph-calendar-blank"></i> Target / Deadline</h3>
+                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorTasksContainer"></div>
+                </div>
+                <!-- Kolom Laporan Kerja -->
+                <div>
+                    <h3 class="text-sm font-medium text-muted mb-3 flex items-center gap-1"><i class="ph ph-files"></i> Laporan Harian</h3>
+                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorReportsContainer"></div>
                 </div>
             </div>
         </div>
+
+        <!-- Bank Konten -->
+        <div class="card flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-medium flex items-center gap-2"><i class="ph ph-folder-notch-open text-muted"></i> Bank Konten</h2>
+            </div>
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-lg bg-zinc-900/50" id="bankKontenContainer">
+                <!-- Data di-inject JS (Fallback kosong) -->
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // Data Diekstrak dari Data.xlsx
-    const usersData = [
-        {"name": "admin", "role": "admin"},
-        {"name": "Dadan", "role": "desainer"},
-        {"name": "Indah", "role": "desainer"},
-        {"name": "Nayla", "role": "desainer"},
-        {"name": "Elfrida", "role": "konten"},
-        {"name": "Esa", "role": "konten"},
-        {"name": "Taufik", "role": "konten"},
-        {"name": "Nazma", "role": "konten"}
-    ];
-    
-    const designProjectsData = [
-        {"title": "BRI", "assignee": "dadan", "status": "final"},
-        {"title": "HANI SAMPLE BONEKA", "assignee": "Tya", "status": "Final"},
-        {"title": "A Dadan Hajatan Punggawa", "assignee": "Indah", "status": "Final"},
-        {"title": "AMEL KEYCHAIN E MONEY", "assignee": "Tya", "status": "Final"},
-        {"title": "HANI FOLDABLE BAG KIS", "assignee": "Nayla", "status": "Final"},
-        {"title": "bank mandiri", "assignee": "Tya", "status": "Final"},
-        {"title": "HANI SAMPLE SLEEVE LAPTOP", "assignee": "Tya", "status": "Final"},
-        {"title": "DADAN HAMPERS ISUZU", "assignee": "Nayla", "status": "Final"},
-        {"title": "DADAN SEFAS SLEEVE LAPTOP", "assignee": "Tya", "status": "Final"},
-        {"title": "DADAN HAMPERS MY PERTAMINA", "assignee": "Nayla", "status": "Final"},
-        {"title": "DADAN BERTLING", "assignee": "Tya", "status": "Nunggu Revisi"},
-        {"title": "DADAN HAMPERS TELKOM", "assignee": "Nayla", "status": "Final"},
-        {"title": "DADAN MIND ID", "assignee": "Tya", "status": "Final"},
-        {"title": "DADAM HNMS", "assignee": "Tya", "status": "Final"},
-        {"title": "HANI SPEAKER KINO", "assignee": "Nayla", "status": "Final"}
-    ];
+    // Set Tanggal Hari Ini
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
 
-    const contentDeadlinesData = [
-        {"title": "Tugu Insurance wa 4110 14 set - Miniatur 3d", "targetDate": "2026-09-12"},
-        {"title": "wa 892 - 190 pcs gantungan & 200 pcs notebook", "targetDate": "2026-09-12"},
-        {"title": "Projek sdfdsf (sfsdf)", "targetDate": "2026-06-20"}
-    ];
+    // ==========================================
+    // 1. DATA (Hasil Ekstrak dari Excel)
+    // ==========================================
+    const data = {
+        jobdesk: [
+            {"id": 1, "title": "memastikan barang sudah di take semua", "pic": "Esa", "desc": "memastikan tidak ada futech tertinggal", "status": "To-Do"}, 
+            {"id": 2, "title": "menanyakan jadwal prodak apa saja", "pic": "Nazma", "desc": "menanyakan jadwal prodak hari ini ke admint", "status": "To-Do"}, 
+            {"id": 3, "title": "memastikan barang sudah ada", "pic": "El", "desc": "memastikan ke nazma prodak prodaknya sudah ada semua untuk di content", "status": "To-Do"}
+        ],
+        // Sample data Tasks (Diambil ~20 baris terbaru/representatif untuk performa UI, namun Anda bisa melooping ratusan data disini)
+        tasks: [
+            {"joCode": "JO SANIA", "title": "BRI", "assignee": "dadan", "dateStr": "2026-09-03", "status": "final"}, 
+            {"joCode": "EXTRA", "title": "HANI SAMPLE BONEKA", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Final"}, 
+            {"joCode": "EXTRA", "title": "A Dadan Hajatan Punggawa", "assignee": "Indah", "dateStr": "2026-04-24", "status": "Final"},
+            {"joCode": "EXTRA", "title": "DADAN BERTLING", "assignee": "Tya", "dateStr": "2026-04-24", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "Kak Tania model tas Liam", "assignee": "Indah", "dateStr": "2026-04-24", "status": "Final"},
+            {"joCode": "WA SANIA", "title": "Trimitra", "assignee": "Nayla", "dateStr": "2026-04-24", "status": "Final"},
+            {"joCode": "JO SANIA", "title": "desain tema lapangan bola", "assignee": "Nayla", "dateStr": "2026-04-25", "status": "Final"},
+            {"joCode": "JO KAK TANIA", "title": "KOMUNITAS MENGGAMBAR", "assignee": "Indah", "dateStr": "2026-05-04", "status": "Lagi Dikerjain"},
+            {"joCode": "JO SANIA", "title": "PELNI", "assignee": "Indah", "dateStr": "2026-05-06", "status": "Final"},
+            {"joCode": "EXTRA", "title": "SALWA BRAXTON", "assignee": "Tya", "dateStr": "2026-05-06", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "DADAN KEMENKES", "assignee": "Nayla", "dateStr": "2026-06-29", "status": "Final"},
+            {"joCode": "EXTRA", "title": "HANI PMP", "assignee": "Indah", "dateStr": "2026-07-24", "status": "Final"},
+            {"joCode": "JO KAK TANIA", "title": "btn", "assignee": "Indah", "dateStr": "2026-08-11", "status": "Final"},
+            {"joCode": "EXTRA", "title": "DADAN MERATUS", "assignee": "Nayla", "dateStr": "2026-09-07", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "Hani Labschool", "assignee": "Indah", "dateStr": "2026-09-09", "status": "Lagi Dikerjain"},
+            {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi"},
+            {"joCode": "EXTRA", "title": "HANI TUMBLER WAS3", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Final"}
+        ],
+        creator_tasks: [
+            {"title": "Projek Internal Content", "client": "Internal", "targetDate": "2026-06-20"}, 
+            {"title": "1. Tugu Insurance - Miniatur 3d", "client": "sania", "targetDate": "2026-09-12"}, 
+            {"title": "wa 892 - 190 pcs gantungan & 200 notebook", "client": "sania", "targetDate": "2026-09-12"}
+        ],
+        creator_reports: [
+            {"name": "Elfrida", "dateStr": "2026-09-12", "task": "- Edit konten & story hampers InJourney Green\n- Edit konten tas tumbler\n- Take konten TikTok\n- Take video hampers PLN\n- Take video keychain Pelita"}, 
+            {"name": "Esa", "dateStr": "2026-09-12", "task": "- take tumbler pertamina\n- take konten tiktok\n- take e-money PLN\n- edit konten mockup vs result"}
+        ],
+        bank_konten: [] // Kosong sesuai data sheet
+    };
 
-    const contentReportsData = [
-        {
-            "name": "Elfrida",
-            "task": "- Edit konten & story hampers InJourney Green\n- tas tumbler crinkle\n- Take konten TikTok\n- Take video hampers PLN\n- Take video keychain Pelita"
-        },
-        {
-            "name": "Esa",
-            "task": "- Take tumbler pertamina\n- konten tiktok\n- e-money PLN\n- keychain pelita\n- Edit revisi bookmark hmns\n- VO pertamina\n- tiktok mockup vs result"
-        }
-    ];
+    // Fungsi Format Status
+    function getStatusBadge(status) {
+        const s = status.toLowerCase();
+        if (s.includes('final')) return `<span class="badge badge-final">Final</span>`;
+        if (s.includes('revisi') || s.includes('to-do')) return `<span class="badge badge-pending">${status}</span>`;
+        if (s.includes('kerja') || s.includes('layout')) return `<span class="badge badge-process">${status}</span>`;
+        return `<span class="badge badge-pending">${status}</span>`;
+    }
 
-    // Chart Data (Summary from trend data 10 hari terakhir)
-    const dates = ["2026-09-02", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12"];
-    const designCounts = [1, 6, 2, 6, 2, 5, 5, 2, 2];
-    const contentCounts = [0, 0, 0, 0, 0, 0, 0, 0, 5]; 
-
-    // 1. Populate Users
-    const userTable = document.getElementById('userTable');
-    usersData.forEach(u => {
-        userTable.innerHTML += `
-            <tr>
-                <td class="flex items-center gap-3">
-                    <div class="avatar">${u.name.charAt(0).toUpperCase()}</div>
-                    <span class="font-medium">${u.name}</span>
-                </td>
-                <td><span class="px-3 py-1 bg-gray-800 text-xs rounded-full border border-gray-600">${u.role}</span></td>
-            </tr>
-        `;
-    });
-
-    // 3. Populate Design Projects
-    const designTable = document.getElementById('designTable');
-    designProjectsData.forEach(p => {
-        let statusColor = p.status.toLowerCase() === 'final' ? 'text-green-400' : 'text-yellow-400';
-        designTable.innerHTML += `
-            <tr>
-                <td class="font-medium text-gray-300 truncate max-w-[220px]" title="${p.title}">${p.title}</td>
-                <td class="capitalize">${p.assignee}</td>
-                <td class="${statusColor} font-semibold text-xs">${p.status}</td>
-            </tr>
-        `;
-    });
-
-    // 4a. Populate Deadlines
-    const deadlineTable = document.getElementById('deadlineTable');
-    contentDeadlinesData.forEach(d => {
-        deadlineTable.innerHTML += `
-            <tr>
-                <td class="text-gray-300 text-xs">${d.title}</td>
-                <td class="text-red-400 font-medium text-xs whitespace-nowrap">${d.targetDate}</td>
-            </tr>
-        `;
-    });
-
-    // 4b. Populate Reports
-    const reportContainer = document.getElementById('reportContainer');
-    contentReportsData.forEach(r => {
-        reportContainer.innerHTML += `
-            <div class="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="avatar" style="width:30px;height:30px;font-size:12px;">${r.name.charAt(0)}</div>
-                    <span class="font-bold text-blue-400 text-sm">${r.name}</span>
-                </div>
-                <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">${r.task}</p>
+    // ==========================================
+    // 2. RENDER JOBDESK
+    // ==========================================
+    document.getElementById('jobdeskCount').innerText = data.jobdesk.length;
+    const jobdeskHtml = data.jobdesk.map(item => `
+        <div class="flex items-start gap-3 p-3 bg-zinc-900 border border-border rounded-lg hover:border-zinc-700 transition-colors">
+            <div class="mt-0.5 text-muted"><i class="ph ph-circle"></i></div>
+            <div class="flex-1">
+                <p class="text-sm text-primary font-medium leading-tight">${item.title}</p>
+                <p class="text-xs text-muted mt-1">${item.desc}</p>
             </div>
-        `;
-    });
+            <div class="flex items-center gap-1.5 bg-zinc-800 px-2 py-1 rounded-md">
+                <i class="ph ph-user text-muted text-xs"></i>
+                <span class="text-xs text-primary">${item.pic}</span>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('jobdeskContainer').innerHTML = jobdeskHtml;
 
-    // 5. Initialize Chart
-    const ctx = document.getElementById('projectChart').getContext('2d');
-    Chart.defaults.color = '#9ca3af';
-    Chart.defaults.borderColor = '#374151';
+    // ==========================================
+    // 3. RENDER SEMUA TASK DESAIN
+    // ==========================================
+    const tasksHtml = data.tasks.map(task => `
+        <tr>
+            <td class="px-4"><span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded font-mono">${task.joCode}</span></td>
+            <td class="px-4 text-primary font-medium truncate max-w-[250px]" title="${task.title}">${task.title}</td>
+            <td class="px-4 text-muted capitalize">${task.assignee}</td>
+            <td class="px-4 text-muted text-sm font-mono">${task.dateStr}</td>
+            <td class="px-4 text-right">${getStatusBadge(task.status)}</td>
+        </tr>
+    `).join('');
+    document.getElementById('allTasksContainer').innerHTML = tasksHtml;
+
+    // ==========================================
+    // 4. RENDER KREATOR TASK & REPORT
+    // ==========================================
+    const cTaskHtml = data.creator_tasks.map(c => `
+        <div class="p-3 bg-zinc-900 border-l-2 border-l-blue-500 border border-border rounded-lg">
+            <p class="text-sm font-medium text-primary line-clamp-2">${c.title}</p>
+            <div class="flex items-center justify-between mt-2 text-xs">
+                <span class="text-muted"><i class="ph ph-user mr-1"></i>${c.client}</span>
+                <span class="text-red-400 font-mono"><i class="ph ph-clock mr-1"></i>${c.targetDate}</span>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
+
+    const cReportHtml = data.creator_reports.map(r => `
+        <div class="p-3 bg-zinc-900 border border-border rounded-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 opacity-10"><i class="ph ph-quotes text-4xl"></i></div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-6 w-6 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white">${r.name.charAt(0)}</div>
+                <span class="text-sm font-semibold text-primary">${r.name}</span>
+                <span class="text-[10px] text-muted font-mono ml-auto">${r.dateStr}</span>
+            </div>
+            <div class="text-xs text-muted whitespace-pre-line leading-relaxed pl-8">${r.task}</div>
+        </div>
+    `).join('');
+    document.getElementById('creatorReportsContainer').innerHTML = cReportHtml;
+
+    // ==========================================
+    // 5. RENDER BANK KONTEN
+    // ==========================================
+    if (data.bank_konten.length === 0) {
+        document.getElementById('bankKontenContainer').innerHTML = `
+            <i class="ph ph-folder-dashed text-4xl text-zinc-600 mb-3"></i>
+            <p class="text-sm text-zinc-400 font-medium">Bank Konten Kosong</p>
+            <p class="text-xs text-zinc-500 mt-1">Belum ada link atau aset yang ditambahkan.</p>
+        `;
+    }
+
+    // ==========================================
+    // 6. INIT CHART.JS (Dark Mode Theme)
+    // ==========================================
+    const ctx = document.getElementById('productivityChart').getContext('2d');
     
+    // Data Dummy Trend (Asumsikan hasil rekap data harian)
+    const chartLabels = ["2 Sep", "3 Sep", "4 Sep", "7 Sep", "8 Sep", "9 Sep", "10 Sep", "11 Sep", "12 Sep"];
+    const designTrend = [1, 5, 2, 6, 2, 5, 5, 2, 3];
+    const contentTrend = [0, 0, 0, 0, 0, 0, 0, 0, 4];
+
+    Chart.defaults.color = '#a1a1aa';
+    Chart.defaults.font.family = 'Inter';
+
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: dates,
+            labels: chartLabels,
             datasets: [
                 {
                     label: 'Project Desain',
-                    data: designCounts,
+                    data: designTrend,
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#3b82f6'
+                    pointBackgroundColor: '#09090b',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2
                 },
                 {
                     label: 'Project Konten',
-                    data: contentCounts,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    data: contentTrend,
+                    borderColor: '#10b981', // Emerald
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#ef4444'
+                    pointBackgroundColor: '#09090b',
+                    pointBorderColor: '#10b981',
+                    pointBorderWidth: 2
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'top' }
+                legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true } },
+                tooltip: { backgroundColor: '#18181b', borderColor: '#27272a', borderWidth: 1, titleColor: '#ededed', bodyColor: '#a1a1aa' }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#333' } },
-                x: { grid: { color: '#333' } }
+                y: { beginAtZero: true, grid: { color: '#27272a', drawBorder: false }, border: { dash: [4, 4] } },
+                x: { grid: { display: false, drawBorder: false } }
             }
         }
     });
