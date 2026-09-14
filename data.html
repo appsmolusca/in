@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Molusca | Team Workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Molusca Workspace | Minimalist</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -16,11 +16,12 @@
             theme: {
                 extend: {
                     colors: {
-                        background: '#f8fafc', 
-                        surface: '#ffffff',    
-                        border: '#e2e8f0',     
-                        primary: '#0f172a',    
-                        muted: '#64748b'       
+                        bgWarm: '#FDFBF7',     // Warm off-white
+                        surface: '#FFFFFF',    // Pure white
+                        borderWarm: '#F0EBE1', // Light warm gray border
+                        textDark: '#3F3931',   // Dark warm brown/gray for primary text
+                        textMuted: '#8C8477',  // Muted warm gray
+                        accentWarm: '#D97706', // Amber
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -30,141 +31,142 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { background-color: #FDFBF7; color: #3F3931; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         
         /* Custom Scrollbar Minimalis */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: #E5DFD3; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D0C8B6; }
 
         .card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            background-color: #FFFFFF;
+            border: 1px solid #F0EBE1;
+            border-radius: 10px;
+            padding: 1.25rem;
         }
         
-        /* Badge Status */
+        /* Badge Status Minimalis */
         .badge {
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.65rem;
-            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
             text-transform: capitalize;
             letter-spacing: 0.02em;
         }
-        .badge-final { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
-        .badge-pending { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
-        .badge-process { background: #dbeafe; color: #2563eb; border: 1px solid #bfdbfe; }
+        .badge-final { background: #F0FDF4; color: #15803D; border: 1px solid #DCFCE7; }
+        .badge-pending { background: #FFFBEB; color: #B45309; border: 1px solid #FEF3C7; }
+        .badge-process { background: #F8FAFC; color: #475569; border: 1px solid #E2E8F0; } /* Abu-abu netral */
         
-        /* Animasi Kedip untuk Task Urgent */
-        @keyframes urgent-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.98); }
+        /* Animasi Kedip Halus (Urgent) */
+        @keyframes soft-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         .urgent-blink {
-            animation: urgent-pulse 1.2s ease-in-out infinite;
-            background-color: #fee2e2; 
-            color: #dc2626; 
-            border: 1px solid #fca5a5;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.65rem;
+            animation: soft-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            color: #DC2626; 
+            font-weight: 700;
+            font-size: 10px;
             display: inline-flex;
             align-items: center;
             gap: 2px;
+            background: #FEF2F2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #FEE2E2;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-blue-100 pb-10">
+<body class="selection:bg-amber-100 pb-12 text-[13px]">
 
-<div class="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+<div class="max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
     
     <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+    <header class="flex flex-row justify-between items-center mb-2">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-primary flex items-center gap-2">
-                <i class="ph-fill ph-rocket text-blue-600"></i> Molusca Workspace
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-textDark flex items-center gap-1.5">
+                <i class="ph-fill ph-leaf text-accentWarm"></i> molusca.
             </h1>
-            <p class="text-sm text-muted mt-1 font-medium">Dashboard operasional tim desain & kreator.</p>
+            <p class="text-[11px] text-textMuted mt-0.5">Workspace & Tim Log</p>
         </div>
-        <div class="flex items-center gap-3 bg-white border border-border px-4 py-2.5 rounded-full text-sm shadow-sm font-semibold">
-            <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
-            <span class="text-primary" id="currentDate">Memuat tanggal...</span>
+        <div class="flex items-center gap-2 bg-surface border border-borderWarm px-3 py-1.5 rounded-full text-[11px] font-medium text-textDark">
+            <span class="flex h-1.5 w-1.5 rounded-full bg-accentWarm"></span>
+            <span id="currentDate">--</span>
         </div>
     </header>
 
     <!-- Baris 1: Kurva & Jobdesk -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Chart -->
-        <div class="card lg:col-span-2 flex flex-col">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-bold flex items-center gap-2 text-primary"><i class="ph-bold ph-trend-up text-blue-500"></i> Produktivitas Project</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        
+        <!-- Jobdesk (To-Do) - Pindah ke Kiri di Desktop agar lebih seimbang -->
+        <div class="card flex flex-col order-2 lg:order-1">
+            <div class="flex items-center justify-between mb-4 border-b border-borderWarm pb-2">
+                <h2 class="text-[13px] font-semibold text-textDark flex items-center gap-1.5"><i class="ph-bold ph-list-checks text-textMuted"></i> Jobdesk (To-Do)</h2>
+                <span class="text-[10px] bg-[#F5F2EA] text-textDark font-semibold px-2 py-0.5 rounded" id="jobdeskCount">0</span>
             </div>
-            <div class="relative flex-1 min-h-[250px] w-full">
-                <canvas id="productivityChart"></canvas>
+            <div class="space-y-2 overflow-y-auto max-h-[200px] pr-1" id="jobdeskContainer">
+                <!-- Data di-inject JS -->
             </div>
         </div>
 
-        <!-- Jobdesk (To-Do) -->
-        <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                <h2 class="text-lg font-bold flex items-center gap-2 text-primary"><i class="ph-bold ph-check-square text-orange-500"></i> Jobdesk (To-Do)</h2>
-                <span class="text-xs bg-orange-100 text-orange-700 font-bold px-2.5 py-1 rounded-md" id="jobdeskCount">0</span>
+        <!-- Chart -->
+        <div class="card flex flex-col order-1 lg:order-2 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-[13px] font-semibold text-textDark flex items-center gap-1.5"><i class="ph-bold ph-chart-line-up text-textMuted"></i> Produktivitas</h2>
             </div>
-            <div class="space-y-3 overflow-y-auto max-h-[230px] pr-2" id="jobdeskContainer">
-                <!-- Data di-inject JS -->
+            <div class="relative flex-1 min-h-[180px] w-full">
+                <canvas id="productivityChart"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Baris 2: Task per Desainer -->
-    <div>
-        <div class="flex items-center justify-between mb-4 mt-6">
-            <h2 class="text-xl font-extrabold flex items-center gap-2 text-primary">
-                <i class="ph-fill ph-users-three text-purple-600"></i> Beban Kerja Tim Desain
+    <div class="mt-6">
+        <div class="flex items-center justify-between mb-3 border-b border-borderWarm pb-2">
+            <h2 class="text-sm font-bold text-textDark flex items-center gap-1.5">
+                <i class="ph-bold ph-paint-brush text-textMuted"></i> Beban Kerja Tim Desain
             </h2>
-            <div class="text-xs text-purple-700 bg-purple-50 font-bold border border-purple-200 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
-                <span class="flex h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span> Filter: Belum Selesai
+            <div class="text-[10px] text-textMuted font-medium flex items-center gap-1">
+                Menampilkan task berjalan
             </div>
         </div>
         
-        <!-- Grid Wadah Tim (Kolom per orang) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="teamTasksContainer">
+        <!-- Grid Wadah Tim (1 Kolom HP, 2 Tablet, 4 Desktop) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="teamTasksContainer">
             <!-- Data di-inject JS -->
         </div>
     </div>
 
     <!-- Baris 3: Kreator Task -->
-    <div class="mt-8">
-        <div class="card flex flex-col">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
-                <h2 class="text-xl font-extrabold flex items-center gap-2 text-primary"><i class="ph-fill ph-video-camera text-rose-500"></i> Divisi Kreator Konten</h2>
+    <div class="mt-6">
+        <div class="flex items-center justify-between mb-3 border-b border-borderWarm pb-2">
+            <h2 class="text-sm font-bold text-textDark flex items-center gap-1.5">
+                <i class="ph-bold ph-video-camera text-textMuted"></i> Kreator Konten
+            </h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Target Deadline -->
+            <div class="card flex flex-col">
+                <h3 class="text-[11px] font-semibold text-textMuted mb-3 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-calendar-blank"></i> Target Deadline</h3>
+                <div class="space-y-2.5 overflow-y-auto max-h-[250px] pr-1" id="creatorTasksContainer"></div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full mt-2">
-                <!-- Kolom Target Deadline -->
-                <div>
-                    <h3 class="text-sm font-bold text-slate-500 mb-4 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-calendar-blank text-slate-400"></i> Target Deadline</h3>
-                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorTasksContainer"></div>
-                </div>
-                <!-- Kolom Laporan Kerja -->
-                <div>
-                    <h3 class="text-sm font-bold text-slate-500 mb-4 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-files text-slate-400"></i> Laporan (2 Hari Terakhir)</h3>
-                    <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2" id="creatorReportsContainer"></div>
-                </div>
+            <!-- Laporan Kerja -->
+            <div class="card flex flex-col">
+                <h3 class="text-[11px] font-semibold text-textMuted mb-3 flex items-center gap-1 uppercase tracking-wider"><i class="ph-bold ph-files"></i> Laporan (2 Hari)</h3>
+                <div class="space-y-2.5 overflow-y-auto max-h-[250px] pr-1" id="creatorReportsContainer"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Set Tanggal Hari Ini
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    // Format Tanggal Minimalis (Cth: 14 Sep 2026)
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
     document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
 
     // ==========================================
@@ -172,11 +174,11 @@
     // ==========================================
     const data = {
         jobdesk: [
-            {"id": 1, "title": "Memastikan barang sudah di take semua", "pic": "Esa", "desc": "Memastikan tidak ada futech tertinggal"}, 
-            {"id": 2, "title": "Menanyakan jadwal prodak apa saja", "pic": "Nazma", "desc": "Menanyakan jadwal prodak hari ini ke admin"}, 
-            {"id": 3, "title": "Memastikan barang sudah ada", "pic": "El", "desc": "Memastikan prodak sudah siap untuk di-content"}
+            {"id": 1, "title": "Memastikan barang sudah di take semua", "pic": "Esa", "desc": "Tidak ada futech tertinggal"}, 
+            {"id": 2, "title": "Menanyakan jadwal prodak", "pic": "Nazma", "desc": "Tanya jadwal ke admin"}, 
+            {"id": 3, "title": "Memastikan barang sudah ada", "pic": "El", "desc": "Prodak siap untuk di-content"}
         ],
-        // Task Tya yang sebelumnya nyangkut di "Nunggu Revisi" sudah DIBUANG dari list ini.
+        // Task Desain Belum Selesai (Termasuk label urgent)
         uncompleted_tasks: [
             {"joCode": "EXTRA", "title": "DADAN CATEXTILE", "assignee": "Nayla", "dateStr": "2026-09-12", "status": "Nunggu Revisi", "priority": "urgent"},
             {"joCode": "EXTRA", "title": "DADAN TUGU INSURANCE", "assignee": "Nayla", "dateStr": "2026-09-10", "status": "Nunggu Revisi", "priority": "normal"}, 
@@ -202,25 +204,37 @@
             {"title": "wa 892 - 190 pcs gantungan & 200 notebook", "client": "sania", "targetDate": "2026-09-12"}
         ],
         recent_reports: [
-            {"name": "Elfrida", "dateStr": "12-09-2026", "task": "- Edit konten & story hampers InJourney\n- Take konten TikTok\n- Take video hampers PLN"}, 
-            {"name": "Esa", "dateStr": "12-09-2026", "task": "- Take tumbler pertamina\n- Take konten tiktok\n- Edit revisi bookmark hmns\n- Edit konten vo pertamina"}
+            {"name": "Elfrida", "dateStr": "12-09-2026", "task": "• Edit konten & story hampers InJourney\n• Take konten TikTok\n• Take video hampers PLN"}, 
+            {"name": "Esa", "dateStr": "12-09-2026", "task": "• Take tumbler pertamina\n• Take konten tiktok\n• Edit revisi bookmark hmns\n• Edit konten vo pertamina"}
         ]
     };
 
-    // Helper Functions
+    // ==========================================
+    // UTILS
+    // ==========================================
     function getStatusBadge(status) {
         const s = status.toLowerCase();
         if (s.includes('final')) return `<span class="badge badge-final">Final</span>`;
         if (s.includes('revisi') || s.includes('to-do')) return `<span class="badge badge-pending">${status}</span>`;
-        if (s.includes('kerja') || s.includes('layout')) return `<span class="badge badge-process">${status}</span>`;
-        return `<span class="badge badge-pending">${status}</span>`;
+        return `<span class="badge badge-process">${status}</span>`;
     }
 
     function getPriorityBadge(priority) {
         if ((priority || "").toLowerCase() === 'urgent') {
-            return `<span class="urgent-blink uppercase"><i class="ph-fill ph-warning-circle"></i> URGENT</span>`;
+            return `<span class="urgent-blink"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
         }
         return ``;
+    }
+
+    // Ubah format string date 2026-09-12 ke 12 Sep (lebih kecil & bersih)
+    function formatShortDate(dateStr) {
+        if(!dateStr) return "";
+        const parts = dateStr.split('-');
+        if(parts.length === 3) {
+            const date = new Date(parts[0], parts[1]-1, parts[2]);
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+        return dateStr;
     }
 
     // ==========================================
@@ -228,82 +242,66 @@
     // ==========================================
     document.getElementById('jobdeskCount').innerText = data.jobdesk.length;
     const jobdeskHtml = data.jobdesk.map(item => `
-        <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
-            <div class="mt-0.5 text-blue-500"><i class="ph-fill ph-check-circle"></i></div>
+        <div class="flex items-start gap-2.5 p-2.5 bg-surface border border-borderWarm rounded-lg">
+            <div class="mt-0.5 text-textMuted"><i class="ph-bold ph-check-circle"></i></div>
             <div class="flex-1">
-                <p class="text-sm text-primary font-bold leading-tight">${item.title}</p>
-                <p class="text-xs text-muted mt-1 font-medium">${item.desc}</p>
+                <p class="text-[12px] text-textDark font-medium leading-tight">${item.title}</p>
+                <p class="text-[10px] text-textMuted mt-0.5">${item.desc}</p>
             </div>
-            <div class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
-                <span class="text-xs font-bold text-slate-700">${item.pic}</span>
+            <div class="bg-[#F5F2EA] px-1.5 py-0.5 rounded">
+                <span class="text-[10px] font-semibold text-textDark">${item.pic}</span>
             </div>
         </div>
     `).join('');
     document.getElementById('jobdeskContainer').innerHTML = jobdeskHtml;
 
     // ==========================================
-    // 3. GROUPING TASK PER DESAINER & RENDER
+    // 3. RENDER TASK DESAIN
     // ==========================================
-    // Menyiapkan 4 desainer utama agar kotaknya selalu muncul meski tasknya 0
-    const teamMembers = ["Indah", "Nayla"];
+    const teamMembers = ["Indah", "Nayla", "Tya", "Dadan"];
     const groupedTasks = {};
-    
-    // Inisialisasi awal (semua = 0 task)
     teamMembers.forEach(m => groupedTasks[m] = []);
 
-    // Masukkan data task ke masing-masing nama
     data.uncompleted_tasks.forEach(task => {
         const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
-        if(groupedTasks[name] !== undefined) {
-            groupedTasks[name].push(task);
-        } else {
-            groupedTasks[name] = [task];
-        }
+        if(groupedTasks[name] !== undefined) groupedTasks[name].push(task);
+        else groupedTasks[name] = [task];
     });
 
     const teamContainer = document.getElementById('teamTasksContainer');
     let teamHtml = '';
 
-    // Warna acak pastel untuk avatar
-    const colors = ['bg-blue-100 text-blue-600', 'bg-emerald-100 text-emerald-600', 'bg-purple-100 text-purple-600', 'bg-orange-100 text-orange-600'];
-    let colorIndex = 0;
-
     for(const [assignee, tasks] of Object.entries(groupedTasks)) {
-        const avatarColor = colors[colorIndex % colors.length];
-        colorIndex++;
-
-        // Render card per orang
         teamHtml += `
-        <div class="card flex flex-col h-[400px]">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="h-9 w-9 rounded-full ${avatarColor} flex items-center justify-center font-black text-lg">
+        <div class="card flex flex-col h-[350px] p-3 md:p-4">
+            <div class="flex items-center justify-between mb-3 border-b border-borderWarm pb-2">
+                <div class="flex items-center gap-2">
+                    <div class="h-6 w-6 rounded bg-[#F5F2EA] flex items-center justify-center font-bold text-[11px] text-textDark">
                         ${assignee.charAt(0)}
                     </div>
-                    <h3 class="font-extrabold text-primary text-lg">${assignee}</h3>
+                    <h3 class="font-semibold text-textDark text-[13px]">${assignee}</h3>
                 </div>
-                <span class="${tasks.length > 0 ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} text-xs font-bold px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
+                <span class="${tasks.length > 0 ? 'text-textMuted' : 'text-[#15803D] bg-[#F0FDF4] border-[#DCFCE7] px-1.5 py-0.5 border rounded'} text-[10px] font-medium">${tasks.length} Task</span>
             </div>
             
             <div class="overflow-y-auto pr-1 flex-1">
-                ${tasks.length > 0 ? `<div class="space-y-3">` + tasks.map(t => `
-                    <div class="p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-all ${t.priority?.toLowerCase() === 'urgent' ? 'bg-red-50/40 border-red-200' : 'bg-slate-50'}">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-sm">${t.joCode}</span>
+                ${tasks.length > 0 ? `<div class="space-y-2">` + tasks.map(t => `
+                    <div class="p-2.5 border border-borderWarm rounded-lg ${t.priority?.toLowerCase() === 'urgent' ? 'bg-[#FEF2F2] border-[#FEE2E2]' : 'bg-surface'}">
+                        <div class="flex justify-between items-start mb-1.5">
+                            <span class="text-[9px] font-medium text-textMuted bg-[#F5F2EA] px-1 rounded">${t.joCode}</span>
                             ${getStatusBadge(t.status)}
                         </div>
-                        <p class="text-sm font-bold text-primary leading-tight mb-2">${t.title}</p>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-[10px] text-slate-400 font-bold font-mono bg-white px-1.5 py-0.5 rounded border border-slate-100"><i class="ph-bold ph-calendar-blank"></i> ${t.dateStr}</span>
+                        <p class="text-[12px] font-medium text-textDark leading-snug mb-2">${t.title}</p>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-[9px] text-textMuted font-medium flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${formatShortDate(t.dateStr)}</span>
                             ${getPriorityBadge(t.priority)}
                         </div>
                     </div>
                 `).join('') + `</div>` : `
-                    <!-- EMPTY STATE JIKA TASK 0 (Contoh: Tya) -->
-                    <div class="flex flex-col items-center justify-center h-full text-center pb-8 opacity-80">
-                        <i class="ph-fill ph-check-circle text-6xl text-emerald-400 mb-3 drop-shadow-sm"></i>
-                        <p class="text-sm font-extrabold text-slate-600">Semua Clear!</p>
-                        <p class="text-xs font-medium text-slate-400 mt-1">Kerjaan sudah beres semua.</p>
+                    <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-60">
+                        <i class="ph-light ph-coffee text-3xl text-textMuted mb-2"></i>
+                        <p class="text-[11px] font-medium text-textDark">Tidak ada task.</p>
+                        <p class="text-[10px] text-textMuted mt-0.5">Semua kerjaan selesai.</p>
                     </div>
                 `}
             </div>
@@ -316,25 +314,24 @@
     // 4. RENDER KREATOR TASK & REPORT
     // ==========================================
     const cTaskHtml = data.creator_tasks.map(c => `
-        <div class="p-3.5 bg-white shadow-sm border-l-4 border-l-rose-400 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-            <p class="text-sm font-bold text-primary line-clamp-2">${c.title}</p>
-            <div class="flex items-center justify-between mt-3 text-xs">
-                <span class="text-muted font-bold bg-slate-100 px-2 py-1 rounded"><i class="ph-bold ph-user mr-1"></i>${c.client}</span>
-                <span class="text-rose-600 font-mono font-bold"><i class="ph-bold ph-clock mr-1"></i>${c.targetDate}</span>
+        <div class="p-2.5 bg-surface border border-borderWarm rounded-lg">
+            <p class="text-[12px] font-medium text-textDark line-clamp-2">${c.title}</p>
+            <div class="flex items-center justify-between mt-2">
+                <span class="text-[10px] text-textMuted flex items-center gap-1 bg-[#F5F2EA] px-1.5 rounded"><i class="ph-bold ph-user"></i> ${c.client}</span>
+                <span class="text-[10px] text-accentWarm font-medium flex items-center gap-1"><i class="ph-bold ph-clock"></i> ${formatShortDate(c.targetDate)}</span>
             </div>
         </div>
     `).join('');
     document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
 
     const cReportHtml = data.recent_reports.map(r => `
-        <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-5"><i class="ph-fill ph-quotes text-5xl text-slate-800"></i></div>
-            <div class="flex items-center gap-3 mb-3 border-b border-slate-200 pb-2">
-                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-black text-white shadow">${r.name.charAt(0)}</div>
-                <span class="text-sm font-extrabold text-primary">${r.name}</span>
-                <span class="text-[10px] text-muted font-mono ml-auto bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">${r.dateStr}</span>
+        <div class="p-3 bg-surface border border-borderWarm rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-5 w-5 rounded bg-[#F5F2EA] flex items-center justify-center text-[10px] font-bold text-textDark">${r.name.charAt(0)}</div>
+                <span class="text-[12px] font-semibold text-textDark">${r.name}</span>
+                <span class="text-[9px] text-textMuted ml-auto border border-borderWarm px-1.5 py-0.5 rounded">${r.dateStr}</span>
             </div>
-            <div class="text-xs text-slate-600 whitespace-pre-line leading-relaxed font-semibold pl-1">${r.task}</div>
+            <div class="text-[11px] text-textMuted whitespace-pre-line leading-relaxed">${r.task}</div>
         </div>
     `).join('');
     document.getElementById('creatorReportsContainer').innerHTML = cReportHtml;
@@ -344,13 +341,14 @@
     // ==========================================
     const ctx = document.getElementById('productivityChart').getContext('2d');
     
+    // Ganti format label biar muat di HP (Cth: 2 Sep)
     const chartLabels = ["2 Sep", "3 Sep", "4 Sep", "7 Sep", "8 Sep", "9 Sep", "10 Sep", "11 Sep", "12 Sep"];
     const designTrend = [1, 5, 2, 6, 2, 5, 5, 2, 3];
     const contentTrend = [0, 0, 0, 0, 0, 0, 0, 0, 4];
 
-    Chart.defaults.color = '#64748b'; 
+    Chart.defaults.color = '#8C8477'; 
     Chart.defaults.font.family = 'Inter';
-    Chart.defaults.font.weight = '600';
+    Chart.defaults.font.size = 10;
 
     new Chart(ctx, {
         type: 'line',
@@ -358,30 +356,24 @@
             labels: chartLabels,
             datasets: [
                 {
-                    label: 'Project Desain',
+                    label: 'Desain',
                     data: designTrend,
-                    borderColor: '#3b82f6', 
-                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#3b82f6',
-                    pointBorderWidth: 2,
-                    pointRadius: 4
+                    borderColor: '#3F3931', // Dark Warm
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    tension: 0.3,
+                    pointBackgroundColor: '#3F3931',
+                    pointRadius: 2.5
                 },
                 {
-                    label: 'Project Konten',
+                    label: 'Konten',
                     data: contentTrend,
-                    borderColor: '#10b981',  
-                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#10b981',
-                    pointBorderWidth: 2,
-                    pointRadius: 4
+                    borderColor: '#D97706', // Amber 
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    tension: 0.3,
+                    pointBackgroundColor: '#D97706',
+                    pointRadius: 2.5
                 }
             ]
         },
@@ -390,11 +382,24 @@
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'top', labels: { boxWidth: 12, usePointStyle: true, color: '#0f172a', font: { weight: 'bold' } } },
-                tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 10, cornerRadius: 8 }
+                legend: { 
+                    position: 'top', 
+                    align: 'end',
+                    labels: { boxWidth: 6, usePointStyle: true, color: '#3F3931', font: { size: 10 } } 
+                },
+                tooltip: { 
+                    backgroundColor: '#FFFFFF', 
+                    titleColor: '#3F3931', 
+                    bodyColor: '#8C8477', 
+                    borderColor: '#F0EBE1', 
+                    borderWidth: 1,
+                    padding: 8,
+                    titleFont: { size: 11 },
+                    bodyFont: { size: 10 }
+                }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
+                y: { beginAtZero: true, grid: { color: '#F0EBE1', drawBorder: false }, border: { dash: [3, 3] }, ticks: { stepSize: 2 } },
                 x: { grid: { display: false, drawBorder: false } }
             }
         }
