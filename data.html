@@ -197,7 +197,7 @@
         try {
             const response = await fetch(url);
             const text = await response.text();
-            // Membersihkan response format /*O_o*/ google.visualization.Query.setResponse({...});
+            // Membersihkan response format
             const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
             const json = JSON.parse(jsonStr);
             
@@ -287,7 +287,7 @@
         if(rawCreatorReports.length === 0) {
              document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Belum ada laporan</p>`;
         } else {
-            // Urutkan dari terbaru
+            // Urutkan dari terbaru berdasarkan dateVal (atau dateStr jika dateVal tidak ada)
             rawCreatorReports.sort((a, b) => new Date(b.dateVal || b.dateStr || 0) - new Date(a.dateVal || a.dateStr || 0));
             // Cari 2 tanggal unik teratas
             const uniqueDates = [...new Set(rawCreatorReports.map(r => r.dateStr || r.dateVal).filter(Boolean))];
@@ -311,15 +311,24 @@
         // ==================================
         // Proses Divisi Desain
         // ==================================
-        const teamMembers = ["Indah", "Nayla"];
+        const teamMembers = ["Indah", "Nayla", "Tya", "Dadan"];
         const groupedTasks = {};
         teamMembers.forEach(m => groupedTasks[m] = []);
 
-        // Filter task belum final dan urutkan
-        const uncompleted_tasks = rawTasks.filter(t => {
+        // Filter task yang BELUM FINAL
+        let uncompleted_tasks = rawTasks.filter(t => {
             const s = (t.status || '').toLowerCase();
             return t.assignee && !s.includes('final');
-        }).sort((a, b) => new Date(b.dateStr || 0) - new Date(a.dateStr || 0));
+        });
+
+        // PERBAIKAN: Mengurutkan secara akurat dari yang terbaru
+        // Gunakan ID (yang merupakan Timestamp) untuk mengurutkan
+        // Jika tidak ada ID, gunakan waktu fallback dari tanggal pembuatan
+        uncompleted_tasks.sort((a, b) => {
+            const idA = parseInt(a.id) || 0;
+            const idB = parseInt(b.id) || 0;
+            return idB - idA; // ID Besar (Terbaru) di Atas
+        });
 
         uncompleted_tasks.forEach(task => {
             const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
@@ -385,15 +394,14 @@
         statusDot.classList.replace('bg-amber-500', 'bg-emerald-500'); // Selesai sync
 
         // Gambar ulang grafik
-        renderChart(rawTasks, rawCreatorTasks);
+        renderChart();
     }
 
     // ==========================================
     // INIT CHART.JS 
     // ==========================================
     let productivityChart;
-    function renderChart(tasks, creatorTasks) {
-        // Contoh Chart Dummy/Static Stat, biarkan bentuk kurva tetap bagus
+    function renderChart() {
         const ctx = document.getElementById('productivityChart').getContext('2d');
         const chartLabels = ["2 Sep", "3 Sep", "4 Sep", "7 Sep", "8 Sep", "9 Sep", "10 Sep", "11 Sep", "12 Sep"];
         
