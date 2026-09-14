@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Tim Kreatif Molusca</title>
+    <!-- Tailwind CSS untuk responsivitas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js untuk kurva grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #000000; /* Layar hitam */
+            color: #ffffff; 
+        }
+        .card { 
+            background: #111111; 
+            border-radius: 1rem; 
+            padding: 1.5rem; 
+            border: 1px solid #333; 
+        }
+        /* Desain kamera/avatar bulat */
+        .avatar { 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            background: #3b82f6; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 14px; 
+        }
+        th { background-color: #1f2937 !important; color: #9ca3af !important; border-bottom: 1px solid #374151; }
+        td { border-bottom: 1px solid #1f2937; padding: 0.75rem 1rem; color: #d1d5db; }
+        tr:hover td { background-color: #1a1a1a; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="container mx-auto p-4 max-w-7xl">
+    <!-- Header -->
+    <div class="mb-8 text-center md:text-left mt-4">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-500"><i class="fas fa-fire mr-2"></i>Dashboard Molusca</h1>
+        <p class="text-gray-400 mt-2">Overview Tim Kreatif, Project Desain & Konten</p>
+    </div>
+
+    <!-- Kurva Peningkatan -->
+    <div class="card mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-chart-line mr-2"></i>Kurva Peningkatan Project</h2>
+        <div class="relative h-72 w-full">
+            <canvas id="projectChart"></canvas>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- 1. Data Tim & Pekerjaan -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-users mr-2"></i>Tim Kreatif & Role</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left">
+                    <thead class="text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Nama</th>
+                            <th class="px-4 py-3 rounded-tr-lg">Role / Pekerjaan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTable">
+                        <!-- Disuntikkan lewat JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. Data Sakit/Izin -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-file-medical mr-2"></i>Data Izin & Sakit</h2>
+            <div id="izinContainer" class="p-4 bg-green-900 bg-opacity-20 text-green-400 rounded-lg border border-green-800 flex items-center">
+                <i class="fas fa-check-circle text-3xl mr-4"></i>
+                <div>
+                    <p class="font-bold text-lg">Nihil</p>
+                    <p class="text-sm mt-1">Saat ini tidak ada anggota tim yang sakit atau izin. Semuanya sehat dan siap gaskeun!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- 3. Kumpulan Project Desain -->
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-paint-brush mr-2"></i>Kumpulan Project Desain</h2>
+            <div class="overflow-y-auto max-h-96 pr-2">
+                <table class="min-w-full text-sm text-left">
+                    <thead class="text-xs uppercase sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3">Project</th>
+                            <th class="px-4 py-3">Assignee</th>
+                            <th class="px-4 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="designTable">
+                        <!-- Disuntikkan lewat JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Deadline Konten Kreator & Task -->
+        <div class="flex flex-col gap-6">
+            <div class="card flex-1">
+                <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-calendar-alt mr-2"></i>Deadline Konten</h2>
+                <div class="overflow-y-auto max-h-48 pr-2 mb-4">
+                    <table class="min-w-full text-sm text-left">
+                        <thead class="text-xs uppercase sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3">Tugas / Klien</th>
+                                <th class="px-4 py-3">Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deadlineTable">
+                            <!-- Disuntikkan lewat JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card flex-1">
+                <h2 class="text-xl font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2"><i class="fas fa-tasks mr-2"></i>Log Pekerjaan Kreator</h2>
+                <div class="space-y-4 overflow-y-auto max-h-48 pr-2" id="reportContainer">
+                    <!-- Disuntikkan lewat JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data Diekstrak dari Data.xlsx
+    const usersData = [
+        {"name": "admin", "role": "admin"},
+        {"name": "Dadan", "role": "desainer"},
+        {"name": "Indah", "role": "desainer"},
+        {"name": "Nayla", "role": "desainer"},
+        {"name": "Elfrida", "role": "konten"},
+        {"name": "Esa", "role": "konten"},
+        {"name": "Taufik", "role": "konten"},
+        {"name": "Nazma", "role": "konten"}
+    ];
+    
+    const designProjectsData = [
+        {"title": "BRI", "assignee": "dadan", "status": "final"},
+        {"title": "HANI SAMPLE BONEKA", "assignee": "Tya", "status": "Final"},
+        {"title": "A Dadan Hajatan Punggawa", "assignee": "Indah", "status": "Final"},
+        {"title": "AMEL KEYCHAIN E MONEY", "assignee": "Tya", "status": "Final"},
+        {"title": "HANI FOLDABLE BAG KIS", "assignee": "Nayla", "status": "Final"},
+        {"title": "bank mandiri", "assignee": "Tya", "status": "Final"},
+        {"title": "HANI SAMPLE SLEEVE LAPTOP", "assignee": "Tya", "status": "Final"},
+        {"title": "DADAN HAMPERS ISUZU", "assignee": "Nayla", "status": "Final"},
+        {"title": "DADAN SEFAS SLEEVE LAPTOP", "assignee": "Tya", "status": "Final"},
+        {"title": "DADAN HAMPERS MY PERTAMINA", "assignee": "Nayla", "status": "Final"},
+        {"title": "DADAN BERTLING", "assignee": "Tya", "status": "Nunggu Revisi"},
+        {"title": "DADAN HAMPERS TELKOM", "assignee": "Nayla", "status": "Final"},
+        {"title": "DADAN MIND ID", "assignee": "Tya", "status": "Final"},
+        {"title": "DADAM HNMS", "assignee": "Tya", "status": "Final"},
+        {"title": "HANI SPEAKER KINO", "assignee": "Nayla", "status": "Final"}
+    ];
+
+    const contentDeadlinesData = [
+        {"title": "Tugu Insurance wa 4110 14 set - Miniatur 3d", "targetDate": "2026-09-12"},
+        {"title": "wa 892 - 190 pcs gantungan & 200 pcs notebook", "targetDate": "2026-09-12"},
+        {"title": "Projek sdfdsf (sfsdf)", "targetDate": "2026-06-20"}
+    ];
+
+    const contentReportsData = [
+        {
+            "name": "Elfrida",
+            "task": "- Edit konten & story hampers InJourney Green\n- tas tumbler crinkle\n- Take konten TikTok\n- Take video hampers PLN\n- Take video keychain Pelita"
+        },
+        {
+            "name": "Esa",
+            "task": "- Take tumbler pertamina\n- konten tiktok\n- e-money PLN\n- keychain pelita\n- Edit revisi bookmark hmns\n- VO pertamina\n- tiktok mockup vs result"
+        }
+    ];
+
+    // Chart Data (Summary from trend data 10 hari terakhir)
+    const dates = ["2026-09-02", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12"];
+    const designCounts = [1, 6, 2, 6, 2, 5, 5, 2, 2];
+    const contentCounts = [0, 0, 0, 0, 0, 0, 0, 0, 5]; 
+
+    // 1. Populate Users
+    const userTable = document.getElementById('userTable');
+    usersData.forEach(u => {
+        userTable.innerHTML += `
+            <tr>
+                <td class="flex items-center gap-3">
+                    <div class="avatar">${u.name.charAt(0).toUpperCase()}</div>
+                    <span class="font-medium">${u.name}</span>
+                </td>
+                <td><span class="px-3 py-1 bg-gray-800 text-xs rounded-full border border-gray-600">${u.role}</span></td>
+            </tr>
+        `;
+    });
+
+    // 3. Populate Design Projects
+    const designTable = document.getElementById('designTable');
+    designProjectsData.forEach(p => {
+        let statusColor = p.status.toLowerCase() === 'final' ? 'text-green-400' : 'text-yellow-400';
+        designTable.innerHTML += `
+            <tr>
+                <td class="font-medium text-gray-300 truncate max-w-[220px]" title="${p.title}">${p.title}</td>
+                <td class="capitalize">${p.assignee}</td>
+                <td class="${statusColor} font-semibold text-xs">${p.status}</td>
+            </tr>
+        `;
+    });
+
+    // 4a. Populate Deadlines
+    const deadlineTable = document.getElementById('deadlineTable');
+    contentDeadlinesData.forEach(d => {
+        deadlineTable.innerHTML += `
+            <tr>
+                <td class="text-gray-300 text-xs">${d.title}</td>
+                <td class="text-red-400 font-medium text-xs whitespace-nowrap">${d.targetDate}</td>
+            </tr>
+        `;
+    });
+
+    // 4b. Populate Reports
+    const reportContainer = document.getElementById('reportContainer');
+    contentReportsData.forEach(r => {
+        reportContainer.innerHTML += `
+            <div class="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="avatar" style="width:30px;height:30px;font-size:12px;">${r.name.charAt(0)}</div>
+                    <span class="font-bold text-blue-400 text-sm">${r.name}</span>
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed whitespace-pre-line">${r.task}</p>
+            </div>
+        `;
+    });
+
+    // 5. Initialize Chart
+    const ctx = document.getElementById('projectChart').getContext('2d');
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.borderColor = '#374151';
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Project Desain',
+                    data: designCounts,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#3b82f6'
+                },
+                {
+                    label: 'Project Konten',
+                    data: contentCounts,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#ef4444'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#333' } },
+                x: { grid: { color: '#333' } }
+            }
+        }
+    });
+</script>
+</body>
+</html>
