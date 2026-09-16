@@ -184,10 +184,22 @@
     const SPREADSHEET_ID = '1d3njy330ifMnm-uBD8daaey5AqYO3rQxaI-tLZQdeyI';
 
     // UI Elements
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
     const loadingIndicator = document.getElementById('loadingIndicator');
     const statusDot = document.getElementById('statusDot');
+
+    // Update Waktu Secara Real-time
+    function updateDateTime() {
+        const now = new Date();
+        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+        
+        const dateStr = now.toLocaleDateString('id-ID', dateOpts);
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        
+        document.getElementById('currentDate').innerText = `${dateStr} • ${h}:${m} WIB`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
 
     // ==========================================
     // FUNGSI TARIK DATA LIVE DARI GOOGLE SHEETS (GVIZ)
@@ -239,15 +251,32 @@
         return ``;
     }
     
+    // Format tanggal yang lebih kebal dari error parsing Gviz
     function formatShortDate(dateStr) {
         if(!dateStr) return "";
-        const parts = dateStr.toString().split('-');
-        if(parts.length === 3) {
-            // Asumsi format YYYY-MM-DD
+        let str = String(dateStr);
+        
+        // Handle format Date(YYYY, MM, DD) dari Google Sheets
+        if (str.startsWith('Date(')) {
+            const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) {
+                const d = new Date(match[1], match[2], match[3]);
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            }
+        }
+
+        // Handle YYYY-MM-DD standar
+        const parts = str.split('-');
+        if(parts.length >= 3) {
             const date = new Date(parts[0], parts[1]-1, parts[2].substring(0,2));
             if(!isNaN(date.getTime())) return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
         }
-        return dateStr.substring(0, 10);
+        
+        // Handle Fallback
+        const d = new Date(str);
+        if(!isNaN(d.getTime())) return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+        return str.substring(0, 10);
     }
 
     // ==========================================
@@ -267,6 +296,17 @@
         // ==================================
         // Proses Divisi Konten
         // ==================================
+        
+        // Asumsi data baru dari google sheet ditambahkan ke paling bawah, kita reverse dulu
+        rawCreatorTasks.reverse();
+        // Bila punya ID yang valid berurutan, double make-sure urutannya dari terbesar
+        rawCreatorTasks.sort((a,b) => {
+            const idA = parseInt(a.id) || 0;
+            const idB = parseInt(b.id) || 0;
+            if(idA && idB) return idB - idA;
+            return 0;
+        });
+
         document.getElementById('creatorTaskCount').innerText = rawCreatorTasks.length;
         if(rawCreatorTasks.length === 0) {
             document.getElementById('creatorTasksContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Tidak ada tugas kreator</p>`;
@@ -276,7 +316,7 @@
                     <p class="text-[13px] font-semibold text-slate-800 dark:text-zinc-100 line-clamp-2 leading-snug">${c.title || 'Tanpa Judul'}</p>
                     <div class="flex items-center justify-between mt-2.5">
                         <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="ph-bold ph-user"></i>${c.client || '-'}</span>
-                        <span class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-bold flex items-center gap-1"><i class="ph-bold ph-clock"></i>${formatShortDate(c.targetDate)}</span>
+                        <span class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-bold flex items-center gap-1"><i class="ph-bold ph-clock"></i>${formatShortDate(c.targetDate || c.dateStr)}</span>
                     </div>
                 </div>
             `).join('');
@@ -287,12 +327,20 @@
         if(rawCreatorReports.length === 0) {
              document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Belum ada laporan</p>`;
         } else {
-            // Urutkan dari terbaru berdasarkan dateVal (atau dateStr jika dateVal tidak ada)
-            rawCreatorReports.sort((a, b) => new Date(b.dateVal || b.dateStr || 0) - new Date(a.dateVal || a.dateStr || 0));
+            rawCreatorReports.reverse(); // Bawa row paling bawah (terbaru) ke atas
+            
+            // Perbaiki sorting tanggal untuk jaga-jaga
+            rawCreatorReports.sort((a, b) => {
+                const dateA = new Date(a.dateVal || a.dateStr || a.Timestamp || 0).getTime();
+                const dateB = new Date(b.dateVal || b.dateStr || b.Timestamp || 0).getTime();
+                if (!isNaN(dateA) && !isNaN(dateB) && dateA !== dateB) return dateB - dateA;
+                return 0;
+            });
+            
             // Cari 2 tanggal unik teratas
-            const uniqueDates = [...new Set(rawCreatorReports.map(r => r.dateStr || r.dateVal).filter(Boolean))];
+            const uniqueDates = [...new Set(rawCreatorReports.map(r => r.dateStr || r.dateVal || r.Timestamp).filter(Boolean))];
             const top2Dates = uniqueDates.slice(0, 2);
-            const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.dateStr || r.dateVal));
+            const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.dateStr || r.dateVal || r.Timestamp));
 
             const cReportHtml = filteredReports.map(r => `
                 <div class="p-3.5 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl relative overflow-hidden">
@@ -300,7 +348,7 @@
                     <div class="flex items-center gap-2 mb-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
                         <div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-[11px] font-black">${(r.name || 'U').charAt(0)}</div>
                         <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100">${r.name}</span>
-                        <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.dateStr || r.dateVal)}</span>
+                        <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.dateStr || r.dateVal || r.Timestamp)}</span>
                     </div>
                     <div class="text-[11px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed">${r.task || ''}</div>
                 </div>
@@ -311,7 +359,8 @@
         // ==================================
         // Proses Divisi Desain
         // ==================================
-        const teamMembers = ["Indah", "Nayla"];
+        // PENAMBAHAN TEGUH & ZALFA KE SISTEM
+        const teamMembers = ["Indah", "Nayla", "Teguh", "Zalfa"];
         const groupedTasks = {};
         teamMembers.forEach(m => groupedTasks[m] = []);
 
@@ -321,19 +370,19 @@
             return t.assignee && !s.includes('final');
         });
 
-        // PERBAIKAN: Mengurutkan secara akurat dari yang terbaru
-        // Gunakan ID (yang merupakan Timestamp) untuk mengurutkan
-        // Jika tidak ada ID, gunakan waktu fallback dari tanggal pembuatan
+        // Urutkan Kerjaan Baru di Paling Atas (Balik urutan + Pastikan pakai ID bila ada)
+        uncompleted_tasks.reverse();
         uncompleted_tasks.sort((a, b) => {
             const idA = parseInt(a.id) || 0;
             const idB = parseInt(b.id) || 0;
-            return idB - idA; // ID Besar (Terbaru) di Atas
+            if(idA && idB) return idB - idA; // ID Besar (Terbaru) di Atas
+            return 0;
         });
 
         uncompleted_tasks.forEach(task => {
             const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
             if(groupedTasks[name] !== undefined) { groupedTasks[name].push(task); } 
-            else { groupedTasks[name] = [task]; }
+            else { groupedTasks[name] = [task]; } // Menangkap kalau ada nama lain (opsional)
         });
 
         const teamContainer = document.getElementById('teamTasksContainer');
@@ -348,6 +397,9 @@
         let colorIndex = 0;
 
         for(const [assignee, tasks] of Object.entries(groupedTasks)) {
+            // Hindari render ulang kalau kebetulan ada nama undefined yang masuk
+            if(!teamMembers.includes(assignee) && tasks.length === 0) continue; 
+            
             const avatarColor = colors[colorIndex % colors.length];
             colorIndex++;
 
@@ -372,7 +424,7 @@
                             </div>
                             <p class="text-[12px] font-semibold text-slate-800 dark:text-zinc-100 leading-snug mb-2">${t.title || 'Tanpa Judul'}</p>
                             <div class="flex justify-between items-center mt-1">
-                                <span class="text-[9px] text-slate-500 dark:text-zinc-500 font-semibold flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${formatShortDate(t.dateStr)}</span>
+                                <span class="text-[9px] text-slate-500 dark:text-zinc-500 font-semibold flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp)}</span>
                                 ${getPriorityBadge(t.priority)}
                             </div>
                         </div>
