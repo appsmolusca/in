@@ -221,7 +221,6 @@
                 let row = {};
                 r.c.forEach((c, i) => {
                     if (cols[i]) {
-                        // Pakai value yang sudah terformat text (f), jika kosong pakai raw value (v)
                         row[cols[i]] = c ? (c.f !== undefined && c.f !== null ? c.f : c.v) : '';
                     }
                 });
@@ -235,8 +234,56 @@
     }
 
     // ==========================================
-    // UTILS FORMAT & BADGE
+    // UTILS FORMAT TANGGAL YANG 100% KEBAL ERROR
     // ==========================================
+    
+    // 1. Helper konversi string dari Sheets jadi Date Object valid JS
+    function parseToDateObj(dateStr) {
+        if (!dateStr) return new Date(0);
+        let str = String(dateStr).trim();
+
+        // Format bawaan GViz (e.g. Date(2026, 8, 16))
+        if (str.startsWith('Date(')) {
+            const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) return new Date(match[1], match[2], match[3]);
+        }
+
+        // Format Indonesia (DD-MM-YYYY atau DD/MM/YYYY) -> INI PENYAKITNYA KEMAREN!
+        if (str.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}/)) {
+            const parts = str.split(/[-\/]/);
+            const yearStr = parts[2].split(/[ T]/)[0]; // Buang jam kalau ada di belakang tahun
+            return new Date(yearStr, parseInt(parts[1]) - 1, parseInt(parts[0]));
+        }
+
+        // Format Internasional (YYYY-MM-DD atau YYYY/MM/DD)
+        if (str.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/)) {
+            const parts = str.split(/[-\/]/);
+            const dayStr = parts[2].split(/[ T]/)[0]; // Buang jam kalau ada di belakang tanggal
+            return new Date(parts[0], parseInt(parts[1]) - 1, parseInt(dayStr));
+        }
+
+        return new Date(str); // Fallback normal
+    }
+
+    // 2. Helper untuk render "16 Sep" di UI
+    function formatShortDate(dateInput) {
+        if (!dateInput) return "";
+        let d = dateInput instanceof Date ? dateInput : parseToDateObj(dateInput);
+        if (!isNaN(d.getTime()) && d.getTime() !== 0) {
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+        return String(dateInput).substring(0, 10);
+    }
+
+    // 3. Helper untuk grouping unik laporan (YYYY-MM-DD) biar gak meleset
+    function getStandardDateString(dateInput) {
+        let d = parseToDateObj(dateInput);
+        if(!isNaN(d.getTime()) && d.getTime() !== 0) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        return String(dateInput);
+    }
+
     function getStatusBadge(status) {
         const s = (status || '').toLowerCase();
         if (s.includes('final')) return `<span class="badge bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 border dark:border-emerald-500/30">Final</span>`;
@@ -249,34 +296,6 @@
             return `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/15 dark:text-red-400 border dark:border-red-500/30 uppercase"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
         }
         return ``;
-    }
-    
-    // Format tanggal yang lebih kebal dari error parsing Gviz
-    function formatShortDate(dateStr) {
-        if(!dateStr) return "";
-        let str = String(dateStr);
-        
-        // Handle format Date(YYYY, MM, DD) dari Google Sheets
-        if (str.startsWith('Date(')) {
-            const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
-            if (match) {
-                const d = new Date(match[1], match[2], match[3]);
-                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            }
-        }
-
-        // Handle YYYY-MM-DD standar
-        const parts = str.split('-');
-        if(parts.length >= 3) {
-            const date = new Date(parts[0], parts[1]-1, parts[2].substring(0,2));
-            if(!isNaN(date.getTime())) return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-        }
-        
-        // Handle Fallback
-        const d = new Date(str);
-        if(!isNaN(d.getTime())) return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-
-        return str.substring(0, 10);
     }
 
     // ==========================================
@@ -297,9 +316,7 @@
         // Proses Divisi Konten
         // ==================================
         
-        // Asumsi data baru dari google sheet ditambahkan ke paling bawah, kita reverse dulu
         rawCreatorTasks.reverse();
-        // Bila punya ID yang valid berurutan, double make-sure urutannya dari terbesar
         rawCreatorTasks.sort((a,b) => {
             const idA = parseInt(a.id) || 0;
             const idB = parseInt(b.id) || 0;
@@ -323,24 +340,29 @@
             document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
         }
 
-        // Laporan Kreator (Filter 2 tanggal terakhir)
+        // --- LAPORAN KREATOR ---
         if(rawCreatorReports.length === 0) {
              document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Belum ada laporan</p>`;
         } else {
-            rawCreatorReports.reverse(); // Bawa row paling bawah (terbaru) ke atas
-            
-            // Perbaiki sorting tanggal untuk jaga-jaga
+            // Normalisasi data tanggal pakai helper baru biar gampang disortir
+            rawCreatorReports.forEach(r => {
+                const rawDateStr = r.dateVal || r.dateStr || r.Timestamp;
+                r.parsedDateObj = parseToDateObj(rawDateStr);
+                r.normalizedDate = getStandardDateString(rawDateStr);
+            });
+
+            // Urutkan berdasarkan Date Object terbaru di atas
             rawCreatorReports.sort((a, b) => {
-                const dateA = new Date(a.dateVal || a.dateStr || a.Timestamp || 0).getTime();
-                const dateB = new Date(b.dateVal || b.dateStr || b.Timestamp || 0).getTime();
-                if (!isNaN(dateA) && !isNaN(dateB) && dateA !== dateB) return dateB - dateA;
-                return 0;
+                const dA = a.parsedDateObj.getTime();
+                const dB = b.parsedDateObj.getTime();
+                if (!isNaN(dA) && !isNaN(dB) && dA !== dB) return dB - dA;
+                return 0; // fallback order sheet bawah di atas
             });
             
-            // Cari 2 tanggal unik teratas
-            const uniqueDates = [...new Set(rawCreatorReports.map(r => r.dateStr || r.dateVal || r.Timestamp).filter(Boolean))];
+            // Filter hanya 2 tanggal unik teratas dari tanggal yang sudah dinormalisasi
+            const uniqueDates = [...new Set(rawCreatorReports.map(r => r.normalizedDate).filter(Boolean))];
             const top2Dates = uniqueDates.slice(0, 2);
-            const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.dateStr || r.dateVal || r.Timestamp));
+            const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.normalizedDate));
 
             const cReportHtml = filteredReports.map(r => `
                 <div class="p-3.5 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl relative overflow-hidden">
@@ -348,7 +370,7 @@
                     <div class="flex items-center gap-2 mb-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
                         <div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-[11px] font-black">${(r.name || 'U').charAt(0)}</div>
                         <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100">${r.name}</span>
-                        <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.dateStr || r.dateVal || r.Timestamp)}</span>
+                        <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.parsedDateObj)}</span>
                     </div>
                     <div class="text-[11px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed">${r.task || ''}</div>
                 </div>
@@ -359,30 +381,28 @@
         // ==================================
         // Proses Divisi Desain
         // ==================================
-        // PENAMBAHAN TEGUH & ZALFA KE SISTEM
         const teamMembers = ["Indah", "Nayla", "Teguh", "Zalfa"];
         const groupedTasks = {};
         teamMembers.forEach(m => groupedTasks[m] = []);
 
-        // Filter task yang BELUM FINAL
         let uncompleted_tasks = rawTasks.filter(t => {
             const s = (t.status || '').toLowerCase();
             return t.assignee && !s.includes('final');
         });
 
-        // Urutkan Kerjaan Baru di Paling Atas (Balik urutan + Pastikan pakai ID bila ada)
+        // Urutkan Kerjaan Baru di Paling Atas 
         uncompleted_tasks.reverse();
         uncompleted_tasks.sort((a, b) => {
             const idA = parseInt(a.id) || 0;
             const idB = parseInt(b.id) || 0;
-            if(idA && idB) return idB - idA; // ID Besar (Terbaru) di Atas
+            if(idA && idB) return idB - idA; 
             return 0;
         });
 
         uncompleted_tasks.forEach(task => {
             const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
             if(groupedTasks[name] !== undefined) { groupedTasks[name].push(task); } 
-            else { groupedTasks[name] = [task]; } // Menangkap kalau ada nama lain (opsional)
+            else { groupedTasks[name] = [task]; } 
         });
 
         const teamContainer = document.getElementById('teamTasksContainer');
@@ -397,7 +417,6 @@
         let colorIndex = 0;
 
         for(const [assignee, tasks] of Object.entries(groupedTasks)) {
-            // Hindari render ulang kalau kebetulan ada nama undefined yang masuk
             if(!teamMembers.includes(assignee) && tasks.length === 0) continue; 
             
             const avatarColor = colors[colorIndex % colors.length];
