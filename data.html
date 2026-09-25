@@ -240,7 +240,7 @@
     // FUNGSI TARIK DATA LIVE
     // ==========================================
     async function fetchSheetData(sheetName) {
-        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+        const url = `https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec`;
         try {
             const response = await fetch(url);
             const text = await response.text();
