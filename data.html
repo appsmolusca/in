@@ -237,7 +237,8 @@
             const payload = { action: 'read', sheetName: sheetName };
             const res = await fetch(SCRIPT_URL, { 
                 method: 'POST', 
-                body: JSON.stringify(payload) 
+                body: JSON.stringify(payload),
+                cache: 'no-store' // Mencegah Google Cache
             });
             const responseData = await res.json();
             
@@ -260,6 +261,10 @@
         if (!dateStr) return new Date(0);
         let str = String(dateStr).trim();
 
+        // 13 digit timestamp (dari ID)
+        if (/^\d{13}$/.test(str)) {
+            return new Date(parseInt(str));
+        }
         if (str.startsWith('Date(')) {
             const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
             if (match) return new Date(match[1], match[2], match[3]);
@@ -400,15 +405,13 @@
         // 2. PROSES DIVISI DESAIN GRAFIS
         // ==================================
         try {
-            // Kita render assignee berdasarkan nama unik dari data sheet
-            // KECUALI Zalfa dan Teguh (Tim 3D)
             const groupedTasks = {};
             
             let uncompleted_tasks = rawTasks.filter(t => {
                 const s = (t.status || '').toLowerCase();
                 const assignee = (t.assignee || '').toLowerCase();
                 
-                // BLOKIR ZALFA DAN TEGUH AGAR TIDAK MUNCUL DI DIVISI DESAIN
+                // Blokir agar tim 3D tidak masuk ke div desainer
                 if(assignee.includes('zalfa') || assignee.includes('teguh')) return false;
                 
                 return t.assignee && !s.includes('final');
@@ -449,20 +452,22 @@
                             let borderHover = isUrgent ? 'hover:border-red-300' : 'hover:border-blue-300';
                             
                             return `
-                                <div class="p-3.5 bg-slate-50/80 dark:bg-zinc-800/30 border border-slate-200/70 dark:border-zinc-700/50 rounded-[16px] transition-all ${borderHover}">
+                                <div class="p-3.5 bg-slate-50/80 dark:bg-zinc-800/30 border border-slate-200/70 dark:border-zinc-700/50 rounded-[16px] flex flex-col transition-all ${borderHover}">
                                     <div class="flex justify-between items-start gap-2 mb-2">
                                         <span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm"><i class="ph-bold ph-hash"></i> ${t.joCode || '-'}</span>
                                         ${getStatusBadge(t.status)}
                                     </div>
                                     <p class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-3 pr-2">${t.title || 'Tanpa Judul'}</p>
-                                    <div class="flex justify-between items-center mt-1">
-                                        <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp)}</span>
+                                    
+                                    <div class="flex-1"></div>
+                                    <div class="flex justify-between items-center mt-1 pt-2.5 border-t border-slate-200/60 dark:border-zinc-700/50">
+                                        <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp || t.id)}</span>
                                         ${getPriorityBadge(t.priority)}
                                     </div>
                                 </div>
                             `;
                         }).join('');
-                        tasksHtml = `<div class="space-y-3 pb-2">${itemsHtml}</div>`;
+                        tasksHtml = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
                     } else {
                         tasksHtml = `
                             <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
@@ -502,7 +507,6 @@
         // 3. PROSES DIVISI 3D & PRODUKSI
         // ==================================
         try {
-            // Sama, kita render dinamis khusus untuk Zalfa, Teguh dkk.
             const groupedTasks3d = {};
 
             let totalGramasi = 0;
@@ -562,7 +566,6 @@
                     if (tasks.length > 0) {
                         let itemsHtml = tasks.map(t => {
                             let isUrgent = (t.priority || '').toLowerCase() === 'urgent';
-                            let urgentUI = isUrgent ? `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 border dark:border-red-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>` : '';
                             
                             let tStatus = String(t.status || 'Menunggu Respon');
                             let statusUI = '';
@@ -603,18 +606,23 @@
                             let catAdmin = t.catatanAdmin && t.catatanAdmin !== '-' ? `<p class="text-[10.5px] text-slate-500 dark:text-zinc-500 italic line-clamp-1 border-l-2 border-slate-300 dark:border-zinc-700 pl-2 mb-2 font-medium">Admin: "${t.catatanAdmin}"</p>` : '';
 
                             return `
-                            <div class="p-3.5 rounded-[16px] transition-all border ${borderClass}">
+                            <div class="p-3.5 rounded-[16px] transition-all border flex flex-col ${borderClass}">
                                 <div class="flex flex-wrap justify-between items-start gap-1.5 mb-2">
                                     ${statusUI}
-                                    ${urgentUI}
                                 </div>
                                 <h4 class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-1.5">${t.projectName || t.title || 'Tanpa Judul'}</h4>
                                 ${catAdmin}
                                 ${detailsHTML}
+                                
+                                <div class="flex-1"></div>
+                                <div class="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60 dark:border-zinc-700/50">
+                                    <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp || t.id)}</span>
+                                    ${getPriorityBadge(t.priority)}
+                                </div>
                             </div>
                             `;
                         }).join('');
-                        tasksHtml3d = `<div class="space-y-3 pb-2">${itemsHtml}</div>`;
+                        tasksHtml3d = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
                     } else {
                         tasksHtml3d = `
                             <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
