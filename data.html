@@ -16,7 +16,10 @@
             darkMode: 'class', 
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
                 }
             }
         }
@@ -31,94 +34,84 @@
         }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
 
         /* Loader Animation */
         .loader {
-            border: 3px solid #f3f3f3;
+            border: 3px solid rgba(59, 130, 246, 0.2);
             border-top: 3px solid #3b82f6;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Badge Status */
-        .badge {
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: capitalize;
-            letter-spacing: 0.02em;
-        }
-        
         /* Animasi Kedip Urgent */
         @keyframes urgent-pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.98); }
+            50% { opacity: 0.8; transform: scale(0.97); }
         }
         .urgent-blink {
             animation: urgent-pulse 1.5s ease-in-out infinite;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
         }
         
         /* Header Section Divider */
         .section-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.25rem;
             margin: 4rem 0 1.5rem 0;
         }
         .section-header::after {
             content: "";
             flex: 1;
             height: 1px;
+            background: linear-gradient(to right, #e2e8f0, transparent);
         }
+        .dark .section-header::after { background: linear-gradient(to right, #27272a, transparent); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-zinc-950 dark:text-zinc-100 pb-16 text-[13px]"> 
+<body class="bg-slate-50 text-slate-800 dark:bg-[#09090b] dark:text-zinc-100 pb-16 text-[13px] selection:bg-blue-200 selection:text-blue-900"> 
 
-<div class="max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+<div class="max-w-[1280px] mx-auto p-4 md:p-6 lg:p-8 space-y-8">
     
     <!-- Header Web -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-10 mt-2">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 mt-2">
         <div>
-            <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <i class="ph-fill ph-rocket text-blue-500"></i> Molusca App <span id="loadingIndicator" class="ml-2 hidden loader"></span>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-600/20">
+                    <i class="ph-fill ph-rocket text-xl md:text-2xl"></i>
+                </div>
+                Molusca App <span id="loadingIndicator" class="ml-2 hidden loader"></span>
             </h1>
-            <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium">Data LIVE ditarik dari API Google Sheets.</p>
+            <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium">Data LIVE ditarik otomatis dari Google Sheets API.</p>
         </div>
         
-        <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-full text-[11px] shadow-sm font-semibold transition-colors">
-                <span id="statusDot" class="flex h-2 w-2 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
-                <span class="text-slate-700 dark:text-zinc-200" id="currentDate">--</span>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-2 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 px-4 py-2 rounded-xl text-[11px] shadow-sm font-semibold transition-colors">
+                <span id="statusDot" class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
+                <span class="text-slate-700 dark:text-zinc-200 tracking-wide" id="currentDate">--</span>
             </div>
             
             <!-- Tombol Dark/Light Mode -->
-            <button id="themeToggle" class="flex items-center justify-center h-8 w-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-full shadow-sm text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+            <button id="themeToggle" class="flex shrink-0 items-center justify-center h-10 w-10 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
                 <i id="themeIcon" class="ph-bold ph-moon text-lg"></i>
             </button>
         </div>
     </header>
 
     <!-- Chart / Grafik Global -->
-    <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm transition-colors flex flex-col mb-4">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-[14px] font-bold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-trend-up text-blue-500"></i> Produktivitas Global</h2>
+    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col mb-4">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-[14px] md:text-[15px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100">
+                <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i> Produktivitas Global
+            </h2>
         </div>
-        <div class="relative w-full h-[180px] md:h-[220px]">
+        <div class="relative w-full h-[180px] md:h-[240px]">
             <canvas id="productivityChart"></canvas>
         </div>
     </div>
@@ -126,29 +119,29 @@
     <!-- ============================================== -->
     <!-- BAGIAN 1: DIVISI KONTEN -->
     <!-- ============================================== -->
-    <div class="section-header after:bg-slate-200 dark:after:bg-zinc-800">
-        <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase flex items-center gap-2">
-            <i class="ph-fill ph-video-camera text-rose-500"></i> Divisi Konten
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg"><i class="ph-fill ph-video-camera"></i></div> Divisi Konten
         </h2>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm transition-colors flex flex-col h-[320px]">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <h3 class="text-[13px] font-bold flex items-center gap-1.5 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-calendar-blank text-blue-500"></i> Target Deadline</h3>
-                <span class="text-[10px] bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-200 dark:border-blue-500/20" id="creatorTaskCount">0</span>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[350px]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-calendar-blank text-blue-500 text-lg"></i> Target Deadline</h3>
+                <span class="text-[10px] bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-black px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-500/20" id="creatorTaskCount">0</span>
             </div>
-            <div class="space-y-2.5 overflow-y-auto pr-1" id="creatorTasksContainer">
-                <p class="text-xs text-slate-400 text-center mt-10">Memuat data...</p>
+            <div class="space-y-3 overflow-y-auto pr-1 scroll-smooth" id="creatorTasksContainer">
+                <p class="text-xs text-slate-400 text-center mt-12 font-medium">Memuat data...</p>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm transition-colors flex flex-col h-[320px]">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                <h3 class="text-[13px] font-bold flex items-center gap-1.5 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-files text-emerald-500"></i> Laporan (2 Hari)</h3>
+        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[350px]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-files text-emerald-500 text-lg"></i> Laporan (2 Hari)</h3>
             </div>
-            <div class="space-y-2.5 overflow-y-auto pr-1" id="creatorReportsContainer">
-                <p class="text-xs text-slate-400 text-center mt-10">Memuat data...</p>
+            <div class="space-y-3 overflow-y-auto pr-1 scroll-smooth" id="creatorReportsContainer">
+                <p class="text-xs text-slate-400 text-center mt-12 font-medium">Memuat data...</p>
             </div>
         </div>
     </div>
@@ -157,21 +150,21 @@
     <!-- ============================================== -->
     <!-- BAGIAN 2: DIVISI DESAIN GRAFIS -->
     <!-- ============================================== -->
-    <div class="section-header after:bg-slate-200 dark:after:bg-zinc-800">
-        <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase flex items-center gap-2">
-            <i class="ph-fill ph-paint-brush-broad text-purple-500"></i> Divisi Desain Grafis
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-lg"><i class="ph-fill ph-paint-brush-broad"></i></div> Divisi Desain Grafis
         </h2>
     </div>
 
     <div>
-        <div class="flex items-center justify-between mb-4">
-            <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 font-medium bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
-                <i class="ph-fill ph-info text-blue-500"></i> Menampilkan task yang belum beres (Live Sync)
+        <div class="flex items-center justify-between mb-5">
+            <p class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                <i class="ph-fill ph-info text-blue-500"></i> Menampilkan task aktif (Live Sync)
             </p>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6" id="teamTasksContainer">
-            <p class="text-xs text-slate-400 col-span-full">Memuat data tim desain...</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6" id="teamTasksContainer">
+            <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim desain...</p>
         </div>
     </div>
 
@@ -179,43 +172,43 @@
     <!-- ============================================== -->
     <!-- BAGIAN 3: DIVISI 3D & PRODUKSI -->
     <!-- ============================================== -->
-    <div class="section-header after:bg-slate-200 dark:after:bg-zinc-800">
-        <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase flex items-center gap-2">
-            <i class="ph-fill ph-cube text-emerald-500"></i> Divisi 3D & Produksi
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg"><i class="ph-fill ph-cube"></i></div> Divisi 3D & Produksi
         </h2>
     </div>
 
     <!-- STATISTIK WIDGET 3D -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center h-[180px]">
-            <i class="ph-fill ph-scales text-4xl text-amber-500 mb-2"></i>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-6">
+        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-center items-center h-[180px] md:h-[220px]">
+            <i class="ph-fill ph-scales text-5xl text-amber-500 mb-3 drop-shadow-sm"></i>
             <h3 class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest text-center">Total Gramasi Habis</h3>
-            <p class="text-3xl font-black text-slate-800 dark:text-zinc-100 mt-1" id="totalGramasiUI">0 <span class="text-sm font-bold text-slate-400">gr</span></p>
+            <p class="text-4xl font-black text-slate-800 dark:text-zinc-100 mt-2 tracking-tighter" id="totalGramasiUI">0 <span class="text-sm font-bold text-slate-400">gr</span></p>
         </div>
-        <div class="md:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm h-[180px] flex flex-col">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-[13px] font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500"></i> Intensitas Penggunaan Mesin</h3>
+        <div class="md:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm hover:shadow-md transition-shadow h-[180px] md:h-[220px] flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500 text-lg"></i> Intensitas Penggunaan Mesin</h3>
             </div>
             <div class="relative w-full flex-1"><canvas id="mesinChart"></canvas></div>
         </div>
     </div>
 
     <div class="mb-10">
-        <div class="flex items-center justify-between mb-4">
-            <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 font-medium bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
-                <i class="ph-fill ph-info text-emerald-500"></i> Task Aktif Divisi 3D
+        <div class="flex items-center justify-between mb-5">
+            <p class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                <i class="ph-fill ph-info text-emerald-500"></i> Menampilkan task aktif 3D
             </p>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6" id="teamTasks3dContainer">
-            <p class="text-xs text-slate-400 col-span-full">Memuat data tim 3D...</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6" id="teamTasks3dContainer">
+            <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim 3D...</p>
         </div>
     </div>
 
 </div>
 
 <script>
-    // URL APPS SCRIPT ASLI DARI KAMU
+    // URL APPS SCRIPT
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec";
 
     // UI Elements
@@ -237,7 +230,7 @@
     updateDateTime();
 
     // ==========================================
-    // FUNGSI TARIK DATA (MENGGUNAKAN METODE POST SEPERTI ADMIN DASHBOARD)
+    // FUNGSI TARIK DATA (MENGGUNAKAN METODE POST)
     // ==========================================
     async function fetchSheetData(sheetName) {
         try {
@@ -248,7 +241,6 @@
             });
             const responseData = await res.json();
             
-            // Format response dari Apps Script kamu: { status: 'success', data: [...] }
             if (responseData.status === 'success' && Array.isArray(responseData.data)) {
                 return responseData.data;
             } else {
@@ -304,14 +296,21 @@
 
     function getStatusBadge(status) {
         const s = (status || '').toLowerCase();
-        if (s.includes('final') || s.includes('selesai')) return `<span class="badge bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 border dark:border-emerald-500/30">Selesai</span>`;
-        if (s.includes('revisi') || s.includes('to-do')) return `<span class="badge bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 border dark:border-amber-500/30">${status}</span>`;
-        return `<span class="badge bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 border dark:border-blue-500/30">${status || 'Lagi Dikerjain'}</span>`;
+        if (s.includes('final') || s.includes('selesai')) 
+            return `<span class="bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 border dark:border-emerald-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Selesai</span>`;
+        if (s.includes('revisi')) 
+            return `<span class="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 border dark:border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-bold ph-arrows-clockwise"></i> Revisi</span>`;
+        if (s.includes('layout')) 
+            return `<span class="bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 border dark:border-purple-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-bounding-box"></i> Layout</span>`;
+        if (s.includes('to-do')) 
+            return `<span class="bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-400 border dark:border-zinc-700 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">To Do</span>`;
+        
+        return `<span class="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 border dark:border-blue-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-pen-nib"></i> ${status || 'Lagi Dikerjain'}</span>`;
     }
 
     function getPriorityBadge(priority) {
         if ((priority || "").toLowerCase().includes('urgent')) {
-            return `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/15 dark:text-red-400 border dark:border-red-500/30 uppercase"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
+            return `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 border dark:border-red-500/30 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase inline-flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
         }
         return ``;
     }
@@ -331,7 +330,7 @@
         loadingIndicator.classList.remove('hidden');
         statusDot.classList.replace('bg-emerald-500', 'bg-amber-500'); 
 
-        // Tarik data dengan POST
+        // Tarik data
         const [rawTasks, rawCreatorTasks, rawCreatorReports, rawTasks3d] = await Promise.all([
             fetchSheetData('tasks'),
             fetchSheetData('creator_tasks'),
@@ -348,14 +347,14 @@
 
             document.getElementById('creatorTaskCount').innerText = rawCreatorTasks.length;
             if(rawCreatorTasks.length === 0) {
-                document.getElementById('creatorTasksContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Tidak ada tugas kreator</p>`;
+                document.getElementById('creatorTasksContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-12 font-medium">Tidak ada tugas kreator</p>`;
             } else {
                 const cTaskHtml = rawCreatorTasks.map(c => `
-                    <div class="p-3 bg-slate-50 dark:bg-zinc-900 border-l-[3px] border-l-blue-500 border border-slate-200 dark:border-zinc-800 rounded-xl">
-                        <p class="text-[13px] font-semibold text-slate-800 dark:text-zinc-100 line-clamp-2 leading-snug">${c.title || 'Tanpa Judul'}</p>
-                        <div class="flex items-center justify-between mt-2.5">
-                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="ph-bold ph-user"></i>${c.client || '-'}</span>
-                            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-bold flex items-center gap-1"><i class="ph-bold ph-clock"></i>${formatShortDate(c.targetDate || c.dateStr)}</span>
+                    <div class="p-3.5 bg-slate-50/70 dark:bg-zinc-800/30 border-l-[4px] border-l-blue-500 border border-slate-100 dark:border-zinc-800 rounded-xl hover:shadow-sm transition-shadow">
+                        <p class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 line-clamp-2 leading-snug">${c.title || 'Tanpa Judul'}</p>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md flex items-center gap-1.5"><i class="ph-fill ph-user-circle text-sm text-slate-400"></i>${c.client || '-'}</span>
+                            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-black flex items-center gap-1 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-md"><i class="ph-bold ph-calendar-blank"></i>${formatShortDate(c.targetDate || c.dateStr)}</span>
                         </div>
                     </div>
                 `).join('');
@@ -363,7 +362,7 @@
             }
 
             if(rawCreatorReports.length === 0) {
-                 document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-10">Belum ada laporan</p>`;
+                 document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-12 font-medium">Belum ada laporan</p>`;
             } else {
                 rawCreatorReports.forEach(r => {
                     const rawDateStr = r.dateVal || r.dateStr || r.Timestamp;
@@ -383,14 +382,14 @@
                 const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.normalizedDate));
 
                 const cReportHtml = filteredReports.map(r => `
-                    <div class="p-3.5 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-2 opacity-[0.03] dark:opacity-5"><i class="ph-fill ph-quotes text-5xl text-slate-900 dark:text-white"></i></div>
-                        <div class="flex items-center gap-2 mb-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
-                            <div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-[11px] font-black">${(r.name || 'U').charAt(0)}</div>
-                            <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100">${r.name}</span>
-                            <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.parsedDateObj)}</span>
+                    <div class="p-4 bg-slate-50/70 dark:bg-zinc-800/30 border border-slate-100 dark:border-zinc-800 rounded-xl relative overflow-hidden hover:shadow-sm transition-shadow">
+                        <div class="absolute top-0 right-0 p-3 opacity-[0.02] dark:opacity-[0.03] pointer-events-none"><i class="ph-fill ph-quotes text-6xl text-slate-900 dark:text-white"></i></div>
+                        <div class="flex items-center gap-2.5 mb-3 border-b border-slate-200/60 dark:border-zinc-700/50 pb-3">
+                            <div class="h-7 w-7 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-xs font-black shadow-sm">${(r.name || 'U').charAt(0)}</div>
+                            <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 tracking-wide">${r.name}</span>
+                            <span class="text-[9px] font-black text-slate-400 dark:text-zinc-500 ml-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md uppercase tracking-wider">${formatShortDate(r.parsedDateObj)}</span>
                         </div>
-                        <div class="text-[11px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed">${r.task || ''}</div>
+                        <div class="text-[11.5px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed font-medium pl-1">${r.task || ''}</div>
                     </div>
                 `).join('');
                 document.getElementById('creatorReportsContainer').innerHTML = cReportHtml;
@@ -401,12 +400,17 @@
         // 2. PROSES DIVISI DESAIN GRAFIS
         // ==================================
         try {
-            const teamMembers = ["Indah", "Nayla"];
+            // Kita render assignee berdasarkan nama unik dari data sheet
+            // KECUALI Zalfa dan Teguh (Tim 3D)
             const groupedTasks = {};
-            teamMembers.forEach(m => groupedTasks[m] = []);
-
+            
             let uncompleted_tasks = rawTasks.filter(t => {
                 const s = (t.status || '').toLowerCase();
+                const assignee = (t.assignee || '').toLowerCase();
+                
+                // BLOKIR ZALFA DAN TEGUH AGAR TIDAK MUNCUL DI DIVISI DESAIN
+                if(assignee.includes('zalfa') || assignee.includes('teguh')) return false;
+                
                 return t.assignee && !s.includes('final');
             });
 
@@ -423,76 +427,83 @@
             let teamHtml = '';
 
             const colors = [
-                'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30', 
-                'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30'
+                'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20', 
+                'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20',
+                'bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20',
+                'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
             ];
             let colorIndex = 0;
 
-            for(const [assignee, tasks] of Object.entries(groupedTasks)) {
-                if(!teamMembers.includes(assignee) && tasks.length === 0) continue; 
-                
-                const avatarColor = colors[colorIndex % colors.length];
-                colorIndex++;
+            const objectKeys = Object.keys(groupedTasks);
+            if(objectKeys.length === 0) {
+                 teamContainer.innerHTML = `<div class="col-span-full p-8 bg-slate-50 border border-slate-200 rounded-[20px] text-center dark:bg-zinc-900/50 dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi Desain.</p></div>`;
+            } else {
+                for(const [assignee, tasks] of Object.entries(groupedTasks)) {
+                    const avatarColor = colors[colorIndex % colors.length];
+                    colorIndex++;
 
-                let tasksHtml = '';
-                if (tasks.length > 0) {
-                    let itemsHtml = tasks.map(t => {
-                        let isUrgent = t.priority?.toLowerCase() === 'urgent';
-                        let priorityClass = isUrgent ? 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/30' : 'bg-slate-50 border-slate-200 dark:bg-zinc-900 dark:border-zinc-800';
-                        return `
-                            <div class="p-2.5 border rounded-xl transition-all ${priorityClass}">
-                                <div class="flex justify-between items-start mb-1.5">
-                                    <span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white border-slate-200 dark:bg-zinc-800 border dark:border-zinc-700 px-1.5 py-0.5 rounded">${t.joCode || '-'}</span>${getStatusBadge(t.status)}
+                    let tasksHtml = '';
+                    if (tasks.length > 0) {
+                        let itemsHtml = tasks.map(t => {
+                            let isUrgent = t.priority?.toLowerCase() === 'urgent';
+                            let borderHover = isUrgent ? 'hover:border-red-300' : 'hover:border-blue-300';
+                            
+                            return `
+                                <div class="p-3.5 bg-slate-50/80 dark:bg-zinc-800/30 border border-slate-200/70 dark:border-zinc-700/50 rounded-[16px] transition-all ${borderHover}">
+                                    <div class="flex justify-between items-start gap-2 mb-2">
+                                        <span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm"><i class="ph-bold ph-hash"></i> ${t.joCode || '-'}</span>
+                                        ${getStatusBadge(t.status)}
+                                    </div>
+                                    <p class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-3 pr-2">${t.title || 'Tanpa Judul'}</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp)}</span>
+                                        ${getPriorityBadge(t.priority)}
+                                    </div>
                                 </div>
-                                <p class="text-[12px] font-semibold text-slate-800 dark:text-zinc-100 leading-snug mb-2">${t.title || 'Tanpa Judul'}</p>
-                                <div class="flex justify-between items-center mt-1">
-                                    <span class="text-[9px] text-slate-500 dark:text-zinc-500 font-semibold flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp)}</span>${getPriorityBadge(t.priority)}
-                                </div>
+                            `;
+                        }).join('');
+                        tasksHtml = `<div class="space-y-3 pb-2">${itemsHtml}</div>`;
+                    } else {
+                        tasksHtml = `
+                            <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
+                                <i class="ph-fill ph-check-circle text-5xl text-emerald-400/80 mb-2 drop-shadow-sm"></i>
+                                <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
+                                <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan sudah beres.</p>
                             </div>
                         `;
-                    }).join('');
-                    tasksHtml = `<div class="space-y-2.5">${itemsHtml}</div>`;
-                } else {
-                    tasksHtml = `
-                        <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
-                            <i class="ph-fill ph-check-circle text-5xl text-emerald-500/70 mb-2 drop-shadow-sm"></i>
-                            <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
-                            <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan sudah beres.</p>
+                    }
+
+                    let badgeClass = tasks.length > 0 
+                        ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+
+                    teamHtml += `
+                    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[380px] sm:h-[420px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
+                                    ${assignee.charAt(0)}
+                                </div>
+                                <h3 class="font-black text-slate-800 dark:text-zinc-100 text-[15px] tracking-wide">${assignee}</h3>
+                            </div>
+                            <span class="${badgeClass} text-[10px] font-black px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
                         </div>
+                        <div class="overflow-y-auto pr-1 flex-1 scroll-smooth">
+                            ${tasksHtml}
+                        </div>
+                    </div>
                     `;
                 }
-
-                let badgeClass = tasks.length > 0 
-                    ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
-                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
-
-                teamHtml += `
-                <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col h-[350px]">
-                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="h-7 w-7 rounded-full ${avatarColor} border flex items-center justify-center font-black text-[13px]">
-                                ${assignee.charAt(0)}
-                            </div>
-                            <h3 class="font-extrabold text-slate-800 dark:text-zinc-100 text-[14px]">${assignee}</h3>
-                        </div>
-                        <span class="${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded border">${tasks.length} Task</span>
-                    </div>
-                    <div class="overflow-y-auto pr-1 flex-1">
-                        ${tasksHtml}
-                    </div>
-                </div>
-                `;
+                teamContainer.innerHTML = teamHtml;
             }
-            teamContainer.innerHTML = teamHtml;
         } catch(e) { console.error("Error Divisi Desain:", e); }
 
         // ==================================
         // 3. PROSES DIVISI 3D & PRODUKSI
         // ==================================
         try {
-            const teamMembers3d = ["Teguh", "Zalfa"];
+            // Sama, kita render dinamis khusus untuk Zalfa, Teguh dkk.
             const groupedTasks3d = {};
-            teamMembers3d.forEach(m => groupedTasks3d[m] = []);
 
             let totalGramasi = 0;
             let mesinCounts = {};
@@ -516,7 +527,7 @@
 
             // UPDATE WIDGET STATS 3D
             const tgUI = document.getElementById('totalGramasiUI');
-            if (tgUI) tgUI.innerHTML = `${totalGramasi} <span class="text-sm font-bold text-slate-400">gr</span>`;
+            if (tgUI) tgUI.innerHTML = `${totalGramasi} <span class="text-lg md:text-xl font-bold text-slate-400">gr</span>`;
             
             // Render Chart Mesin
             renderMesinChart(mesinCounts);
@@ -534,107 +545,109 @@
             let teamHtml3d = '';
 
             const colors3d = [
-                'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30', 
-                'bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500/30'
+                'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20', 
+                'bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20'
             ];
             let colorIndex3d = 0;
+            
+            const objectKeys3d = Object.keys(groupedTasks3d);
+            if(objectKeys3d.length === 0) {
+                 teamContainer3d.innerHTML = `<div class="col-span-full p-8 bg-slate-50 border border-slate-200 rounded-[20px] text-center dark:bg-zinc-900/50 dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi 3D.</p></div>`;
+            } else {
+                for(const [assignee, tasks] of Object.entries(groupedTasks3d)) {
+                    const avatarColor = colors3d[colorIndex3d % colors3d.length];
+                    colorIndex3d++;
 
-            for(const [assignee, tasks] of Object.entries(groupedTasks3d)) {
-                if(!teamMembers3d.includes(assignee) && tasks.length === 0) continue; 
-                
-                const avatarColor = colors3d[colorIndex3d % colors3d.length];
-                colorIndex3d++;
-
-                let tasksHtml3d = '';
-                if (tasks.length > 0) {
-                    let itemsHtml = tasks.map(t => {
-                        let isUrgent = (t.priority || '').toLowerCase() === 'urgent';
-                        let urgentUI = isUrgent ? `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/15 dark:text-red-400 border dark:border-red-500/30 uppercase"><i class="ph-fill ph-warning-circle"></i> Urgent</span>` : '';
-                        
-                        let tStatus = String(t.status || 'Menunggu Respon');
-                        let statusUI = '';
-                        let borderClass = 'bg-slate-50 border-slate-200 dark:bg-zinc-900 dark:border-zinc-800';
-                        let detailsHTML = '';
-
-                        let cStart = cleanTime(t.startTime);
-                        let cEnd = cleanTime(t.endTime);
-
-                        if (tStatus === 'Menunggu Respon') {
-                            statusUI = `<span class="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="ph-bold ph-clock-countdown"></i> Menunggu Respon</span>`;
-                        } 
-                        else if (tStatus === 'Lagi Dikerjain' || tStatus === 'Nunggu Revisi') {
-                            borderClass = 'bg-purple-50/50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800/50';
-                            let icon = tStatus === 'Lagi Dikerjain' ? 'ph-pen-nib' : 'ph-arrows-clockwise';
-                            statusUI = `<span class="text-[9px] font-extrabold text-purple-700 bg-purple-100 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="ph-bold ${icon}"></i> ${tStatus}</span>`;
+                    let tasksHtml3d = '';
+                    if (tasks.length > 0) {
+                        let itemsHtml = tasks.map(t => {
+                            let isUrgent = (t.priority || '').toLowerCase() === 'urgent';
+                            let urgentUI = isUrgent ? `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 border dark:border-red-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>` : '';
                             
-                            if((cStart && cStart !== '-') || (t.catatanTim && t.catatanTim !== '-')) {
-                                detailsHTML = `<div class="mt-2 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2 rounded-lg border border-slate-100 dark:border-zinc-800 space-y-1">`;
-                                if(cStart && cStart !== '-') detailsHTML += `<div class="flex"><span class="font-bold text-slate-400 dark:text-zinc-500 w-12">Waktu</span> <span class="mr-1.5">:</span> ${cStart} - ${cEnd}</div>`;
-                                if(t.catatanTim && t.catatanTim !== '-') detailsHTML += `<div class="pt-1 mt-1 border-t border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-500 italic line-clamp-2">"${t.catatanTim}"</div>`;
-                                detailsHTML += `</div>`;
+                            let tStatus = String(t.status || 'Menunggu Respon');
+                            let statusUI = '';
+                            let borderClass = 'border-slate-200/70 dark:border-zinc-700/50 hover:border-emerald-300 dark:hover:border-emerald-700 bg-slate-50/80 dark:bg-zinc-800/30';
+                            let detailsHTML = '';
+
+                            let cStart = cleanTime(t.startTime);
+                            let cEnd = cleanTime(t.endTime);
+
+                            if (tStatus === 'Menunggu Respon') {
+                                statusUI = `<span class="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-clock-countdown"></i> Menunggu Respon</span>`;
+                            } 
+                            else if (tStatus === 'Lagi Dikerjain' || tStatus === 'Nunggu Revisi') {
+                                borderClass = 'border-purple-200/80 ring-1 ring-purple-100 dark:ring-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10';
+                                let icon = tStatus === 'Lagi Dikerjain' ? 'ph-pen-nib' : 'ph-arrows-clockwise';
+                                statusUI = `<span class="text-[10px] font-extrabold text-purple-700 bg-purple-100 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ${icon}"></i> ${tStatus}</span>`;
+                                
+                                if((cStart && cStart !== '-') || (t.catatanTim && t.catatanTim !== '-')) {
+                                    detailsHTML = `<div class="mt-3 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1.5 shadow-sm">`;
+                                    if(cStart && cStart !== '-') detailsHTML += `<div class="flex items-center gap-2"><div class="w-12 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>`;
+                                    if(t.catatanTim && t.catatanTim !== '-') detailsHTML += `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>`;
+                                    detailsHTML += `</div>`;
+                                }
                             }
-                        }
-                        else if (tStatus === 'Lagi Produksi') {
-                            borderClass = 'bg-amber-50/50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800/50';
-                            statusUI = `<span class="text-[9px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-1.5 py-0.5 rounded flex items-center gap-1"><i class="ph-fill ph-gear-six animate-spin-slow"></i> Lagi Produksi</span>`;
-                            
-                            detailsHTML = `<div class="mt-2 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2 rounded-lg border border-slate-100 dark:border-zinc-800 space-y-1">
-                                <div class="flex"><span class="font-bold text-slate-400 dark:text-zinc-500 w-14">Waktu</span> <span class="mr-1.5">:</span> ${cStart} - ${cEnd}</div>
-                                <div class="flex"><span class="font-bold text-slate-400 dark:text-zinc-500 w-14">Gramasi</span> <span class="mr-1.5">:</span> ${t.gramasi || '-'}</div>
-                                <div class="flex"><span class="font-bold text-slate-400 dark:text-zinc-500 w-14">Jumlah</span> <span class="mr-1.5">:</span> ${t.jumlah || '-'}</div>
-                                <div class="flex"><span class="font-bold text-slate-400 dark:text-zinc-500 w-14">Mesin</span> <span class="mr-1.5">:</span> <span class="font-bold text-emerald-600 dark:text-emerald-400">${t.mesin || '-'}</span></div>
-                                ${t.catatanTim && t.catatanTim !== '-' ? `<div class="pt-1 mt-1 border-t border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-500 italic line-clamp-2">"${t.catatanTim}"</div>` : ''}
-                            </div>`;
-                        }
+                            else if (tStatus === 'Lagi Produksi') {
+                                borderClass = 'border-amber-200/80 ring-1 ring-amber-100 dark:ring-amber-900/30 bg-amber-50/30 dark:bg-amber-900/10';
+                                statusUI = `<span class="text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-gear-six animate-spin-slow"></i> Lagi Produksi</span>`;
+                                
+                                detailsHTML = `<div class="mt-3 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1.5 shadow-sm">
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Gramasi</div><div class="flex-1">: ${t.gramasi || '-'}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Jumlah</div><div class="flex-1">: ${t.jumlah || '-'}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Mesin</div><div class="flex-1">: <span class="font-extrabold text-emerald-600 dark:text-emerald-400">${t.mesin || '-'}</span></div></div>
+                                    ${t.catatanTim && t.catatanTim !== '-' ? `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>` : ''}
+                                </div>`;
+                            }
 
-                        let pClass = isUrgent ? 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/30' : borderClass;
-                        let catAdmin = t.catatanAdmin && t.catatanAdmin !== '-' ? `<p class="text-[10px] text-slate-500 dark:text-zinc-500 italic line-clamp-1 border-l-2 border-slate-300 dark:border-zinc-700 pl-1.5">Admin: "${t.catatanAdmin}"</p>` : '';
+                            let catAdmin = t.catatanAdmin && t.catatanAdmin !== '-' ? `<p class="text-[10.5px] text-slate-500 dark:text-zinc-500 italic line-clamp-1 border-l-2 border-slate-300 dark:border-zinc-700 pl-2 mb-2 font-medium">Admin: "${t.catatanAdmin}"</p>` : '';
 
-                        return `
-                        <div class="p-3 border rounded-xl transition-all ${pClass}">
-                            <div class="flex flex-wrap justify-between items-start gap-1 mb-1.5">
-                                ${statusUI}
-                                ${urgentUI}
+                            return `
+                            <div class="p-3.5 rounded-[16px] transition-all border ${borderClass}">
+                                <div class="flex flex-wrap justify-between items-start gap-1.5 mb-2">
+                                    ${statusUI}
+                                    ${urgentUI}
+                                </div>
+                                <h4 class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-1.5">${t.projectName || t.title || 'Tanpa Judul'}</h4>
+                                ${catAdmin}
+                                ${detailsHTML}
                             </div>
-                            <p class="text-[12px] md:text-[13px] font-bold text-slate-800 dark:text-zinc-100 leading-snug mb-1">${t.projectName || t.title || 'Tanpa Judul'}</p>
-                            ${catAdmin}
-                            ${detailsHTML}
-                        </div>
+                            `;
+                        }).join('');
+                        tasksHtml3d = `<div class="space-y-3 pb-2">${itemsHtml}</div>`;
+                    } else {
+                        tasksHtml3d = `
+                            <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
+                                <i class="ph-fill ph-check-circle text-5xl text-emerald-400/80 mb-2 drop-shadow-sm"></i>
+                                <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
+                                <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan 3D sudah beres.</p>
+                            </div>
                         `;
-                    }).join('');
-                    tasksHtml3d = `<div class="space-y-2.5">${itemsHtml}</div>`;
-                } else {
-                    tasksHtml3d = `
-                        <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
-                            <i class="ph-fill ph-check-circle text-5xl text-emerald-500/70 mb-2 drop-shadow-sm"></i>
-                            <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
-                            <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan 3D sudah beres.</p>
+                    }
+
+                    let badgeClass = tasks.length > 0 
+                        ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+
+                    teamHtml3d += `
+                    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[380px] sm:h-[420px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
+                                    ${assignee.charAt(0)}
+                                </div>
+                                <h3 class="font-black text-slate-800 dark:text-zinc-100 text-[15px] tracking-wide">${assignee}</h3>
+                            </div>
+                            <span class="${badgeClass} text-[10px] font-black px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
                         </div>
+                        <div class="overflow-y-auto pr-1 flex-1 scroll-smooth">
+                            ${tasksHtml3d}
+                        </div>
+                    </div>
                     `;
                 }
-
-                let badgeClass = tasks.length > 0 
-                    ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
-                    : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
-
-                teamHtml3d += `
-                <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col h-[350px]">
-                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-zinc-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="h-7 w-7 rounded-full ${avatarColor} border flex items-center justify-center font-black text-[13px]">
-                                ${assignee.charAt(0)}
-                            </div>
-                            <h3 class="font-extrabold text-slate-800 dark:text-zinc-100 text-[14px]">${assignee}</h3>
-                        </div>
-                        <span class="${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded border">${tasks.length} Task</span>
-                    </div>
-                    <div class="overflow-y-auto pr-1 flex-1">
-                        ${tasksHtml3d}
-                    </div>
-                </div>
-                `;
+                teamContainer3d.innerHTML = teamHtml3d;
             }
-            if(teamContainer3d) teamContainer3d.innerHTML = teamHtml3d;
         } catch (e) {
             console.error("Error Divisi 3D:", e);
         }
@@ -671,27 +684,29 @@
                         label: 'Desain',
                         data: [1, 5, 2, 6, 2, 5, 5, 2, 3],
                         borderColor: '#3b82f6', 
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
                         borderWidth: 2.5,
                         tension: 0.4,
                         fill: true,
                         pointBackgroundColor: '#ffffff',
                         pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 2,
-                        pointRadius: 3.5
+                        pointBorderWidth: 2.5,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'Konten',
                         data: [0, 0, 0, 0, 0, 0, 0, 0, 4],
                         borderColor: '#10b981',  
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
                         borderWidth: 2.5,
                         tension: 0.4,
                         fill: true,
                         pointBackgroundColor: '#ffffff',
                         pointBorderColor: '#10b981',
-                        pointBorderWidth: 2,
-                        pointRadius: 3.5
+                        pointBorderWidth: 2.5,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
@@ -700,8 +715,8 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', align: 'end', labels: { boxWidth: 8, usePointStyle: true, color: '#334155', font: { weight: '600' } } },
-                    tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 8, cornerRadius: 8 }
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, color: '#475569', font: { weight: '700' } } },
+                    tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 10, cornerRadius: 10 }
                 },
                 scales: {
                     y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
@@ -734,14 +749,15 @@
                 datasets: [{
                     label: 'Total Digunakan',
                     data: data,
-                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                    borderRadius: 4
+                    backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderRadius: 6,
+                    barPercentage: 0.6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', titleColor: '#f8fafc', bodyColor: '#cbd5e1' } },
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', titleColor: '#f8fafc', bodyColor: '#cbd5e1', cornerRadius: 8 } },
                 scales: {
                     y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } },
                     x: { grid: { display: false } }
@@ -757,7 +773,7 @@
     let isDark = false; 
 
     function updateChartTheme() {
-        const textColor = isDark ? '#e2e8f0' : '#334155';
+        const textColor = isDark ? '#e2e8f0' : '#475569';
         const gridColor = isDark ? '#27272a' : '#f1f5f9';
         const pointBg = isDark ? '#09090b' : '#ffffff';
 
