@@ -93,7 +93,6 @@
         <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase flex items-center gap-2"><i class="ph-fill ph-cube text-emerald-500"></i> Divisi 3D & Produksi</h2>
     </div>
     
-    <!-- DASHBOARD STATISTIK 3D -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
         <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex flex-col justify-center items-center h-[180px]">
             <i class="ph-fill ph-scales text-4xl text-amber-500 mb-2"></i>
@@ -128,7 +127,7 @@
     setInterval(updateDateTime, 1000); updateDateTime();
 
     // ==========================================
-    // API FETCHER KUNCI NAMA KOLOM ASLI
+    // API FETCHER SUPER FAIL-SAFE
     // ==========================================
     async function fetchSheetData(sheetName) {
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
@@ -138,6 +137,8 @@
             const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
             const json = JSON.parse(jsonStr);
             
+            if (!json || !json.table || !json.table.rows) return [];
+
             let cols = json.table.cols.map(c => c ? String(c.label).trim() : '');
             let rows = json.table.rows;
 
@@ -147,14 +148,16 @@
             }
             if (cols.every(c => c === '')) return [];
 
-            return rows.map(r => {
-                if (!r || !r.c) return null;
+            let result = [];
+            for (let r of rows) {
+                if (!r || !r.c) continue;
                 let row = {};
                 r.c.forEach((c, i) => {
                     if (cols[i]) row[cols[i]] = c ? (c.f !== undefined && c.f !== null ? String(c.f) : String(c.v)) : '';
                 });
-                return row;
-            }).filter(r => r !== null);
+                result.push(row);
+            }
+            return result;
         } catch (error) {
             console.error(`Gagal memuat sheet ${sheetName}:`, error);
             return [];
@@ -208,7 +211,7 @@
 
     function getStatusBadge(status) {
         const s = String(status || '').toLowerCase();
-        if (s.includes('final')) return `<span class="badge bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 border dark:border-emerald-500/30">Final</span>`;
+        if (s.includes('final') || s.includes('selesai')) return `<span class="badge bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 border dark:border-emerald-500/30">Selesai</span>`;
         if (s.includes('revisi') || s.includes('to-do')) return `<span class="badge bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 border dark:border-amber-500/30">${String(status)}</span>`;
         return `<span class="badge bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 border dark:border-blue-500/30">${String(status || 'Lagi Dikerjain')}</span>`;
     }
@@ -216,6 +219,19 @@
     function getPriorityBadge(priority) {
         if (String(priority || "").toLowerCase().includes('urgent')) return `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/15 dark:text-red-400 border dark:border-red-500/30 uppercase"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
         return ``;
+    }
+
+    // Fungsi getVal kebal error untuk nyari nama kolom pakai variasi huruf
+    function getVal(row, keyOptions) {
+        if (!row || typeof row !== 'object') return '';
+        for (let opt of keyOptions) {
+            const target = opt.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+            for (let rowKey in row) {
+                const current = String(rowKey).toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (current === target) return row[rowKey];
+            }
+        }
+        return '';
     }
 
     // ==========================================
@@ -230,13 +246,13 @@
                 fetchSheetData('tasks'), fetchSheetData('creator_tasks'), fetchSheetData('creator_reports'), fetchSheetData('tasks_3d')
             ]);
 
-            // MAPPING DATA SECARA EKSPLISIT BERDASARKAN NAMA KOLOM ASLI
-            const creatorTasks = rawCreatorTasks.map(t => ({ id: t['id'], title: t['title'], client: t['client'], targetDate: t['targetDate'] || t['dateStr'] }));
-            const creatorReports = rawCreatorReports.map(r => ({ name: r['name'], task: r['task'], rawDate: r['dateVal'] || r['dateStr'] || r['Timestamp'] }));
-            const tasksDesain = rawTasks.map(t => ({ id: t['id'], assignee: t['assignee'], status: t['status'], joCode: t['joCode'], title: t['title'], dateStr: t['dateStr'] || t['Timestamp'], priority: t['priority'] }));
-            const tasks3d = rawTasks3d.map(t => ({
-                id: t['id'], assignee: t['assignee'], projectName: t['projectName'] || t['title'], priority: t['priority'], catatanAdmin: t['catatanAdmin'], status: t['status'], 
-                startTime: t['startTime'], endTime: t['endTime'], gramasi: t['gramasi'], jumlah: t['jumlah'], mesin: t['mesin'], catatanTim: t['catatanTim']
+            // MAPPING DATA SECARA AMAN PAKAI GETVAL
+            const creatorTasks = (rawCreatorTasks || []).map(t => ({ id: getVal(t, ['id']), title: getVal(t, ['title','task']), client: getVal(t, ['client','klien']), targetDate: getVal(t, ['targetdate','datestr']) }));
+            const creatorReports = (rawCreatorReports || []).map(r => ({ name: getVal(r, ['name','nama']), task: getVal(r, ['task','report','laporan']), rawDate: getVal(r, ['dateval','datestr','timestamp']) }));
+            const tasksDesain = (rawTasks || []).map(t => ({ id: getVal(t, ['id']), assignee: getVal(t, ['assignee']), status: getVal(t, ['status']), joCode: getVal(t, ['jocode']), title: getVal(t, ['title','projectname']), dateStr: getVal(t, ['datestr','timestamp']), priority: getVal(t, ['priority']) }));
+            const tasks3d = (rawTasks3d || []).map(t => ({
+                id: getVal(t, ['id']), assignee: getVal(t, ['assignee']), projectName: getVal(t, ['projectname','title']), priority: getVal(t, ['priority']), catatanAdmin: getVal(t, ['catatanadmin']), status: getVal(t, ['status']), 
+                startTime: getVal(t, ['starttime']), endTime: getVal(t, ['endtime']), gramasi: getVal(t, ['gramasi']), jumlah: getVal(t, ['jumlah','qty']), mesin: getVal(t, ['mesin']), catatanTim: getVal(t, ['catatantim'])
             }));
 
             // ==================================
@@ -274,7 +290,7 @@
                             <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100">${formatName(r.name)}</span>
                             <span class="text-[9px] text-slate-500 dark:text-zinc-400 font-mono ml-auto bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.5 py-0.5 rounded">${formatShortDate(r.parsedDateObj)}</span>
                         </div>
-                        <div class="text-[11px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed">${r.task || ''}</div>
+                        <div class="text-[11px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed">${String(r.task || '')}</div>
                     </div>`).join('');
             }
 
@@ -306,8 +322,8 @@
                     <div class="overflow-y-auto pr-1 flex-1">
                         ${tasks.length > 0 ? `<div class="space-y-2.5">` + tasks.map(t => `
                             <div class="p-2.5 border rounded-xl transition-all ${String(t.priority).toLowerCase() === 'urgent' ? 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/30' : 'bg-slate-50 border-slate-200 dark:bg-zinc-900 dark:border-zinc-800'}">
-                                <div class="flex justify-between items-start mb-1.5"><span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white border-slate-200 dark:bg-zinc-800 border dark:border-zinc-700 px-1.5 py-0.5 rounded">${t.joCode \vert{}\vert{} '-'}</span>${getStatusBadge(t.status)}</div>
-                                <p class="text-[12px] font-semibold text-slate-800 dark:text-zinc-100 leading-snug mb-2">${t.title || 'Tanpa Judul'}</p>
+                                <div class="flex justify-between items-start mb-1.5"><span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white border-slate-200 dark:bg-zinc-800 border dark:border-zinc-700 px-1.5 py-0.5 rounded">${String(t.joCode \vert{}\vert{} '-')}</span>${getStatusBadge(t.status)}</div>
+                                <p class="text-[12px] font-semibold text-slate-800 dark:text-zinc-100 leading-snug mb-2">${String(t.title || 'Tanpa Judul')}</p>
                                 <div class="flex justify-between items-center mt-1"><span class="text-[9px] text-slate-500 dark:text-zinc-500 font-semibold flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${formatShortDate(t.dateStr)}</span>${getPriorityBadge(t.priority)}</div>
                             </div>`).join('') + `</div>` : `<div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70"><i class="ph-fill ph-check-circle text-5xl text-emerald-500/70 mb-2 drop-shadow-sm"></i><p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p></div>`}
                     </div>
@@ -326,7 +342,7 @@
             let uncompleted_tasks_3d = tasks3d.filter(t => {
                 if(!t.assignee) return false;
                 
-                // KALKULASI GRAMASI & MESIN SAAT INI
+                // KALKULASI GRAMASI & MESIN
                 let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
                 if(gramasiStr && !isNaN(parseFloat(gramasiStr))) {
                     totalGramasi += parseFloat(gramasiStr);
@@ -410,12 +426,13 @@
 
             loadingIndicator.classList.add('hidden');
             statusDot.classList.replace('bg-amber-500', 'bg-emerald-500');
-
             renderChart();
 
         } catch (fatalError) {
-            console.error("FATAL ERROR:", fatalError);
-            alert("Terjadi kesalahan saat memuat data. Mohon muat ulang halaman.");
+            console.error("FATAL ERROR BOMB PROOF:", fatalError);
+            loadingIndicator.classList.add('hidden');
+            statusDot.classList.replace('bg-emerald-500', 'bg-red-500');
+            alert("Koneksi gagal atau data Google Sheets tidak valid. Buka Console (F12) untuk detail error.");
         }
     }
 
@@ -451,7 +468,7 @@
         const data = Object.values(mesinCounts);
 
         if(labels.length === 0) {
-            labels.push('Belum Ada');
+            labels.push('Belum Ada Mesin');
             data.push(0);
         }
 
@@ -460,20 +477,16 @@
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Total Dipakai',
+                    label: 'Total Digunakan',
                     data: data,
                     backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                    borderRadius: 6
+                    borderRadius: 4
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } },
-                    x: { grid: { display: false } }
-                }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', titleColor: '#f8fafc', bodyColor: '#cbd5e1' } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } }, x: { grid: { display: false } } }
             }
         });
         updateChartTheme();
@@ -493,6 +506,8 @@
         }
         if(mesinChartInstance) {
             mesinChartInstance.options.scales.y.grid.color = gridColor;
+            mesinChartInstance.options.scales.x.ticks.color = textColor;
+            mesinChartInstance.options.scales.y.ticks.color = textColor;
             mesinChartInstance.update();
         }
     }
@@ -505,6 +520,7 @@
     });
 
     initDashboard();
+
 </script>
 </body>
 </html>
