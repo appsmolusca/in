@@ -237,7 +237,7 @@
     updateDateTime();
 
     // ==========================================
-    // FUNGSI TARIK DATA LIVE (MENGGUNAKAN VERSI AWAL YANG SUDAH JALAN 100%)
+    // FUNGSI TARIK DATA LIVE
     // ==========================================
     async function fetchSheetData(sheetName) {
         const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
@@ -337,7 +337,7 @@
         loadingIndicator.classList.remove('hidden');
         statusDot.classList.replace('bg-emerald-500', 'bg-amber-500'); // Sedang sync
 
-        // Tarik data bersamaan (ditambah tasks_3d)
+        // Tarik data bersamaan
         const [rawTasks, rawCreatorTasks, rawCreatorReports, rawTasks3d] = await Promise.all([
             fetchSheetData('tasks'),
             fetchSheetData('creator_tasks'),
@@ -346,7 +346,7 @@
         ]);
 
         // ==================================
-        // 1. PROSES DIVISI KONTEN (TIDAK ADA PERUBAHAN, AMAN)
+        // 1. PROSES DIVISI KONTEN
         // ==================================
         try {
             rawCreatorTasks.reverse();
@@ -488,7 +488,7 @@
         } catch(e) { console.error("Error Divisi Desain:", e); }
 
         // ==================================
-        // 3. PROSES DIVISI 3D & PRODUKSI (DIBUAT DALAM BLOK AMAN)
+        // 3. PROSES DIVISI 3D & PRODUKSI
         // ==================================
         try {
             const teamMembers3d = ["Teguh", "Zalfa"];
@@ -504,13 +504,11 @@
                 
                 // Hitung Gramasi & Mesin untuk task yg belum selesai
                 if (!statusStr.includes('selesai') && !statusStr.includes('final')) {
-                    // Extract Number dari Gramasi (misal "300gr" -> 300)
                     let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
                     if (gramasiStr && !isNaN(parseFloat(gramasiStr))) {
                         totalGramasi += parseFloat(gramasiStr);
                     }
                     
-                    // Hitung Mesin
                     let msn = String(t.mesin || '').trim();
                     if (msn && msn !== '-' && msn.toLowerCase() !== 'undefined' && msn.toLowerCase() !== 'null') {
                         mesinCounts[msn] = (mesinCounts[msn] || 0) + 1;
