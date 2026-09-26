@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Molusca | Live Sheets</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
+
+        /* Loader Animation Modern */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Animasi Kedip Urgent */
+        @keyframes urgent-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.97); }
+        }
+        .urgent-blink {
+            animation: urgent-pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Header Section Divider */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin: 4rem 0 1.5rem 0;
+        }
+        .section-header::after {
+            content: ""; flex: 1; height: 1px;
+            background: linear-gradient(to right, #e2e8f0, transparent);
+        }
+        .dark .section-header::after { background: linear-gradient(to right, #27272a, transparent); }
+        
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-card {
+            background: rgba(24, 24, 27, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-[#09090b] dark:text-zinc-100 pb-16 text-[13px] selection:bg-blue-200 selection:text-blue-900"> 
+
+<!-- FULL SCREEN LOADER (UX Lebih Bagus) -->
+<div id="fullScreenLoader" class="fixed inset-0 z-50 bg-slate-50 dark:bg-[#09090b] flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="spinner mb-5"></div>
+    <h2 class="text-base md:text-lg font-extrabold text-slate-800 dark:text-zinc-100 tracking-wider animate-pulse" id="loaderText">Menarik Data Live...</h2>
+    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium">Dashboard sedang dioptimalkan</p>
+</div>
+
+<div class="max-w-[1280px] mx-auto p-4 md:p-6 lg:p-8 space-y-8">
+    
+    <!-- Header Web -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 mt-2">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-600/20">
+                    <i class="ph-fill ph-rocket text-xl md:text-2xl"></i>
+                </div>
+                Molusca App
+            </h1>
+            <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium">Data LIVE ditarik otomatis dari Google Sheets API.</p>
+        </div>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-2 glass-card border border-slate-200/80 dark:border-zinc-800 px-4 py-2 rounded-xl text-[11px] shadow-sm font-semibold transition-colors">
+                <span id="statusDot" class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
+                <span class="text-slate-700 dark:text-zinc-200 tracking-wide" id="currentDate">--</span>
+            </div>
+            
+            <!-- Tombol Dark/Light Mode -->
+            <button id="themeToggle" class="flex shrink-0 items-center justify-center h-10 w-10 glass-card border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
+                <i id="themeIcon" class="ph-bold ph-moon text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Chart / Grafik Global -->
+    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 md:p-6 shadow-sm flex flex-col mb-4">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-[14px] md:text-[15px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100">
+                <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i> Produktivitas Global (7 Hari Terakhir)
+            </h2>
+        </div>
+        <div class="relative w-full h-[200px] md:h-[260px]">
+            <canvas id="productivityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- BAGIAN 1: DIVISI KONTEN -->
+    <!-- ============================================== -->
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg"><i class="ph-fill ph-video-camera"></i></div> Divisi Konten
+        </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col h-[350px]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-calendar-blank text-blue-500 text-lg"></i> Target Deadline</h3>
+                <span class="text-[10px] bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-black px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-500/20" id="creatorTaskCount">0</span>
+            </div>
+            <div class="space-y-3 overflow-y-auto pr-1 scroll-smooth" id="creatorTasksContainer">
+                <p class="text-xs text-slate-400 text-center mt-12 font-medium">Memuat data...</p>
+            </div>
+        </div>
+
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col h-[350px]">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-files text-emerald-500 text-lg"></i> Laporan (2 Hari)</h3>
+            </div>
+            <div class="space-y-3 overflow-y-auto pr-1 scroll-smooth" id="creatorReportsContainer">
+                <p class="text-xs text-slate-400 text-center mt-12 font-medium">Memuat data...</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- BAGIAN 2: DIVISI DESAIN GRAFIS -->
+    <!-- ============================================== -->
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-lg"><i class="ph-fill ph-paint-brush-broad"></i></div> Divisi Desain Grafis
+        </h2>
+    </div>
+
+    <div>
+        <div class="flex items-center justify-between mb-5">
+            <p class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                <i class="ph-fill ph-info text-blue-500"></i> Menampilkan task aktif (Live Sync)
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="teamTasksContainer">
+            <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim desain...</p>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- BAGIAN 3: DIVISI 3D & PRODUKSI -->
+    <!-- ============================================== -->
+    <div class="section-header">
+        <h2 class="text-sm md:text-base font-black text-slate-800 dark:text-zinc-100 tracking-widest uppercase flex items-center gap-2.5">
+            <div class="p-1.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg"><i class="ph-fill ph-cube"></i></div> Divisi 3D & Produksi
+        </h2>
+    </div>
+
+    <!-- STATISTIK WIDGET 3D -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-6">
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm flex flex-col justify-center items-center h-[180px] md:h-[220px]">
+            <i class="ph-fill ph-scales text-5xl text-amber-500 mb-3 drop-shadow-sm"></i>
+            <h3 class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest text-center">Total Gramasi Habis</h3>
+            <p class="text-4xl font-black text-slate-800 dark:text-zinc-100 mt-2 tracking-tighter" id="totalGramasiUI">0 <span class="text-sm font-bold text-slate-400">gr</span></p>
+        </div>
+        <div class="md:col-span-2 glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm h-[180px] md:h-[220px] flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500 text-lg"></i> Intensitas Penggunaan Mesin</h3>
+            </div>
+            <div class="relative w-full flex-1"><canvas id="mesinChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="mb-10">
+        <div class="flex items-center justify-between mb-5">
+            <p class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                <i class="ph-fill ph-info text-emerald-500"></i> Menampilkan task aktif 3D
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="teamTasks3dContainer">
+            <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim 3D...</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const SPREADSHEET_ID = '1d3njy330ifMnm-uBD8daaey5AqYO3rQxaI-tLZQdeyI';
+
+    // Update Waktu Real-time
+    function updateDateTime() {
+        const now = new Date();
+        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+        
+        const dateStr = now.toLocaleDateString('id-ID', dateOpts);
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        
+        document.getElementById('currentDate').innerText = `${dateStr} • ${h}:${m} WIB`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Text Loader Animasi
+    const loaderTexts = ["Mengambil Data Live...", "Menganalisa Task Desain...", "Sinkronisasi Divisi 3D...", "Merender Dashboard..."];
+    let loaderIndex = 0;
+    const loaderInterval = setInterval(() => {
+        loaderIndex = (loaderIndex + 1) % loaderTexts.length;
+        const txt = document.getElementById('loaderText');
+        if(txt) txt.innerText = loaderTexts[loaderIndex];
+    }, 1000);
+
+    // ==========================================
+    // FUNGSI GVIZ (FETCH SUPER CEPAT)
+    // ==========================================
+    async function fetchGviz(sheetName) {
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}&t=${Date.now()}`;
+        try {
+            const response = await fetch(url, { cache: "no-store" });
+            const text = await response.text();
+            const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonStr);
+            const cols = data.table.cols.map(c => c ? c.label : '').map(l => l.trim());
+            
+            return data.table.rows.map(r => {
+                let row = {};
+                r.c.forEach((c, i) => { if(cols[i]) row[cols[i]] = c ? (c.f !== undefined ? c.f : c.v) : ''; });
+                return row;
+            });
+        } catch(e) {
+            console.error("Gviz Error on", sheetName, e);
+            return [];
+        }
+    }
+
+    // ==========================================
+    // UTILS FORMAT
+    // ==========================================
+    function parseToDateObj(dateStr) {
+        if (!dateStr) return new Date(0);
+        let str = String(dateStr).trim();
+
+        if (/^\d{13}$/.test(str)) return new Date(parseInt(str));
+        if (str.startsWith('Date(')) {
+            const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) return new Date(match[1], match[2], match[3]);
+        }
+        if (str.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}/)) {
+            const parts = str.split(/[-\/]/);
+            const yearStr = parts[2].split(/[ T]/)[0];
+            return new Date(yearStr, parseInt(parts[1]) - 1, parseInt(parts[0]));
+        }
+        if (str.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/)) {
+            const parts = str.split(/[-\/]/);
+            const dayStr = parts[2].split(/[ T]/)[0];
+            return new Date(parts[0], parseInt(parts[1]) - 1, parseInt(dayStr));
+        }
+        return new Date(str); 
+    }
+
+    function formatShortDate(dateInput) {
+        if (!dateInput) return "";
+        let d = dateInput instanceof Date ? dateInput : parseToDateObj(dateInput);
+        if (!isNaN(d.getTime()) && d.getTime() !== 0) {
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+        return String(dateInput).substring(0, 10);
+    }
+
+    function getStandardDateString(dateInput) {
+        let d = parseToDateObj(dateInput);
+        if(!isNaN(d.getTime()) && d.getTime() !== 0) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        return String(dateInput);
+    }
+
+    function getStatusBadge(status) {
+        const s = (status || '').toLowerCase();
+        if (s.includes('final') || s.includes('selesai')) 
+            return `<span class="bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 border dark:border-emerald-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Selesai</span>`;
+        if (s.includes('revisi')) 
+            return `<span class="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 border dark:border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-bold ph-arrows-clockwise"></i> Revisi</span>`;
+        if (s.includes('layout')) 
+            return `<span class="bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 border dark:border-purple-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-bounding-box"></i> Layout</span>`;
+        if (s.includes('to-do')) 
+            return `<span class="bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-400 border dark:border-zinc-700 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase">To Do</span>`;
+        
+        return `<span class="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 border dark:border-blue-500/20 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase flex items-center gap-1"><i class="ph-fill ph-pen-nib"></i> ${status || 'Lagi Dikerjain'}</span>`;
+    }
+
+    function getPriorityBadge(priority) {
+        if ((priority || "").toLowerCase().includes('urgent')) {
+            return `<span class="urgent-blink bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 border dark:border-red-500/30 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase inline-flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Urgent</span>`;
+        }
+        return ``;
+    }
+
+    function cleanTime(val) {
+        if(!val || val === '-') return '-';
+        let str = String(val);
+        if(str.includes('T')) return str.split('T')[1].substring(0, 5);
+        return str;
+    }
+
+    // ==========================================
+    // FUNGSI UTAMA LOAD DATA
+    // ==========================================
+    async function initDashboard() {
+        // Tarik data Paralel (Super Cepat)
+        const [rawTasks, rawCreatorTasks, rawCreatorReports, rawTasks3d] = await Promise.all([
+            fetchGviz('tasks'),
+            fetchGviz('creator_tasks'),
+            fetchGviz('creator_reports'),
+            fetchGviz('tasks_3d')
+        ]);
+
+        // ==================================
+        // 1. PROSES DIVISI KONTEN
+        // ==================================
+        try {
+            rawCreatorTasks.reverse();
+            document.getElementById('creatorTaskCount').innerText = rawCreatorTasks.length;
+            if(rawCreatorTasks.length === 0) {
+                document.getElementById('creatorTasksContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-12 font-medium">Tidak ada tugas kreator</p>`;
+            } else {
+                const cTaskHtml = rawCreatorTasks.map(c => `
+                    <div class="p-3.5 bg-slate-50/70 dark:bg-zinc-800/30 border-l-[4px] border-l-blue-500 border border-slate-100 dark:border-zinc-800 rounded-xl hover:shadow-sm transition-shadow">
+                        <p class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 line-clamp-2 leading-snug">${c.title || 'Tanpa Judul'}</p>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md flex items-center gap-1.5"><i class="ph-fill ph-user-circle text-sm text-slate-400"></i>${c.client || '-'}</span>
+                            <span class="text-[10px] text-blue-600 dark:text-blue-400 font-black flex items-center gap-1 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-md"><i class="ph-bold ph-calendar-blank"></i>${formatShortDate(c.targetDate || c.dateStr)}</span>
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('creatorTasksContainer').innerHTML = cTaskHtml;
+            }
+
+            if(rawCreatorReports.length === 0) {
+                 document.getElementById('creatorReportsContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-12 font-medium">Belum ada laporan</p>`;
+            } else {
+                rawCreatorReports.forEach(r => {
+                    const rawDateStr = r.dateVal || r.dateStr || r.Timestamp;
+                    r.parsedDateObj = parseToDateObj(rawDateStr);
+                    r.normalizedDate = getStandardDateString(rawDateStr);
+                });
+
+                rawCreatorReports.sort((a, b) => b.parsedDateObj.getTime() - a.parsedDateObj.getTime());
+                const uniqueDates = [...new Set(rawCreatorReports.map(r => r.normalizedDate).filter(Boolean))];
+                const top2Dates = uniqueDates.slice(0, 2);
+                const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.normalizedDate));
+
+                const cReportHtml = filteredReports.map(r => `
+                    <div class="p-4 bg-slate-50/70 dark:bg-zinc-800/30 border border-slate-100 dark:border-zinc-800 rounded-xl relative overflow-hidden hover:shadow-sm transition-shadow">
+                        <div class="absolute top-0 right-0 p-3 opacity-[0.02] dark:opacity-[0.03] pointer-events-none"><i class="ph-fill ph-quotes text-6xl text-slate-900 dark:text-white"></i></div>
+                        <div class="flex items-center gap-2.5 mb-3 border-b border-slate-200/60 dark:border-zinc-700/50 pb-3">
+                            <div class="h-7 w-7 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-xs font-black shadow-sm">${(r.name || 'U').charAt(0)}</div>
+                            <span class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 tracking-wide">${r.name}</span>
+                            <span class="text-[9px] font-black text-slate-400 dark:text-zinc-500 ml-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md uppercase tracking-wider">${formatShortDate(r.parsedDateObj)}</span>
+                        </div>
+                        <div class="text-[11.5px] text-slate-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed font-medium pl-1">${r.task || ''}</div>
+                    </div>
+                `).join('');
+                document.getElementById('creatorReportsContainer').innerHTML = cReportHtml;
+            }
+        } catch(e) { console.error("Error Divisi Konten:", e); }
+
+        // ==================================
+        // 2. PROSES DIVISI DESAIN GRAFIS
+        // ==================================
+        try {
+            const groupedTasks = {};
+            let uncompleted_tasks = rawTasks.filter(t => {
+                const s = (t.status || '').toLowerCase();
+                const assignee = (t.assignee || '').toLowerCase();
+                if(assignee.includes('zalfa') || assignee.includes('teguh')) return false; // Filter 3D
+                return t.assignee && !s.includes('final');
+            });
+            uncompleted_tasks.reverse();
+
+            uncompleted_tasks.forEach(task => {
+                const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
+                if(groupedTasks[name] !== undefined) { groupedTasks[name].push(task); } 
+                else { groupedTasks[name] = [task]; } 
+            });
+
+            const teamContainer = document.getElementById('teamTasksContainer');
+            let teamHtml = '';
+
+            const colors = [
+                'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20', 
+                'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20',
+                'bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20',
+                'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20'
+            ];
+            let colorIndex = 0;
+
+            if(Object.keys(groupedTasks).length === 0) {
+                 teamContainer.innerHTML = `<div class="col-span-full p-8 glass-card border border-slate-200 rounded-[20px] text-center dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi Desain.</p></div>`;
+            } else {
+                for(const [assignee, tasks] of Object.entries(groupedTasks)) {
+                    const avatarColor = colors[colorIndex % colors.length];
+                    colorIndex++;
+
+                    let tasksHtml = '';
+                    if (tasks.length > 0) {
+                        let itemsHtml = tasks.map(t => {
+                            let isUrgent = t.priority?.toLowerCase() === 'urgent';
+                            let borderHover = isUrgent ? 'hover:border-red-300 dark:hover:border-red-700/50' : 'hover:border-blue-300 dark:hover:border-blue-700/50';
+                            
+                            return `
+                                <div class="p-3.5 bg-slate-50/80 dark:bg-zinc-800/30 border border-slate-200/70 dark:border-zinc-700/50 rounded-[16px] flex flex-col transition-all ${borderHover}">
+                                    <div class="flex justify-between items-start gap-2 mb-2">
+                                        <span class="text-[9px] font-bold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm"><i class="ph-bold ph-hash"></i> ${t.joCode || '-'}</span>
+                                        ${getStatusBadge(t.status)}
+                                    </div>
+                                    <p class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-3 pr-2">${t.title || 'Tanpa Judul'}</p>
+                                    
+                                    <div class="flex-1"></div>
+                                    <div class="flex justify-between items-center mt-1 pt-2.5 border-t border-slate-200/60 dark:border-zinc-700/50">
+                                        <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp || t.id)}</span>
+                                        ${getPriorityBadge(t.priority)}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        tasksHtml = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
+                    }
+
+                    let badgeClass = tasks.length > 0 
+                        ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+
+                    teamHtml += `
+                    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm flex flex-col h-[380px] sm:h-[420px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
+                                    ${assignee.charAt(0)}
+                                </div>
+                                <h3 class="font-black text-slate-800 dark:text-zinc-100 text-[15px] tracking-wide">${assignee}</h3>
+                            </div>
+                            <span class="${badgeClass} text-[10px] font-black px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
+                        </div>
+                        <div class="overflow-y-auto pr-1 flex-1 scroll-smooth">
+                            ${tasksHtml}
+                        </div>
+                    </div>
+                    `;
+                }
+                teamContainer.innerHTML = teamHtml;
+            }
+        } catch(e) { console.error("Error Divisi Desain:", e); }
+
+        // ==================================
+        // 3. PROSES DIVISI 3D & PRODUKSI (DENGAN MESIN JALAN)
+        // ==================================
+        try {
+            const groupedTasks3d = {};
+            let totalGramasi = 0;
+            let mesinCounts = {};
+
+            let uncompleted_tasks_3d = (rawTasks3d || []).filter(t => {
+                if (!t || !t.assignee) return false;
+                const statusStr = String(t.status || '').toLowerCase();
+                
+                if (!statusStr.includes('selesai') && !statusStr.includes('final')) {
+                    let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
+                    if (gramasiStr && !isNaN(parseFloat(gramasiStr))) {
+                        totalGramasi += parseFloat(gramasiStr);
+                    }
+                    let msn = String(t.mesin || '').trim();
+                    if (msn && msn !== '-' && msn.toLowerCase() !== 'undefined' && msn.toLowerCase() !== 'null') {
+                        mesinCounts[msn] = (mesinCounts[msn] || 0) + 1;
+                    }
+                }
+                return !statusStr.includes('selesai') && !statusStr.includes('final');
+            });
+
+            // UPDATE WIDGET STATS 3D
+            const tgUI = document.getElementById('totalGramasiUI');
+            if (tgUI) tgUI.innerHTML = `${totalGramasi} <span class="text-lg md:text-xl font-bold text-slate-400">gr</span>`;
+            
+            renderMesinChart(mesinCounts);
+
+            uncompleted_tasks_3d.reverse();
+            uncompleted_tasks_3d.forEach(task => {
+                const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
+                if(groupedTasks3d[name] !== undefined) { groupedTasks3d[name].push(task); } 
+                else { groupedTasks3d[name] = [task]; } 
+            });
+
+            const teamContainer3d = document.getElementById('teamTasks3dContainer');
+            let teamHtml3d = '';
+            const colors3d = ['bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20', 'bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20'];
+            let colorIndex3d = 0;
+            
+            if(Object.keys(groupedTasks3d).length === 0) {
+                 teamContainer3d.innerHTML = `<div class="col-span-full p-8 glass-card border border-slate-200 rounded-[20px] text-center dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi 3D.</p></div>`;
+            } else {
+                for(const [assignee, tasks] of Object.entries(groupedTasks3d)) {
+                    const avatarColor = colors3d[colorIndex3d % colors3d.length];
+                    colorIndex3d++;
+
+                    let tasksHtml3d = '';
+                    if (tasks.length > 0) {
+                        let itemsHtml = tasks.map(t => {
+                            let isUrgent = (t.priority || '').toLowerCase() === 'urgent';
+                            let tStatus = String(t.status || 'Menunggu Respon');
+                            
+                            let statusUI = '';
+                            let borderClass = 'border-slate-200/70 dark:border-zinc-700/50 hover:border-emerald-300 dark:hover:border-emerald-700 bg-slate-50/80 dark:bg-zinc-800/30';
+                            let detailsHTML = '';
+
+                            let cStart = cleanTime(t.startTime);
+                            let cEnd = cleanTime(t.endTime);
+
+                            if (tStatus === 'Menunggu Respon') {
+                                statusUI = `<span class="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-clock-countdown"></i> Menunggu Respon</span>`;
+                            } 
+                            else if (tStatus === 'Lagi Dikerjain' || tStatus === 'Nunggu Revisi') {
+                                borderClass = 'border-purple-200/80 ring-1 ring-purple-100 dark:ring-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10';
+                                let icon = tStatus === 'Lagi Dikerjain' ? 'ph-pen-nib' : 'ph-arrows-clockwise';
+                                statusUI = `<span class="text-[10px] font-extrabold text-purple-700 bg-purple-100 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ${icon}"></i> ${tStatus}</span>`;
+                                
+                                if((cStart && cStart !== '-') || (t.catatanTim && t.catatanTim !== '-')) {
+                                    detailsHTML = `<div class="mt-3 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1.5 shadow-sm">`;
+                                    if(cStart && cStart !== '-') detailsHTML += `<div class="flex items-center gap-2"><div class="w-12 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>`;
+                                    if(t.catatanTim && t.catatanTim !== '-') detailsHTML += `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>`;
+                                    detailsHTML += `</div>`;
+                                }
+                            }
+                            // LOGIC BARU: MESIN JALAN
+                            else if (tStatus === 'Lagi Produksi' || tStatus === 'Mesin Jalan Project') {
+                                if (tStatus === 'Lagi Produksi') {
+                                    borderClass = 'border-amber-200/80 ring-1 ring-amber-100 dark:ring-amber-900/30 bg-amber-50/30 dark:bg-amber-900/10';
+                                    statusUI = `<span class="text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-gear-six animate-spin-slow"></i> Lagi Produksi</span>`;
+                                } else {
+                                    borderClass = 'border-rose-200/80 ring-1 ring-rose-100 dark:ring-rose-900/30 bg-rose-50/30 dark:bg-rose-900/10';
+                                    statusUI = `<span class="text-[10px] font-extrabold text-rose-700 bg-rose-100 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-bold ph-rocket"></i> Mesin Jalan</span>`;
+                                }
+                                
+                                detailsHTML = `<div class="mt-3 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1.5 shadow-sm">
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Gramasi</div><div class="flex-1">: ${t.gramasi || '-'}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Jumlah</div><div class="flex-1">: ${t.jumlah || '-'}</div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Mesin</div><div class="flex-1">: <span class="font-extrabold text-emerald-600 dark:text-emerald-400">${t.mesin || '-'}</span></div></div>
+                                    ${t.waktuMesinJalan && t.waktuMesinJalan !== '-' ? `<div class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold mt-1 pt-1.5 border-t border-slate-100 dark:border-zinc-800"><i class="ph-fill ph-timer text-sm"></i> Mulai Mesin: ${t.waktuMesinJalan}</div>` : ''}
+                                    ${t.catatanTim && t.catatanTim !== '-' ? `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>` : ''}
+                                </div>`;
+                            }
+
+                            let catAdmin = t.catatanAdmin && t.catatanAdmin !== '-' ? `<p class="text-[10.5px] text-slate-500 dark:text-zinc-500 italic line-clamp-1 border-l-2 border-slate-300 dark:border-zinc-700 pl-2 mb-2 font-medium">Admin: "${t.catatanAdmin}"</p>` : '';
+
+                            return `
+                            <div class="p-3.5 rounded-[16px] transition-all border flex flex-col ${borderClass}">
+                                <div class="flex flex-wrap justify-between items-start gap-1.5 mb-2">
+                                    ${statusUI}
+                                </div>
+                                <h4 class="text-[13px] md:text-[14px] font-extrabold text-slate-800 dark:text-zinc-100 leading-snug mb-1.5">${t.projectName || t.title || 'Tanpa Judul'}</h4>
+                                ${catAdmin}
+                                ${detailsHTML}
+                                
+                                <div class="flex-1"></div>
+                                <div class="flex justify-between items-center mt-3 pt-2.5 border-t border-slate-200/60 dark:border-zinc-700/50">
+                                    <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-bold flex items-center gap-1"><i class="ph-fill ph-calendar-blank"></i> ${formatShortDate(t.dateStr || t.Timestamp || t.id)}</span>
+                                    ${getPriorityBadge(t.priority)}
+                                </div>
+                            </div>
+                            `;
+                        }).join('');
+                        tasksHtml3d = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
+                    }
+
+                    let badgeClass = tasks.length > 0 
+                        ? 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700' 
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+
+                    teamHtml3d += `
+                    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm flex flex-col h-[380px] sm:h-[420px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
+                                    ${assignee.charAt(0)}
+                                </div>
+                                <h3 class="font-black text-slate-800 dark:text-zinc-100 text-[15px] tracking-wide">${assignee}</h3>
+                            </div>
+                            <span class="${badgeClass} text-[10px] font-black px-2.5 py-1 rounded-md border">${tasks.length} Task</span>
+                        </div>
+                        <div class="overflow-y-auto pr-1 flex-1 scroll-smooth">
+                            ${tasksHtml3d}
+                        </div>
+                    </div>
+                    `;
+                }
+                teamContainer3d.innerHTML = teamHtml3d;
+            }
+        } catch (e) {
+            console.error("Error Divisi 3D:", e);
+        }
+
+        // ==================================
+        // RENDER GRAFIK DINAMIS (3 KURVA)
+        // ==================================
+        renderDynamicChart(rawTasks, rawCreatorTasks, rawTasks3d);
+
+        // SELESAI SEMUA, HAPUS LOADER FULLSCREEN
+        clearInterval(loaderInterval);
+        const loaderScreen = document.getElementById('fullScreenLoader');
+        loaderScreen.style.opacity = '0';
+        setTimeout(() => loaderScreen.remove(), 500);
+
+    }
+
+    // ==========================================
+    // LOGIC GRAFIK DINAMIS 7 HARI TERAKHIR
+    // ==========================================
+    function getPast7DaysCounts(tasksArray, dateField, statusField, successStatuses) {
+        let counts = [0,0,0,0,0,0,0];
+        let today = new Date();
+        today.setHours(0,0,0,0);
+        
+        (tasksArray || []).forEach(t => {
+            let status = String(t[statusField] || '').toLowerCase();
+            let isSuccess = successStatuses.some(s => status.includes(s));
+            
+            if(isSuccess) {
+                let dStr = t[dateField] || t.Timestamp || t.id;
+                let d = parseToDateObj(dStr);
+                if(!isNaN(d.getTime())) {
+                    d.setHours(0,0,0,0);
+                    let diffTime = today.getTime() - d.getTime();
+                    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    if(diffDays >= 0 && diffDays < 7) {
+                        counts[6 - diffDays]++; // index 6 is today, 5 is yesterday...
+                    }
+                }
+            }
+        });
+        return counts;
+    }
+
+    function renderDynamicChart(rawTasks, rawCreatorTasks, rawTasks3d) {
+        const labels = [];
+        for(let i=6; i>=0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('id-ID', {day:'numeric', month:'short'}));
+        }
+
+        // Desain: status final/selesai
+        const dataDesain = getPast7DaysCounts(rawTasks, 'dateStr', 'status', ['final', 'selesai']);
+        
+        // Konten: isCompleted == "true"
+        const dataKonten = getPast7DaysCounts(rawCreatorTasks, 'targetDate', 'isCompleted', ['true', '1']);
+        
+        // 3D: status selesai
+        const data3d = getPast7DaysCounts(rawTasks3d, 'endTime', 'status', ['selesai']);
+
+        const ctx = document.getElementById('productivityChart').getContext('2d');
+        Chart.defaults.font.family = 'Inter';
+        Chart.defaults.font.size = 11;
+
+        if(productivityChart) productivityChart.destroy();
+
+        productivityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Desain Grafis',
+                        data: dataDesain,
+                        borderColor: '#3b82f6', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        borderWidth: 2.5, tension: 0.4, fill: true,
+                        pointBackgroundColor: '#ffffff', pointBorderColor: '#3b82f6',
+                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Konten Creator',
+                        data: dataKonten,
+                        borderColor: '#f43f5e', // rose-500
+                        backgroundColor: 'rgba(244, 63, 94, 0.08)',
+                        borderWidth: 2.5, tension: 0.4, fill: true,
+                        pointBackgroundColor: '#ffffff', pointBorderColor: '#f43f5e',
+                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                    },
+                    {
+                        label: '3D & Produksi',
+                        data: data3d,
+                        borderColor: '#10b981', // emerald-500
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        borderWidth: 2.5, tension: 0.4, fill: true,
+                        pointBackgroundColor: '#ffffff', pointBorderColor: '#10b981',
+                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, color: '#475569', font: { weight: '700' } } },
+                    tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 10, cornerRadius: 10 }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
+                    x: { grid: { display: false, drawBorder: false } }
+                }
+            }
+        });
+        updateChartTheme();
+    }
+
+
+    // ==========================================
+    // INIT CHART LAIN & DARK MODE
+    // ==========================================
+    let productivityChart;
+    let mesinChartInstance;
+
+    function renderMesinChart(mesinCounts) {
+        const ctxEl = document.getElementById('mesinChart');
+        if(!ctxEl) return;
+        
+        const ctx = ctxEl.getContext('2d');
+        if(mesinChartInstance) mesinChartInstance.destroy();
+
+        const labels = Object.keys(mesinCounts);
+        const data = Object.values(mesinCounts);
+
+        if(labels.length === 0) {
+            labels.push('Belum Ada Mesin');
+            data.push(0);
+        }
+
+        mesinChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Digunakan',
+                    data: data,
+                    backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', titleColor: '#f8fafc', bodyColor: '#cbd5e1', cornerRadius: 8 } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        updateChartTheme();
+    }
+
+    const htmlTag = document.documentElement;
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let isDark = false; 
+
+    function updateChartTheme() {
+        const textColor = isDark ? '#e2e8f0' : '#475569';
+        const gridColor = isDark ? '#27272a' : '#f1f5f9';
+        const pointBg = isDark ? '#09090b' : '#ffffff';
+
+        if(productivityChart) {
+            productivityChart.options.plugins.legend.labels.color = textColor;
+            productivityChart.options.scales.y.grid.color = gridColor;
+            productivityChart.data.datasets.forEach(ds => ds.pointBackgroundColor = pointBg);
+            productivityChart.update();
+        }
+        if(mesinChartInstance) {
+            mesinChartInstance.options.scales.y.grid.color = gridColor;
+            mesinChartInstance.options.scales.x.ticks.color = textColor;
+            mesinChartInstance.options.scales.y.ticks.color = textColor;
+            mesinChartInstance.update();
+        }
+    }
+
+    if(themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            if(isDark) {
+                htmlTag.classList.add('dark');
+                themeIcon.classList.remove('ph-moon');
+                themeIcon.classList.add('ph-sun');
+            } else {
+                htmlTag.classList.remove('dark');
+                themeIcon.classList.remove('ph-sun');
+                themeIcon.classList.add('ph-moon');
+            }
+            updateChartTheme();
+        });
+    }
+
+    // Eksekusi load data
+    initDashboard();
+
+</script>
+</body>
+</html>
