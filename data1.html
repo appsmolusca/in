@@ -39,14 +39,13 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
 
-        /* Loader Animation */
-        .loader {
-            border: 3px solid rgba(59, 130, 246, 0.2);
-            border-top: 3px solid #3b82f6;
+        /* Loader Animation Modern */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            animation: spin 1s linear infinite;
+            animation: spin 1s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -67,15 +66,30 @@
             margin: 4rem 0 1.5rem 0;
         }
         .section-header::after {
-            content: "";
-            flex: 1;
-            height: 1px;
+            content: ""; flex: 1; height: 1px;
             background: linear-gradient(to right, #e2e8f0, transparent);
         }
         .dark .section-header::after { background: linear-gradient(to right, #27272a, transparent); }
+        
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-card {
+            background: rgba(24, 24, 27, 0.7);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-[#09090b] dark:text-zinc-100 pb-16 text-[13px] selection:bg-blue-200 selection:text-blue-900"> 
+
+<!-- FULL SCREEN LOADER (UX Lebih Bagus) -->
+<div id="fullScreenLoader" class="fixed inset-0 z-50 bg-slate-50 dark:bg-[#09090b] flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="spinner mb-5"></div>
+    <h2 class="text-base md:text-lg font-extrabold text-slate-800 dark:text-zinc-100 tracking-wider animate-pulse" id="loaderText">Menarik Data Live...</h2>
+    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium">Dashboard sedang dioptimalkan</p>
+</div>
 
 <div class="max-w-[1280px] mx-auto p-4 md:p-6 lg:p-8 space-y-8">
     
@@ -86,32 +100,32 @@
                 <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-600/20">
                     <i class="ph-fill ph-rocket text-xl md:text-2xl"></i>
                 </div>
-                Molusca App <span id="loadingIndicator" class="ml-2 hidden loader"></span>
+                Molusca App
             </h1>
             <p class="text-[11px] md:text-xs text-slate-500 dark:text-zinc-400 mt-2 font-medium">Data LIVE ditarik otomatis dari Google Sheets API.</p>
         </div>
         
         <div class="flex items-center gap-3 w-full md:w-auto">
-            <div class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-2 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 px-4 py-2 rounded-xl text-[11px] shadow-sm font-semibold transition-colors">
+            <div class="flex-1 md:flex-none flex items-center justify-center md:justify-start gap-2 glass-card border border-slate-200/80 dark:border-zinc-800 px-4 py-2 rounded-xl text-[11px] shadow-sm font-semibold transition-colors">
                 <span id="statusDot" class="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
                 <span class="text-slate-700 dark:text-zinc-200 tracking-wide" id="currentDate">--</span>
             </div>
             
             <!-- Tombol Dark/Light Mode -->
-            <button id="themeToggle" class="flex shrink-0 items-center justify-center h-10 w-10 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
+            <button id="themeToggle" class="flex shrink-0 items-center justify-center h-10 w-10 glass-card border border-slate-200/80 dark:border-zinc-800 rounded-xl shadow-sm text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
                 <i id="themeIcon" class="ph-bold ph-moon text-lg"></i>
             </button>
         </div>
     </header>
 
     <!-- Chart / Grafik Global -->
-    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col mb-4">
+    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 md:p-6 shadow-sm flex flex-col mb-4">
         <div class="flex items-center justify-between mb-5">
             <h2 class="text-[14px] md:text-[15px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100">
-                <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i> Produktivitas Global
+                <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i> Produktivitas Global (7 Hari Terakhir)
             </h2>
         </div>
-        <div class="relative w-full h-[180px] md:h-[240px]">
+        <div class="relative w-full h-[200px] md:h-[260px]">
             <canvas id="productivityChart"></canvas>
         </div>
     </div>
@@ -126,7 +140,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[350px]">
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col h-[350px]">
             <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-calendar-blank text-blue-500 text-lg"></i> Target Deadline</h3>
                 <span class="text-[10px] bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-black px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-500/20" id="creatorTaskCount">0</span>
@@ -136,7 +150,7 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[350px]">
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col h-[350px]">
             <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
                 <h3 class="text-[13px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100"><i class="ph-bold ph-files text-emerald-500 text-lg"></i> Laporan (2 Hari)</h3>
             </div>
@@ -163,7 +177,7 @@
             </p>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6" id="teamTasksContainer">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="teamTasksContainer">
             <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim desain...</p>
         </div>
     </div>
@@ -180,14 +194,14 @@
 
     <!-- STATISTIK WIDGET 3D -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-6">
-        <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-center items-center h-[180px] md:h-[220px]">
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm flex flex-col justify-center items-center h-[180px] md:h-[220px]">
             <i class="ph-fill ph-scales text-5xl text-amber-500 mb-3 drop-shadow-sm"></i>
-            <h3 class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest text-center">Total Gramasi Habis</h3>
+            <h3 class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest text-center">Total Gramasi (Bulan Ini)</h3>
             <p class="text-4xl font-black text-slate-800 dark:text-zinc-100 mt-2 tracking-tighter" id="totalGramasiUI">0 <span class="text-sm font-bold text-slate-400">gr</span></p>
         </div>
-        <div class="md:col-span-2 bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm hover:shadow-md transition-shadow h-[180px] md:h-[220px] flex flex-col">
+        <div class="md:col-span-2 glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm h-[180px] md:h-[220px] flex flex-col">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500 text-lg"></i> Intensitas Penggunaan Mesin</h3>
+                <h3 class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500 text-lg"></i> Penggunaan Mesin (Bulan Ini)</h3>
             </div>
             <div class="relative w-full flex-1"><canvas id="mesinChart"></canvas></div>
         </div>
@@ -200,7 +214,7 @@
             </p>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6" id="teamTasks3dContainer">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6" id="teamTasks3dContainer">
             <p class="text-xs text-slate-400 col-span-full font-medium">Memuat data tim 3D...</p>
         </div>
     </div>
@@ -208,14 +222,9 @@
 </div>
 
 <script>
-    // URL APPS SCRIPT
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxowuOA-SAq4m4a5sGRljiP8vp7yPkO5QunSGH8WBOJyKiQyGbp_FyY7A6pNGfY6y0rBg/exec";
+    const SPREADSHEET_ID = '1d3njy330ifMnm-uBD8daaey5AqYO3rQxaI-tLZQdeyI';
 
-    // UI Elements
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const statusDot = document.getElementById('statusDot');
-
-    // Update Waktu Secara Real-time
+    // Update Waktu Real-time
     function updateDateTime() {
         const now = new Date();
         const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
@@ -229,42 +238,46 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
+    // Text Loader Animasi
+    const loaderTexts = ["Mengambil Data Live...", "Menganalisa Task Desain...", "Sinkronisasi Divisi 3D...", "Merender Dashboard..."];
+    let loaderIndex = 0;
+    const loaderInterval = setInterval(() => {
+        loaderIndex = (loaderIndex + 1) % loaderTexts.length;
+        const txt = document.getElementById('loaderText');
+        if(txt) txt.innerText = loaderTexts[loaderIndex];
+    }, 1000);
+
     // ==========================================
-    // FUNGSI TARIK DATA (MENGGUNAKAN METODE POST)
+    // FUNGSI GVIZ (FETCH SUPER CEPAT)
     // ==========================================
-    async function fetchSheetData(sheetName) {
+    async function fetchGviz(sheetName) {
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}&t=${Date.now()}`;
         try {
-            const payload = { action: 'read', sheetName: sheetName };
-            const res = await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify(payload),
-                cache: 'no-store' // Mencegah Google Cache
-            });
-            const responseData = await res.json();
+            const response = await fetch(url, { cache: "no-store" });
+            const text = await response.text();
+            const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonStr);
+            const cols = data.table.cols.map(c => c ? c.label : '').map(l => l.trim());
             
-            if (responseData.status === 'success' && Array.isArray(responseData.data)) {
-                return responseData.data;
-            } else {
-                console.error(`Format API tidak sesuai (${sheetName}):`, responseData);
-                return [];
-            }
-        } catch (error) {
-            console.error(`Gagal fetch sheet ${sheetName}:`, error);
+            return data.table.rows.map(r => {
+                let row = {};
+                r.c.forEach((c, i) => { if(cols[i]) row[cols[i]] = c ? (c.f !== undefined ? c.f : c.v) : ''; });
+                return row;
+            });
+        } catch(e) {
+            console.error("Gviz Error on", sheetName, e);
             return [];
         }
     }
 
     // ==========================================
-    // UTILS FORMAT TANGGAL
+    // UTILS FORMAT
     // ==========================================
     function parseToDateObj(dateStr) {
         if (!dateStr) return new Date(0);
         let str = String(dateStr).trim();
 
-        // 13 digit timestamp (dari ID)
-        if (/^\d{13}$/.test(str)) {
-            return new Date(parseInt(str));
-        }
+        if (/^\d{13}$/.test(str)) return new Date(parseInt(str));
         if (str.startsWith('Date(')) {
             const match = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
             if (match) return new Date(match[1], match[2], match[3]);
@@ -320,7 +333,6 @@
         return ``;
     }
 
-    // Pembersih jam
     function cleanTime(val) {
         if(!val || val === '-') return '-';
         let str = String(val);
@@ -332,15 +344,12 @@
     // FUNGSI UTAMA LOAD DATA
     // ==========================================
     async function initDashboard() {
-        loadingIndicator.classList.remove('hidden');
-        statusDot.classList.replace('bg-emerald-500', 'bg-amber-500'); 
-
-        // Tarik data
+        // Tarik data Paralel (Super Cepat)
         const [rawTasks, rawCreatorTasks, rawCreatorReports, rawTasks3d] = await Promise.all([
-            fetchSheetData('tasks'),
-            fetchSheetData('creator_tasks'),
-            fetchSheetData('creator_reports'),
-            fetchSheetData('tasks_3d')
+            fetchGviz('tasks'),
+            fetchGviz('creator_tasks'),
+            fetchGviz('creator_reports'),
+            fetchGviz('tasks_3d')
         ]);
 
         // ==================================
@@ -348,8 +357,6 @@
         // ==================================
         try {
             rawCreatorTasks.reverse();
-            rawCreatorTasks.sort((a,b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-
             document.getElementById('creatorTaskCount').innerText = rawCreatorTasks.length;
             if(rawCreatorTasks.length === 0) {
                 document.getElementById('creatorTasksContainer').innerHTML = `<p class="text-xs text-slate-400 text-center mt-12 font-medium">Tidak ada tugas kreator</p>`;
@@ -375,13 +382,7 @@
                     r.normalizedDate = getStandardDateString(rawDateStr);
                 });
 
-                rawCreatorReports.sort((a, b) => {
-                    const dA = a.parsedDateObj.getTime();
-                    const dB = b.parsedDateObj.getTime();
-                    if (!isNaN(dA) && !isNaN(dB) && dA !== dB) return dB - dA;
-                    return 0; 
-                });
-                
+                rawCreatorReports.sort((a, b) => b.parsedDateObj.getTime() - a.parsedDateObj.getTime());
                 const uniqueDates = [...new Set(rawCreatorReports.map(r => r.normalizedDate).filter(Boolean))];
                 const top2Dates = uniqueDates.slice(0, 2);
                 const filteredReports = rawCreatorReports.filter(r => top2Dates.includes(r.normalizedDate));
@@ -406,19 +407,13 @@
         // ==================================
         try {
             const groupedTasks = {};
-            
             let uncompleted_tasks = rawTasks.filter(t => {
                 const s = (t.status || '').toLowerCase();
                 const assignee = (t.assignee || '').toLowerCase();
-                
-                // Blokir agar tim 3D tidak masuk ke div desainer
-                if(assignee.includes('zalfa') || assignee.includes('teguh')) return false;
-                
+                if(assignee.includes('zalfa') || assignee.includes('teguh')) return false; // Filter 3D
                 return t.assignee && !s.includes('final');
             });
-
             uncompleted_tasks.reverse();
-            uncompleted_tasks.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
 
             uncompleted_tasks.forEach(task => {
                 const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
@@ -437,9 +432,8 @@
             ];
             let colorIndex = 0;
 
-            const objectKeys = Object.keys(groupedTasks);
-            if(objectKeys.length === 0) {
-                 teamContainer.innerHTML = `<div class="col-span-full p-8 bg-slate-50 border border-slate-200 rounded-[20px] text-center dark:bg-zinc-900/50 dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi Desain.</p></div>`;
+            if(Object.keys(groupedTasks).length === 0) {
+                 teamContainer.innerHTML = `<div class="col-span-full p-8 glass-card border border-slate-200 rounded-[20px] text-center dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi Desain.</p></div>`;
             } else {
                 for(const [assignee, tasks] of Object.entries(groupedTasks)) {
                     const avatarColor = colors[colorIndex % colors.length];
@@ -449,7 +443,7 @@
                     if (tasks.length > 0) {
                         let itemsHtml = tasks.map(t => {
                             let isUrgent = t.priority?.toLowerCase() === 'urgent';
-                            let borderHover = isUrgent ? 'hover:border-red-300' : 'hover:border-blue-300';
+                            let borderHover = isUrgent ? 'hover:border-red-300 dark:hover:border-red-700/50' : 'hover:border-blue-300 dark:hover:border-blue-700/50';
                             
                             return `
                                 <div class="p-3.5 bg-slate-50/80 dark:bg-zinc-800/30 border border-slate-200/70 dark:border-zinc-700/50 rounded-[16px] flex flex-col transition-all ${borderHover}">
@@ -468,14 +462,6 @@
                             `;
                         }).join('');
                         tasksHtml = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
-                    } else {
-                        tasksHtml = `
-                            <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
-                                <i class="ph-fill ph-check-circle text-5xl text-emerald-400/80 mb-2 drop-shadow-sm"></i>
-                                <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
-                                <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan sudah beres.</p>
-                            </div>
-                        `;
                     }
 
                     let badgeClass = tasks.length > 0 
@@ -483,7 +469,7 @@
                         : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
 
                     teamHtml += `
-                    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[380px] sm:h-[420px]">
+                    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm flex flex-col h-[380px] sm:h-[420px]">
                         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
                             <div class="flex items-center gap-2.5">
                                 <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
@@ -504,19 +490,33 @@
         } catch(e) { console.error("Error Divisi Desain:", e); }
 
         // ==================================
-        // 3. PROSES DIVISI 3D & PRODUKSI
+        // 3. PROSES DIVISI 3D & PRODUKSI (DENGAN MESIN JALAN)
         // ==================================
         try {
             const groupedTasks3d = {};
-
             let totalGramasi = 0;
             let mesinCounts = {};
 
-            let uncompleted_tasks_3d = (rawTasks3d || []).filter(t => {
-                if (!t || !t.assignee) return false;
-                const statusStr = String(t.status || '').toLowerCase();
+            // Dapatkan Bulan & Tahun saat ini untuk filter akumulasi bulanan
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            // AKUMULASI MESIN & GRAMASI (Semua Task Bulan Ini, Selesai maupun Belum)
+            (rawTasks3d || []).forEach(t => {
+                if (!t) return;
+
+                let isCurrentMonth = true; 
+                let dStr = t.dateStr || t.Timestamp || t.id;
+                let dObj = parseToDateObj(dStr);
                 
-                if (!statusStr.includes('selesai') && !statusStr.includes('final')) {
+                if (!isNaN(dObj.getTime()) && dObj.getTime() !== 0) {
+                    if (dObj.getMonth() !== currentMonth || dObj.getFullYear() !== currentYear) {
+                        isCurrentMonth = false;
+                    }
+                }
+
+                // Hitung hanya jika dikerjakan di bulan ini
+                if (isCurrentMonth) {
                     let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
                     if (gramasiStr && !isNaN(parseFloat(gramasiStr))) {
                         totalGramasi += parseFloat(gramasiStr);
@@ -526,6 +526,12 @@
                         mesinCounts[msn] = (mesinCounts[msn] || 0) + 1;
                     }
                 }
+            });
+
+            // FILTER TASK AKTIF UNTUK DAFTAR KARTU BAWAH (Hanya yang belum selesai)
+            let uncompleted_tasks_3d = (rawTasks3d || []).filter(t => {
+                if (!t || !t.assignee) return false;
+                const statusStr = String(t.status || '').toLowerCase();
                 return !statusStr.includes('selesai') && !statusStr.includes('final');
             });
 
@@ -533,12 +539,9 @@
             const tgUI = document.getElementById('totalGramasiUI');
             if (tgUI) tgUI.innerHTML = `${totalGramasi} <span class="text-lg md:text-xl font-bold text-slate-400">gr</span>`;
             
-            // Render Chart Mesin
             renderMesinChart(mesinCounts);
 
             uncompleted_tasks_3d.reverse();
-            uncompleted_tasks_3d.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-
             uncompleted_tasks_3d.forEach(task => {
                 const name = task.assignee.charAt(0).toUpperCase() + task.assignee.slice(1).toLowerCase();
                 if(groupedTasks3d[name] !== undefined) { groupedTasks3d[name].push(task); } 
@@ -547,16 +550,11 @@
 
             const teamContainer3d = document.getElementById('teamTasks3dContainer');
             let teamHtml3d = '';
-
-            const colors3d = [
-                'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20', 
-                'bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20'
-            ];
+            const colors3d = ['bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20', 'bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20'];
             let colorIndex3d = 0;
             
-            const objectKeys3d = Object.keys(groupedTasks3d);
-            if(objectKeys3d.length === 0) {
-                 teamContainer3d.innerHTML = `<div class="col-span-full p-8 bg-slate-50 border border-slate-200 rounded-[20px] text-center dark:bg-zinc-900/50 dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi 3D.</p></div>`;
+            if(Object.keys(groupedTasks3d).length === 0) {
+                 teamContainer3d.innerHTML = `<div class="col-span-full p-8 glass-card border border-slate-200 rounded-[20px] text-center dark:border-zinc-800"><p class="text-sm font-extrabold text-slate-500 dark:text-zinc-400">Tidak ada tugas aktif di Divisi 3D.</p></div>`;
             } else {
                 for(const [assignee, tasks] of Object.entries(groupedTasks3d)) {
                     const avatarColor = colors3d[colorIndex3d % colors3d.length];
@@ -566,8 +564,8 @@
                     if (tasks.length > 0) {
                         let itemsHtml = tasks.map(t => {
                             let isUrgent = (t.priority || '').toLowerCase() === 'urgent';
-                            
                             let tStatus = String(t.status || 'Menunggu Respon');
+                            
                             let statusUI = '';
                             let borderClass = 'border-slate-200/70 dark:border-zinc-700/50 hover:border-emerald-300 dark:hover:border-emerald-700 bg-slate-50/80 dark:bg-zinc-800/30';
                             let detailsHTML = '';
@@ -590,15 +588,21 @@
                                     detailsHTML += `</div>`;
                                 }
                             }
-                            else if (tStatus === 'Lagi Produksi') {
-                                borderClass = 'border-amber-200/80 ring-1 ring-amber-100 dark:ring-amber-900/30 bg-amber-50/30 dark:bg-amber-900/10';
-                                statusUI = `<span class="text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-gear-six animate-spin-slow"></i> Lagi Produksi</span>`;
+                            else if (tStatus === 'Lagi Produksi' || tStatus === 'Mesin Jalan Project') {
+                                if (tStatus === 'Lagi Produksi') {
+                                    borderClass = 'border-amber-200/80 ring-1 ring-amber-100 dark:ring-amber-900/30 bg-amber-50/30 dark:bg-amber-900/10';
+                                    statusUI = `<span class="text-[10px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-fill ph-gear-six animate-spin-slow"></i> Lagi Produksi</span>`;
+                                } else {
+                                    borderClass = 'border-rose-200/80 ring-1 ring-rose-100 dark:ring-rose-900/30 bg-rose-50/30 dark:bg-rose-900/10';
+                                    statusUI = `<span class="text-[10px] font-extrabold text-rose-700 bg-rose-100 border border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 tracking-wide uppercase"><i class="ph-bold ph-rocket"></i> Mesin Jalan</span>`;
+                                }
                                 
                                 detailsHTML = `<div class="mt-3 text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-950 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1.5 shadow-sm">
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Gramasi</div><div class="flex-1">: ${t.gramasi || '-'}</div></div>
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Jumlah</div><div class="flex-1">: ${t.jumlah || '-'}</div></div>
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Mesin</div><div class="flex-1">: <span class="font-extrabold text-emerald-600 dark:text-emerald-400">${t.mesin || '-'}</span></div></div>
+                                    ${t.waktuMesinJalan && t.waktuMesinJalan !== '-' ? `<div class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold mt-1 pt-1.5 border-t border-slate-100 dark:border-zinc-800"><i class="ph-fill ph-timer text-sm"></i> Mulai Mesin: ${t.waktuMesinJalan}</div>` : ''}
                                     ${t.catatanTim && t.catatanTim !== '-' ? `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>` : ''}
                                 </div>`;
                             }
@@ -623,14 +627,6 @@
                             `;
                         }).join('');
                         tasksHtml3d = `<div class="space-y-3 pb-2 flex flex-col h-full">${itemsHtml}</div>`;
-                    } else {
-                        tasksHtml3d = `
-                            <div class="flex flex-col items-center justify-center h-full text-center pb-6 opacity-70">
-                                <i class="ph-fill ph-check-circle text-5xl text-emerald-400/80 mb-2 drop-shadow-sm"></i>
-                                <p class="text-[13px] font-extrabold text-slate-700 dark:text-zinc-300">Semua Clear!</p>
-                                <p class="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">Kerjaan 3D sudah beres.</p>
-                            </div>
-                        `;
                     }
 
                     let badgeClass = tasks.length > 0 
@@ -638,7 +634,7 @@
                         : 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
 
                     teamHtml3d += `
-                    <div class="bg-white dark:bg-zinc-900 border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-[380px] sm:h-[420px]">
+                    <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[24px] p-5 shadow-sm flex flex-col h-[380px] sm:h-[420px]">
                         <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3">
                             <div class="flex items-center gap-2.5">
                                 <div class="h-8 w-8 rounded-full ${avatarColor} border flex items-center justify-center font-black text-sm shadow-sm">
@@ -660,80 +656,118 @@
             console.error("Error Divisi 3D:", e);
         }
 
-        // SELESAI SEMUA
-        loadingIndicator.classList.add('hidden');
-        statusDot.classList.replace('bg-amber-500', 'bg-emerald-500');
+        // ==================================
+        // RENDER GRAFIK DINAMIS (3 KURVA)
+        // ==================================
+        renderDynamicChart(rawTasks, rawCreatorTasks, rawTasks3d);
 
-        // Gambar ulang grafik
-        try { renderChart(); } catch(e) {}
+        // SELESAI SEMUA, HAPUS LOADER FULLSCREEN
+        clearInterval(loaderInterval);
+        const loaderScreen = document.getElementById('fullScreenLoader');
+        loaderScreen.style.opacity = '0';
+        setTimeout(() => loaderScreen.remove(), 500);
+
     }
 
     // ==========================================
-    // INIT CHART.JS & DARK MODE
+    // LOGIC GRAFIK DINAMIS 7 HARI TERAKHIR
     // ==========================================
-    let productivityChart;
-    let mesinChartInstance;
-    
-    function renderChart() {
-        const ctx = document.getElementById('productivityChart').getContext('2d');
-        const chartLabels = ["2 Sep", "3 Sep", "4 Sep", "7 Sep", "8 Sep", "9 Sep", "10 Sep", "11 Sep", "12 Sep"];
+    function getPast7DaysCounts(tasksArray, dateField, statusField, successStatuses) {
+        let counts = [0,0,0,0,0,0,0];
+        let today = new Date();
+        today.setHours(0,0,0,0);
         
+        (tasksArray || []).forEach(t => {
+            let status = String(t[statusField] || '').toLowerCase();
+            let isSuccess = successStatuses.some(s => status.includes(s));
+            
+            if(isSuccess) {
+                let dStr = t[dateField] || t.Timestamp || t.id;
+                let d = parseToDateObj(dStr);
+                if(!isNaN(d.getTime())) {
+                    d.setHours(0,0,0,0);
+                    let diffTime = today.getTime() - d.getTime();
+                    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    if(diffDays >= 0 && diffDays < 7) {
+                        counts[6 - diffDays]++; // index 6 is today, 5 is yesterday...
+                    }
+                }
+            }
+        });
+        return counts;
+    }
+
+    function renderDynamicChart(rawTasks, rawCreatorTasks, rawTasks3d) {
+        const labels = [];
+        for(let i=6; i>=0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString('id-ID', {day:'numeric', month:'short'}));
+        }
+
+        // Desain: status final/selesai
+        const dataDesain = getPast7DaysCounts(rawTasks, 'dateStr', 'status', ['final', 'selesai']);
+        
+        // Konten: isCompleted == "true"
+        const dataKonten = getPast7DaysCounts(rawCreatorTasks, 'targetDate', 'isCompleted', ['true', '1']);
+        
+        // 3D: status selesai
+        const data3d = getPast7DaysCounts(rawTasks3d, 'endTime', 'status', ['selesai']);
+
+        const ctx = document.getElementById('productivityChart').getContext('2d');
         Chart.defaults.font.family = 'Inter';
         Chart.defaults.font.size = 11;
 
         if(productivityChart) productivityChart.destroy();
 
+        // MERUBAH TYPE DARI 'line' (kurva) menjadi 'bar' (kotak)
         productivityChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-                labels: chartLabels,
+                labels: labels,
                 datasets: [
                     {
-                        label: 'Desain',
-                        data: [1, 5, 2, 6, 2, 5, 5, 2, 3],
-                        borderColor: '#3b82f6', 
-                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 2.5,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        label: 'Desain Grafis',
+                        data: dataDesain,
+                        backgroundColor: '#3b82f6', 
+                        borderRadius: 4,
                     },
                     {
-                        label: 'Konten',
-                        data: [0, 0, 0, 0, 0, 0, 0, 0, 4],
-                        borderColor: '#10b981',  
-                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#10b981',
-                        pointBorderWidth: 2.5,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        label: 'Konten Creator',
+                        data: dataKonten,
+                        backgroundColor: '#f43f5e', // rose-500
+                        borderRadius: 4,
+                    },
+                    {
+                        label: '3D & Produksi',
+                        data: data3d,
+                        backgroundColor: '#10b981', // emerald-500
+                        borderRadius: 4,
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, color: '#475569', font: { weight: '700' } } },
                     tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#cbd5e1', padding: 10, cornerRadius: 10 }
                 },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9', drawBorder: false }, border: { dash: [4, 4] } },
                     x: { grid: { display: false, drawBorder: false } }
                 }
             }
         });
         updateChartTheme();
     }
+
+
+    // ==========================================
+    // INIT CHART LAIN & DARK MODE
+    // ==========================================
+    let productivityChart;
+    let mesinChartInstance;
 
     function renderMesinChart(mesinCounts) {
         const ctxEl = document.getElementById('mesinChart');
@@ -763,8 +797,7 @@
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', titleColor: '#f8fafc', bodyColor: '#cbd5e1', cornerRadius: 8 } },
                 scales: {
                     y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } },
@@ -788,8 +821,6 @@
         if(productivityChart) {
             productivityChart.options.plugins.legend.labels.color = textColor;
             productivityChart.options.scales.y.grid.color = gridColor;
-            productivityChart.data.datasets[0].pointBackgroundColor = pointBg;
-            productivityChart.data.datasets[1].pointBackgroundColor = pointBg;
             productivityChart.update();
         }
         if(mesinChartInstance) {
@@ -816,7 +847,7 @@
         });
     }
 
-    // Panggil saat website pertama kali dibuka
+    // Eksekusi load data
     initDashboard();
 
 </script>
