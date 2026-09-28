@@ -209,6 +209,14 @@
         .calc-btn.op { color: var(--accent); background: var(--accent-subtle); border-color: transparent;}
         .calc-btn.equal { background: var(--accent); color: white; border-color: var(--accent);}
 
+        /* === TIMER MELAYANG === */
+        .timer-popup { 
+            position: fixed; bottom: 32px; right: 32px; width: 280px; background: var(--bg-surface); 
+            border: 1px solid var(--border-light); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); 
+            padding: 20px; transform: translateY(150%); opacity: 0; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100;
+        }
+        .timer-popup.show { transform: translateY(0); opacity: 1; }
+
         /* Scrollbar Halus */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -291,20 +299,17 @@
             
             .studio-canvas { min-height: 400px; padding-top: 16px; border: none; background: transparent;}
             
-            /* FIX BUG DATABASE COLLAPSE: Biarkan kotak menyesuaikan isinya (height: auto) */
+            /* FIX BUG DATABASE COLLAPSE */
             .studio-canvas .card {
                 height: auto !important; 
                 min-height: 400px;
             }
             
-            .calc-popup {
-                left: 50%;
-                transform: translate(-50%, 150%);
-                width: 90%;
-                max-width: 340px;
-                bottom: 24px;
-            }
+            .calc-popup { left: 50%; transform: translate(-50%, 150%); width: 90%; max-width: 340px; bottom: 24px; }
             .calc-popup.show { transform: translate(-50%, 0); }
+
+            .timer-popup { left: 50%; transform: translate(-50%, 150%); width: 90%; max-width: 340px; bottom: 24px; right: auto; }
+            .timer-popup.show { transform: translate(-50%, 0); }
             
             .modal-content { width: 95%; }
             .modal-body { padding: 20px; font-size: 15px; }
@@ -353,7 +358,12 @@
         </div>
 
         <div class="header-actions">
+            <!-- TOMBOL KALKULATOR -->
             <button class="icon-btn" onclick="toggleCalc()" title="Kalkulator"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line></svg></button>
+            
+            <!-- TOMBOL TIMER BARU -->
+            <button class="icon-btn" onclick="toggleTimer()" title="Timer Fokus"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></button>
+            
             <button class="icon-btn" onclick="toggleTheme()" title="Ganti Tema"><svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
             <button class="icon-btn" onclick="exportData()" title="Backup Data"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
             <label class="icon-btn" title="Restore Data" style="margin: 0; cursor: pointer;">
@@ -605,6 +615,27 @@
             <button class="calc-btn equal" style="grid-row: span 2;" onclick="calcAction('equal')">=</button>
             <button class="calc-btn" style="grid-column: span 2;" onclick="calcAction('num', '0')">0</button>
             <button class="calc-btn" onclick="calcAction('num', '.')">.</button>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TIMER MELAYANG -->
+    <!-- ============================================== -->
+    <div class="timer-popup" id="timerWidget">
+        <div class="card-header" style="padding:0 0 16px 0; border:none;">
+            <div class="card-title">⏱️ Timer Fokus</div>
+            <button class="icon-btn" style="width:24px; height:24px; border:none;" onclick="toggleTimer()">×</button>
+        </div>
+        <div class="calc-display" id="timerDisplay" style="text-align: center; font-size: 36px; padding: 12px; font-variant-numeric: tabular-nums; transition: 0.3s;">
+            00:00
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="number" id="timerInput" placeholder="Menit" min="1" max="120" style="flex:1; min-width:0; background: var(--bg-panel); border: 1px solid var(--border-light); padding: 8px 12px; border-radius: var(--radius-md); color: var(--text-primary); font-size: 14px; outline: none; text-align: center;">
+            <button class="calc-btn op" style="padding: 8px 16px;" onclick="setTimer()">Set</button>
+        </div>
+        <div class="calc-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <button class="calc-btn" id="btnTimerStart" onclick="startTimer()">Mulai</button>
+            <button class="calc-btn" onclick="resetTimer()">Reset</button>
         </div>
     </div>
 
@@ -985,6 +1016,7 @@
             localStorage.setItem('dd_tasks_v3', JSON.stringify(tasksDB));
         }
 
+        // === KALKULATOR ===
         let calcVal = '0', calcFirst = null, calcOp = null, calcWait = false;
         function toggleCalc() { document.getElementById('calcWidget').classList.toggle('show'); }
         function calcAction(type, val) {
@@ -995,9 +1027,82 @@
             document.getElementById('calcDisplay').innerText = calcVal;
         }
 
+        // === TIMER / STOPWATCH ===
+        let timerInterval = null;
+        let timeRemaining = 0; 
+        let isTimerRunning = false;
+
+        function toggleTimer() { 
+            document.getElementById('timerWidget').classList.toggle('show'); 
+        }
+
+        function setTimer() {
+            const minutes = parseInt(document.getElementById('timerInput').value);
+            if (isNaN(minutes) || minutes <= 0) return alert('Masukkan waktu yang valid (menit)');
+            timeRemaining = minutes * 60;
+            document.getElementById('timerDisplay').style.color = "var(--text-primary)"; // Reset color
+            updateTimerDisplay();
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById('btnTimerStart').innerText = 'Mulai';
+            }
+        }
+
+        function startTimer() {
+            if (timeRemaining <= 0) return alert('Set waktu (menit) terlebih dahulu, lalu tekan Set!');
+            
+            const btn = document.getElementById('btnTimerStart');
+            if (isTimerRunning) {
+                // Jeda (Pause)
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerText = 'Lanjut';
+            } else {
+                // Mulai (Start)
+                isTimerRunning = true;
+                btn.innerText = 'Jeda';
+                document.getElementById('timerDisplay').style.color = "var(--text-primary)"; // Reset color if it was red
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        btn.innerText = 'Mulai';
+                        document.getElementById('timerDisplay').style.color = "var(--danger)"; // Ubah warna jadi merah
+                        
+                        // Munculkan Popup Peringatan
+                        document.getElementById('reminderTitle').innerHTML = "⏰ Waktu Habis!";
+                        document.getElementById('reminderBody').innerHTML = "<div style='text-align:center;'>Kerja bagus! Sesi fokus/waktu kerja yang kamu set sudah selesai.<br><br>Ayo ambil nafas sebentar. ☕</div>";
+                        document.getElementById('reminderModal').classList.add('show');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeRemaining = 0;
+            document.getElementById('btnTimerStart').innerText = 'Mulai';
+            document.getElementById('timerInput').value = '';
+            document.getElementById('timerDisplay').style.color = "var(--text-primary)"; // Reset color
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const s = (timeRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        // TEMA & JAM
         function toggleTheme() { document.body.classList.toggle('dark-theme'); localStorage.setItem('molusca_theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light'); }
         if (localStorage.getItem('molusca_theme') === 'dark') { document.body.classList.add('dark-theme'); }
         setInterval(() => document.getElementById('liveClock').innerText = new Date().toLocaleTimeString('id-ID'), 1000);
+        
         async function fetchPrayer() {
             try {
                 const res = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Bandung&country=Indonesia&method=11');
