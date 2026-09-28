@@ -122,7 +122,7 @@
     <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 md:p-6 shadow-sm flex flex-col mb-4">
         <div class="flex items-center justify-between mb-5">
             <h2 class="text-[14px] md:text-[15px] font-extrabold flex items-center gap-2 text-slate-800 dark:text-zinc-100">
-                <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i> Produktivitas Global (7 Hari Terakhir)
+                <i class="ph-fill ph-chart-bar text-blue-500 text-lg"></i> Produktivitas Global (7 Hari Terakhir)
             </h2>
         </div>
         <div class="relative w-full h-[200px] md:h-[260px]">
@@ -193,18 +193,41 @@
     </div>
 
     <!-- STATISTIK WIDGET 3D -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-6">
-        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm flex flex-col justify-center items-center h-[180px] md:h-[220px]">
-            <i class="ph-fill ph-scales text-5xl text-amber-500 mb-3 drop-shadow-sm"></i>
-            <h3 class="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest text-center">Total Gramasi Habis</h3>
-            <p class="text-4xl font-black text-slate-800 dark:text-zinc-100 mt-2 tracking-tighter" id="totalGramasiUI">0 <span class="text-sm font-bold text-slate-400">gr</span></p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-6 mb-6">
+        
+        <!-- PANEL 1: GRAMASI HARI INI & BULAN INI -->
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col justify-center h-[180px] md:h-[220px]">
+            <div class="flex items-center gap-2 mb-2 text-amber-500">
+                <i class="ph-fill ph-scales text-2xl"></i> 
+                <span class="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">Gramasi Hari Ini</span>
+            </div>
+            <p class="text-4xl md:text-5xl font-black text-slate-800 dark:text-zinc-100 mt-1 tracking-tighter"><span id="gramasiTodayUI">0</span><span class="text-sm font-bold text-slate-400 ml-1">gr</span></p>
+            
+            <div class="mt-4 pt-3 border-t border-slate-200/60 dark:border-zinc-800 text-[11px] font-medium text-slate-500 dark:text-zinc-400 flex items-center justify-between">
+                <span>Total Bulan Ini:</span>
+                <span class="font-extrabold text-slate-700 dark:text-zinc-200 text-sm" id="totalGramasiUI">0 gr</span>
+            </div>
         </div>
-        <div class="md:col-span-2 glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-6 shadow-sm h-[180px] md:h-[220px] flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-[13px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-cpu text-emerald-500 text-lg"></i> Intensitas Penggunaan Mesin</h3>
+
+        <!-- PANEL 2: MESIN AKTIF SAAT INI (LIVE) -->
+        <div class="glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm flex flex-col h-[180px] md:h-[220px]">
+            <div class="flex items-center gap-2 mb-3 text-rose-500">
+                <i class="ph-fill ph-engine text-2xl animate-pulse"></i> 
+                <span class="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400">Mesin Aktif (Live)</span>
+            </div>
+            <div id="mesinTodayUI" class="flex-1 overflow-y-auto content-start pt-1">
+                <p class="text-xs text-slate-400">Memuat data...</p>
+            </div>
+        </div>
+
+        <!-- PANEL 3: GRAFIK AKUMULASI BULAN INI -->
+        <div class="md:col-span-2 glass-card border border-slate-200/70 dark:border-zinc-800/80 rounded-[20px] p-5 shadow-sm h-[180px] md:h-[220px] flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-[12px] font-extrabold text-slate-800 dark:text-zinc-100 flex items-center gap-2"><i class="ph-bold ph-chart-bar text-emerald-500 text-lg"></i> Akumulasi Mesin (Bulan Ini)</h3>
             </div>
             <div class="relative w-full flex-1"><canvas id="mesinChart"></canvas></div>
         </div>
+
     </div>
 
     <div class="mb-10">
@@ -490,35 +513,104 @@
         } catch(e) { console.error("Error Divisi Desain:", e); }
 
         // ==================================
-        // 3. PROSES DIVISI 3D & PRODUKSI (DENGAN MESIN JALAN)
+        // 3. PROSES DIVISI 3D & PRODUKSI 
+        // (GRAMASI HARI INI, BULAN INI, & MESIN AKTIF LIVE)
         // ==================================
         try {
             const groupedTasks3d = {};
-            let totalGramasi = 0;
-            let mesinCounts = {};
+            let totalGramasiBulan = 0;
+            let totalGramasiHariIni = 0;
+            let mesinCountsBulan = {};
+            let mesinAktifSekarang = new Set();
 
+            // Setup tanggal Hari Ini & Bulan Ini
+            const today = new Date();
+            const currentDay = today.getDate();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+
+            // LOOP SEMUA DATA 3D
+            (rawTasks3d || []).forEach(t => {
+                if (!t) return;
+
+                let dStr = t.dateStr || t.Timestamp || t.id;
+                let dObj = parseToDateObj(dStr);
+                
+                let isCurrentMonth = false;
+                let isToday = false;
+
+                if (!isNaN(dObj.getTime()) && dObj.getTime() !== 0) {
+                    if (dObj.getMonth() === currentMonth && dObj.getFullYear() === currentYear) {
+                        isCurrentMonth = true;
+                        if (dObj.getDate() === currentDay) {
+                            isToday = true;
+                        }
+                    }
+                }
+
+                let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
+                let gramasiVal = gramasiStr && !isNaN(parseFloat(gramasiStr)) ? parseFloat(gramasiStr) : 0;
+                
+                let msnRaw = String(t.mesin || '').trim();
+                let validMesin = msnRaw && msnRaw !== '-' && msnRaw.toLowerCase() !== 'undefined' && msnRaw.toLowerCase() !== 'null';
+
+                // HITUNG GRAMASI (Hanya dihitung 1 kali per baris)
+                if (isCurrentMonth) {
+                    totalGramasiBulan += gramasiVal;
+                }
+                if (isToday) {
+                    totalGramasiHariIni += gramasiVal;
+                }
+
+                // EKSTRAK ARRAY MESIN (Karena bisa lebih dari 1 mesin, dipisah dengan koma)
+                let mesinArray = [];
+                if (validMesin) {
+                    mesinArray = msnRaw.split(',').map(m => m.trim()).filter(m => m !== '');
+                }
+
+                // 1. Akumulasi Bulanan Mesin (Chart)
+                if (isCurrentMonth && mesinArray.length > 0) {
+                    mesinArray.forEach(m => {
+                        mesinCountsBulan[m] = (mesinCountsBulan[m] || 0) + 1;
+                    });
+                }
+
+                // 2. Cek Mesin yang sedang AKTIF/JALAN hari ini (status bukan selesai/final)
+                const statusStr = String(t.status || '').toLowerCase();
+                const isActive = !statusStr.includes('selesai') && !statusStr.includes('final');
+                
+                if (isActive && mesinArray.length > 0) {
+                    mesinArray.forEach(m => {
+                        mesinAktifSekarang.add(m);
+                    });
+                }
+            });
+
+            // UPDATE WIDGET STATS 3D UI
+            document.getElementById('totalGramasiUI').innerText = `${totalGramasiBulan} gr`;
+            document.getElementById('gramasiTodayUI').innerText = `${totalGramasiHariIni}`;
+            
+            let mesinTodayHtml = '';
+            if (mesinAktifSekarang.size === 0) {
+                mesinTodayHtml = '<p class="text-[11px] font-medium text-slate-400 mt-2">Tidak ada mesin jalan saat ini.</p>';
+            } else {
+                mesinTodayHtml = Array.from(mesinAktifSekarang).map(m => `
+                    <span class="bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm animate-pulse">
+                        <i class="ph-fill ph-rocket"></i> ${m}
+                    </span>
+                `).join('');
+            }
+            document.getElementById('mesinTodayUI').innerHTML = `<div class="flex flex-wrap gap-2">${mesinTodayHtml}</div>`;
+            
+            // Render Chart Bulanan
+            renderMesinChart(mesinCountsBulan);
+
+            // FILTER TASK AKTIF UNTUK DAFTAR KARTU BAWAH
             let uncompleted_tasks_3d = (rawTasks3d || []).filter(t => {
                 if (!t || !t.assignee) return false;
                 const statusStr = String(t.status || '').toLowerCase();
-                
-                if (!statusStr.includes('selesai') && !statusStr.includes('final')) {
-                    let gramasiStr = String(t.gramasi || '').replace(/[^0-9.]/g, '');
-                    if (gramasiStr && !isNaN(parseFloat(gramasiStr))) {
-                        totalGramasi += parseFloat(gramasiStr);
-                    }
-                    let msn = String(t.mesin || '').trim();
-                    if (msn && msn !== '-' && msn.toLowerCase() !== 'undefined' && msn.toLowerCase() !== 'null') {
-                        mesinCounts[msn] = (mesinCounts[msn] || 0) + 1;
-                    }
-                }
                 return !statusStr.includes('selesai') && !statusStr.includes('final');
             });
-
-            // UPDATE WIDGET STATS 3D
-            const tgUI = document.getElementById('totalGramasiUI');
-            if (tgUI) tgUI.innerHTML = `${totalGramasi} <span class="text-lg md:text-xl font-bold text-slate-400">gr</span>`;
-            
-            renderMesinChart(mesinCounts);
 
             uncompleted_tasks_3d.reverse();
             uncompleted_tasks_3d.forEach(task => {
@@ -567,7 +659,6 @@
                                     detailsHTML += `</div>`;
                                 }
                             }
-                            // LOGIC BARU: MESIN JALAN
                             else if (tStatus === 'Lagi Produksi' || tStatus === 'Mesin Jalan Project') {
                                 if (tStatus === 'Lagi Produksi') {
                                     borderClass = 'border-amber-200/80 ring-1 ring-amber-100 dark:ring-amber-900/30 bg-amber-50/30 dark:bg-amber-900/10';
@@ -581,7 +672,7 @@
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Waktu</div><div class="flex-1">: ${cStart} - ${cEnd}</div></div>
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Gramasi</div><div class="flex-1">: ${t.gramasi || '-'}</div></div>
                                     <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Jumlah</div><div class="flex-1">: ${t.jumlah || '-'}</div></div>
-                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Mesin</div><div class="flex-1">: <span class="font-extrabold text-emerald-600 dark:text-emerald-400">${t.mesin || '-'}</span></div></div>
+                                    <div class="flex items-center gap-2"><div class="w-14 font-bold text-slate-400 dark:text-zinc-500">Mesin</div><div class="flex-1">: <span class="font-extrabold text-emerald-600 dark:text-emerald-400 line-clamp-1">${t.mesin || '-'}</span></div></div>
                                     ${t.waktuMesinJalan && t.waktuMesinJalan !== '-' ? `<div class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold mt-1 pt-1.5 border-t border-slate-100 dark:border-zinc-800"><i class="ph-fill ph-timer text-sm"></i> Mulai Mesin: ${t.waktuMesinJalan}</div>` : ''}
                                     ${t.catatanTim && t.catatanTim !== '-' ? `<div class="pt-1.5 mt-1 border-t border-slate-100 dark:border-zinc-800 italic line-clamp-2 text-slate-500/90">"${t.catatanTim}"</div>` : ''}
                                 </div>`;
@@ -637,7 +728,7 @@
         }
 
         // ==================================
-        // RENDER GRAFIK DINAMIS (3 KURVA)
+        // RENDER GRAFIK DINAMIS (KOTAK/BAR)
         // ==================================
         renderDynamicChart(rawTasks, rawCreatorTasks, rawTasks3d);
 
@@ -700,37 +791,29 @@
 
         if(productivityChart) productivityChart.destroy();
 
+        // MERUBAH TYPE DARI 'line' (kurva) menjadi 'bar' (kotak)
         productivityChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
                     {
                         label: 'Desain Grafis',
                         data: dataDesain,
-                        borderColor: '#3b82f6', 
-                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
-                        borderWidth: 2.5, tension: 0.4, fill: true,
-                        pointBackgroundColor: '#ffffff', pointBorderColor: '#3b82f6',
-                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        backgroundColor: '#3b82f6', 
+                        borderRadius: 4,
                     },
                     {
                         label: 'Konten Creator',
                         data: dataKonten,
-                        borderColor: '#f43f5e', // rose-500
-                        backgroundColor: 'rgba(244, 63, 94, 0.08)',
-                        borderWidth: 2.5, tension: 0.4, fill: true,
-                        pointBackgroundColor: '#ffffff', pointBorderColor: '#f43f5e',
-                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        backgroundColor: '#f43f5e', // rose-500
+                        borderRadius: 4,
                     },
                     {
                         label: '3D & Produksi',
                         data: data3d,
-                        borderColor: '#10b981', // emerald-500
-                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                        borderWidth: 2.5, tension: 0.4, fill: true,
-                        pointBackgroundColor: '#ffffff', pointBorderColor: '#10b981',
-                        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+                        backgroundColor: '#10b981', // emerald-500
+                        borderRadius: 4,
                     }
                 ]
             },
@@ -809,7 +892,6 @@
         if(productivityChart) {
             productivityChart.options.plugins.legend.labels.color = textColor;
             productivityChart.options.scales.y.grid.color = gridColor;
-            productivityChart.data.datasets.forEach(ds => ds.pointBackgroundColor = pointBg);
             productivityChart.update();
         }
         if(mesinChartInstance) {
